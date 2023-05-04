@@ -1,0 +1,17 @@
+[package]
+name = "bevyrpg"
+version = "0.1.0"
+edition = "2021"
+
+# See more keys and their definitions at https://doc.rust-lang.org/cargo/reference/manifest.html
+
+[dependencies]
+bevy = "0.10.1"
+bevy-inspector-egui = "*"
+bevy_mod_picking = "*"
+bevy_sprite3d = "*"
+rand = "*"
+bevy_rapier3d = "*"
+bevy_fps_controller = "*"
+bevy_asset_loader = {version = "*", features = ["2d"]}
+belly = { git = "https://github.com/jkb0o/belly" }
