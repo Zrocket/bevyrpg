@@ -832,6 +832,15 @@ dependencies = [
 ]
 
 [[package]]
+name = "bevy_mod_ui_texture_atlas_image"
+version = "0.4.1"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "2a4d4769432f35f8aa97dff82916681eeabc957e3c32a575d70a3372d22c12d6"
+dependencies = [
+ "bevy",
+]
+
+[[package]]
 name = "bevy_pbr"
 version = "0.10.1"
 source = "registry+https://github.com/rust-lang/crates.io-index"
@@ -1274,6 +1283,7 @@ dependencies = [
  "bevy_asset_loader",
  "bevy_fps_controller",
  "bevy_mod_picking",
+ "bevy_mod_ui_texture_atlas_image",
  "bevy_rapier3d",
  "bevy_sprite3d",
  "rand",

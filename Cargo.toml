@@ -15,3 +15,4 @@ bevy_rapier3d = "*"
 bevy_fps_controller = "*"
 bevy_asset_loader = {version = "*", features = ["2d"]}
 belly = { git = "https://github.com/jkb0o/belly" }
+bevy_mod_ui_texture_atlas_image = "0.4.1"

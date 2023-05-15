@@ -7,7 +7,6 @@ use bevy_mod_picking::*;
 use bevy_sprite3d::*;
 use bevy_asset_loader::prelude::*;
 use bevy_rapier3d::prelude::*;
-use belly::prelude::*;
 
 mod player;
 mod character;
@@ -71,7 +70,6 @@ fn main() {
             }),
             ..default()
         }))
-        .add_plugin(BellyPlugin)
         .add_plugin(Sprite3dPlugin)
         .add_plugin(RapierPhysicsPlugin::<NoUserData>::default())
         .add_plugin(FpsControllerPlugin)
@@ -284,6 +282,8 @@ fn create_ui(
     })
     .with_children(|commands| {
         commands.spawn(NodeBundle {
+        background_color: BackgroundColor::from(Color::GREEN),
+        visibility: Visibility::Visible,
         style: Style {
             size: Size::new(Val::Percent(100.0), Val::Auto),
             ..default()
@@ -292,7 +292,6 @@ fn create_ui(
         })
         .with_children(|commands| {
             commands.spawn(NodeBundle {
-                background_color: BackgroundColor::from(Color::GREEN),
                 visibility: Visibility::Visible,
                 style: Style {
                     size: Size::new(Val::Percent(100.0), Val::Percent(100.0)),
@@ -302,7 +301,7 @@ fn create_ui(
             })
             .insert(TextBundle {
                 text: Text::from_section(
-                      "Player UI Test",
+                      "Player Health",
                       TextStyle { 
                           font: asset_server.load("FiraSans-Bold.ttf"),
                           font_size: 50.0,
@@ -315,10 +314,10 @@ fn create_ui(
                 ..default()
             });
             commands.spawn(NodeBundle {
-                background_color: BackgroundColor::from(Color::YELLOW),
+                background_color: BackgroundColor::from(Color::RED),
                 visibility: Visibility::Visible,
                 style: Style {
-                    size: Size::new(Val::Px(1.0), Val::Auto),
+                    size: Size::new(Val::Percent(100.0), Val::Auto),
                     ..default()
                 },
                 ..default()
