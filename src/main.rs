@@ -69,6 +69,7 @@ fn main() {
         .add_plugin(UiPlugin)
         .add_plugin(DevRoomPlugin)
         .add_system(manage_cursor.in_set(OnUpdate(GameState::Gameplay)))
+        .add_system(health_test.in_set(OnUpdate(GameState::Gameplay)))
         .run();
 }
 
@@ -96,5 +97,15 @@ fn manage_cursor(
         for mut controller in &mut controllers {
             controller.enable_input = false;
         }
+    }
+}
+
+fn health_test(
+    key: Res<Input<KeyCode>>,
+    mut player: Query<(Entity, &mut Character), With<Player>>,
+) {
+    let mut player = player.get_single_mut().unwrap();
+    if key.just_pressed(KeyCode::K) {
+        player.1.health -= 10;
     }
 }
