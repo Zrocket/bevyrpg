@@ -10,9 +10,6 @@ pub struct PlayerPlugin;
 
 impl Plugin for PlayerPlugin {
     fn build(&self, app: &mut App) {
-        app.register_type::<Player>()
-            .add_event::<DamageEvent>()
-            .add_event::<LevelUpEvent>()
-            .add_event::<ExperienceEvent>();
+        app.register_type::<Player>();
     }
 }

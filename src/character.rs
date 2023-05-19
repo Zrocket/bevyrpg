@@ -46,7 +46,9 @@ pub struct Skills {
 pub struct Character {
     pub speed: f32,
     pub mana: usize,
+    pub max_mana: usize,
     pub health: i64,
+    pub max_health: i64,
     pub level: usize,
     pub experience: usize,
     pub mind: usize,
