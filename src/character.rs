@@ -1,17 +1,25 @@
 use bevy::{prelude::*, reflect};
 
 use crate::*;
+use items::Item;
 
+#[derive(Event)]
 pub struct DamageEvent {
     pub target: Entity,
-    pub ammount: i64,
+    pub ammount: i32,
 }
+#[derive(Event)]
 pub struct LevelUpEvent(pub Entity);
+
+#[derive(Event)]
 pub struct ExperienceEvent {
     pub target: Entity,
-    pub ammount: i64,
+    pub ammount: i32,
 }
+#[derive(Event)]
 pub struct DeathEvent(pub Entity);
+
+#[derive(Event)]
 pub struct AttackEvent {
     pub attacker: Entity,
     pub defender: Entity,
@@ -29,35 +37,35 @@ pub enum Profession {
 #[derive(Component, Reflect, Default)]
 #[reflect(Component)]
 pub struct Skills {
-    pub archery: usize,
-    pub blade: usize,
-    pub bludgeon: usize,
-    pub harm: usize,
-    pub heal: usize,
-    pub heavy_armor: usize,
-    pub light_armor: usize,
-    pub lock_picking: usize,
-    pub sneak: usize,
-    pub technology: usize,
+    pub archery: i32,
+    pub blade: i32,
+    pub bludgeon: i32,
+    pub harm: i32,
+    pub heal: i32,
+    pub heavy_armor: i32,
+    pub light_armor: i32,
+    pub lock_picking: i32,
+    pub sneak: i32,
+    pub technology: i32,
 }
 
 #[derive(Component, Reflect, Default)]
 #[reflect(Component)]
 pub struct Character {
     pub speed: f32,
-    pub mana: usize,
-    pub max_mana: usize,
-    pub health: i64,
-    pub max_health: i64,
-    pub level: usize,
-    pub experience: usize,
-    pub mind: usize,
-    pub matter: usize,
-    pub maneuver: usize,
-    pub luck: usize,
+    pub mana: i32,
+    pub max_mana: i32,
+    pub health: i32,
+    pub max_health: i32,
+    pub level: i32,
+    pub experience: i32,
+    pub mind: i32,
+    pub matter: i32,
+    pub maneuver: i32,
+    pub luck: i32,
     pub skills: Skills,
     pub profession: Profession,
-    pub corruption: usize,
+    pub corruption: i32,
 }
 
 pub struct CharacterPlugin;
@@ -69,10 +77,10 @@ impl Plugin for CharacterPlugin {
             .add_event::<LevelUpEvent>()
             .add_event::<ExperienceEvent>()
             .add_event::<AttackEvent>()
-            .add_system(damage_character.in_set(OnUpdate(GameState::Gameplay)))
-            .add_system(get_experience.in_set(OnUpdate(GameState::Gameplay)))
-            .add_system(level_up.in_set(OnUpdate(GameState::Gameplay)))
-            .add_system(attack_character.in_set(OnUpdate(GameState::Gameplay)));
+            .add_systems(Update, damage_character.run_if(in_state(GameState::Gameplay)))
+            .add_systems(Update, get_experience.run_if(in_state(GameState::Gameplay)))
+            .add_systems(Update, level_up.run_if(in_state(GameState::Gameplay)))
+            .add_systems(Update, attack_character.run_if(in_state(GameState::Gameplay)));
     }
 }
 
@@ -89,7 +97,7 @@ fn attack_character(
         if attacker.matter > defender.maneuver {
             damage_event_writer.send(DamageEvent {
                 target: event.defender,
-                ammount: attacker.matter as i64,
+                ammount: attacker.matter as i32,
             });
         }
     }
@@ -103,7 +111,11 @@ fn damage_character(
         let mut target = characters
             .get_mut(event.target)
             .expect("Damaging a non-character entity!");
-        target.health -= event.ammount;
+        if event.ammount > target.health {
+            target.health = 0;
+        } else {
+            target.health -= event.ammount;
+        }
     }
 }
 
@@ -116,7 +128,7 @@ fn get_experience(
         let mut character = characters
             .get_mut(event.target)
             .expect("Trying to give experience to a non-character entity!");
-        character.experience += event.ammount as usize;
+        character.experience += event.ammount;
         if character.experience >= 100 {
             level_up_writer.send(LevelUpEvent(event.target));
         }
