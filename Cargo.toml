@@ -6,13 +6,18 @@ edition = "2021"
 # See more keys and their definitions at https://doc.rust-lang.org/cargo/reference/manifest.html
 
 [dependencies]
-bevy = "0.10.1"
+bevy = "0.11.2"
+#bevy = { git="https://github.com/bevyengine/bevy.git" }
 bevy-inspector-egui = "*"
-bevy_mod_picking = "*"
+#bevy_mod_picking = "*"
 bevy_sprite3d = "*"
 rand = "*"
 bevy_rapier3d = "*"
 bevy_fps_controller = "*"
 bevy_asset_loader = {version = "*", features = ["2d"]}
-belly = { git = "https://github.com/jkb0o/belly" }
-bevy_mod_ui_texture_atlas_image = "0.4.1"
+#bevy-yoleck = "0.14.1"
+serde = "1.0.183"
+#bevy_mod_ui_texture_atlas_image = "0.4.1"
+bevy_gltf_components = { git="https://github.com/kaosat-dev/Blender_bevy_components_worklflow.git" }
+bevy_mod_static_inventory = "0.1.0"
+bevy_simple_text_input = "0.1.2"

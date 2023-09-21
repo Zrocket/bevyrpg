@@ -1,4 +1,5 @@
-use bevy::{prelude::*, reflect};
+use bevy::{prelude::*, core_pipeline::clear_color::ClearColorConfig, render::camera::Viewport};
+use rand::Rng;
 
 use crate::*;
 
@@ -32,11 +33,11 @@ pub struct DevRoomPlugin;
 
 impl Plugin for DevRoomPlugin {
     fn build(&self, app: &mut App) {
-        app.add_system(spawn_basic_scene.in_schedule(OnEnter(GameState::Loading)))
+        app.add_systems(OnEnter(GameState::Loading), spawn_basic_scene)
             .add_collection_to_loading_state::<_, ImageAssets>(GameState::Loading)
-            .add_system(spawn_sprites.in_schedule(OnEnter(GameState::Gameplay)))
-            .add_system(face_camera.in_set(OnUpdate(GameState::Gameplay)))
-            .add_system(animate_sprites.in_set(OnUpdate(GameState::Gameplay)));
+            .add_systems(OnEnter(GameState::Gameplay), spawn_sprites)
+            .add_systems(Update, face_camera.run_if(in_state(GameState::Gameplay)))
+            .add_systems(Update, animate_sprites.run_if(in_state(GameState::Gameplay)));
     }
 }
 
@@ -44,7 +45,10 @@ fn spawn_basic_scene(
     mut commands: Commands,
     mut meshes: ResMut<Assets<Mesh>>,
     mut materials: ResMut<Assets<StandardMaterial>>,
+    windows: Query<&Window>,
 ) {
+    let window = windows.get_single().unwrap();
+
     commands.spawn(DirectionalLightBundle {
         directional_light: DirectionalLight {
             illuminance: 2000.0,
@@ -100,19 +104,25 @@ fn spawn_basic_scene(
         ))
         .insert(Player)
         .insert(Character {
+            mana: 100,
+            max_mana: 100,
             health: 100,
             max_health: 100,
+            experience: 100,
             ..default()
-        });
+        })
+        .insert(Inventory { ..default() });
 
     // Cube
-    commands.spawn(PbrBundle {
+    commands.spawn((PbrBundle {
         mesh: meshes.add(Mesh::from(shape::Cube { size: 1.0 })),
         material: materials.add(Color::WHITE.into()),
         transform: Transform::from_xyz(-0.9, 0.5, -3.2),
         ..default()
-    });
-
+    },
+        RigidBody::Fixed,
+        Collider::cuboid(0.5, 0.5, 0.5),
+    ));
     // Sphere
     commands.spawn(PbrBundle {
         mesh: meshes.add(
