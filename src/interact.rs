@@ -4,7 +4,10 @@ use bevy::prelude::*;
 pub struct Interactable;
 
 #[derive(Event)]
-pub struct InteractEvent;
+pub struct InteractEvent {
+    actor: Entity,
+    target: Entity,
+}
 
 pub struct InteractPlugin;
 

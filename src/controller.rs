@@ -1,5 +1,5 @@
 use bevy::{prelude::*, window::CursorGrabMode};
-use bevy_rapier3d::prelude::*;
+use bevy_rapier3d::prelude::{*, Real};
 use bevy_fps_controller::controller::*;
 use super::GameState;
 
@@ -58,7 +58,7 @@ fn manage_interact(
     mut interact_event_writer: EventWriter<InteractEvent>,
 ) {
     if key.just_pressed(KeyCode::E) {
-        interact_event_writer.send(InteractEvent)
+        //interact_event_writer.send(InteractEvent)
     }
 }
 
@@ -74,6 +74,22 @@ fn manage_console(
         } else {
             player_ui.console = true;
         }
+    }
+}
+
+fn weapon_select(
+    key: Res<Input<KeyCode>>,
+    mut player_ui: Query<&mut PlayerUi>,
+    ) {
+    if key.just_pressed(KeyCode::Key1) {
+    } else if key.just_pressed(KeyCode::Key2) {
+       todo!(); 
+    } else if key.just_pressed(KeyCode::Key3) {
+       todo!(); 
+    } else if key.just_pressed(KeyCode::Key4) {
+       todo!(); 
+    } else if key.just_pressed(KeyCode::Key5) {
+       todo!(); 
     }
 }
 
@@ -100,7 +116,7 @@ fn interact(
     interactables: Query<Entity, With<Interactable>>,
 ) {
     let player = player.get_single().unwrap();
-    for _event in interact_events.iter() {
+    for _event in interact_events.read() {
         for (_camera, global_transform) in query.iter() {
             let camera_position = global_transform.translation();
             let direction = global_transform.forward();
