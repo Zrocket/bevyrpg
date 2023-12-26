@@ -1,7 +1,6 @@
-use bevy::{prelude::*, reflect};
+use bevy::prelude::*;
 
 use crate::*;
-use items::Item;
 
 #[derive(Event)]
 pub struct DamageEvent {
@@ -37,13 +36,10 @@ pub enum Profession {
 #[derive(Component, Reflect, Default)]
 #[reflect(Component)]
 pub struct Skills {
-    pub archery: i32,
+    pub guns: i32,
     pub blade: i32,
-    pub bludgeon: i32,
-    pub harm: i32,
     pub heal: i32,
-    pub heavy_armor: i32,
-    pub light_armor: i32,
+    pub armor: i32,
     pub lock_picking: i32,
     pub sneak: i32,
     pub technology: i32,
@@ -89,7 +85,7 @@ fn attack_character(
     mut damage_event_writer: EventWriter<DamageEvent>,
     charactes: Query<&mut Character>,
 ) {
-    for event in attack_events.iter() {
+    for event in attack_events.read() {
         let attacker = charactes
             .get(event.attacker)
             .expect("Attacking a non-character entity!");
@@ -104,15 +100,23 @@ fn attack_character(
 }
 
 fn damage_character(
+    mut commands: Commands,
     mut characters: Query<&mut Character>,
     mut damage_events: EventReader<DamageEvent>,
 ) {
-    for event in damage_events.iter() {
-        let mut target = characters
-            .get_mut(event.target)
-            .expect("Damaging a non-character entity!");
+    for event in damage_events.read() {
+        let target = characters
+            .get_mut(event.target);
+        if target.is_err() {
+            return;
+        }
+
+        let mut target = target.unwrap();
+
         if event.ammount > target.health {
             target.health = 0;
+            println!("TARGET IS DEAD!!!");
+            commands.entity(event.target).despawn_recursive();
         } else {
             target.health -= event.ammount;
         }
@@ -124,7 +128,7 @@ fn get_experience(
     mut experience_events: EventReader<ExperienceEvent>,
     mut level_up_writer: EventWriter<LevelUpEvent>,
 ) {
-    for event in experience_events.iter() {
+    for event in experience_events.read() {
         let mut character = characters
             .get_mut(event.target)
             .expect("Trying to give experience to a non-character entity!");
@@ -136,7 +140,7 @@ fn get_experience(
 }
 
 fn level_up(mut characters: Query<&mut Character>, mut level_up_events: EventReader<LevelUpEvent>) {
-    for event in level_up_events.iter() {
+    for event in level_up_events.read() {
         let mut character = characters
             .get_mut(event.0)
             .expect("Trying to level up a non-character entity!");

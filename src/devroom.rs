@@ -1,4 +1,4 @@
-use bevy::{prelude::*, core_pipeline::clear_color::ClearColorConfig, render::camera::Viewport};
+use bevy::{prelude::*, core_pipeline::clear_color::ClearColorConfig, math::vec3};
 use rand::Rng;
 
 use crate::*;
@@ -37,7 +37,8 @@ impl Plugin for DevRoomPlugin {
             .add_collection_to_loading_state::<_, ImageAssets>(GameState::Loading)
             .add_systems(OnEnter(GameState::Gameplay), spawn_sprites)
             .add_systems(Update, face_camera.run_if(in_state(GameState::Gameplay)))
-            .add_systems(Update, animate_sprites.run_if(in_state(GameState::Gameplay)));
+            .add_systems(Update, animate_sprites.run_if(in_state(GameState::Gameplay)))
+            .add_systems(Update, player_forward.run_if(in_state(GameState::Gameplay)));
     }
 }
 
@@ -45,10 +46,9 @@ fn spawn_basic_scene(
     mut commands: Commands,
     mut meshes: ResMut<Assets<Mesh>>,
     mut materials: ResMut<Assets<StandardMaterial>>,
+    asset_server: Res<AssetServer>,
     windows: Query<&Window>,
 ) {
-    let window = windows.get_single().unwrap();
-
     commands.spawn(DirectionalLightBundle {
         directional_light: DirectionalLight {
             illuminance: 2000.0,
@@ -77,8 +77,25 @@ fn spawn_basic_scene(
         },
     ));
 
+    // Gun
+    let gun = commands
+        .spawn(
+            SceneBundle {
+                scene: asset_server.load("guns/uzi.glb#Scene0"),
+                //scene: asset_server.load("guns/shotgun.glb#Scene0"),
+                //scene: asset_server.load("guns/revolver-python.glb#Scene0"),
+                //scene: asset_server.load("guns/pistol-coonan.glb#Scene0"),
+                //scene: asset_server.load("guns/smg-mp5x.glb#Scene0"),
+                //scene: asset_server.load("guns/sniper.glb#Scene0"),
+                transform: Transform::from_translation(vec3(0.1, -0.2, -0.5)),
+                ..default()
+            }
+        )
+        .insert(Weapon)
+        .id();
+
     // Player
-    commands
+    let logical_entity = commands
         .spawn((
             Collider::capsule(Vec3::Y * 0.5, Vec3::Y * 1.5, 0.1),
             Friction {
@@ -93,8 +110,8 @@ fn spawn_basic_scene(
             AdditionalMassProperties::Mass(1.0),
             GravityScale(0.0),
             Ccd { enabled: true },
-            TransformBundle::from_transform(Transform::from_xyz(0.0, 3.0, 0.0)),
-            LogicalPlayer(0),
+            TransformBundle::from_transform(Transform::from_xyz(0.0, 1.0, 0.0)),
+            LogicalPlayer,
             FpsControllerInput {
                 pitch: -TAU / 12.0,
                 yaw: TAU * 5.0 / 8.0,
@@ -102,6 +119,10 @@ fn spawn_basic_scene(
             },
             FpsController { ..default() },
         ))
+        .insert(CameraConfig {
+            height_offset: 0.0,
+            radius_scale: 0.75,
+        })
         .insert(Player)
         .insert(Character {
             mana: 100,
@@ -111,7 +132,8 @@ fn spawn_basic_scene(
             experience: 100,
             ..default()
         })
-        .insert(Inventory { ..default() });
+        .insert(Inventory { ..default() })
+        .id();
 
     // Cube
     commands.spawn((PbrBundle {
@@ -122,7 +144,17 @@ fn spawn_basic_scene(
     },
         RigidBody::Fixed,
         Collider::cuboid(0.5, 0.5, 0.5),
-    ));
+    ))
+    .insert(
+            Character {
+                mana: 100,
+                max_mana: 100,
+                health: 100,
+                max_health: 100,
+                experience: 100,
+                ..default()
+            }
+           );
     // Sphere
     commands.spawn(PbrBundle {
         mesh: meshes.add(
@@ -154,8 +186,9 @@ fn spawn_basic_scene(
             }),
             ..default()
         },
-        RenderPlayer(0),
-    ));
+        RenderPlayer{ logical_entity },
+    ))
+    .add_child(gun);
 }
 
 fn spawn_sprites(
@@ -180,6 +213,15 @@ fn spawn_sprites(
                 }
                 .bundle(&mut sprite_params),
                 FaceCamera {},
+                Collider::capsule(Vec3::Y * 0.5, Vec3::Y * 1.5, 0.1),
+                Character {
+                    mana: 100,
+                    max_mana: 100,
+                    health: 100,
+                    max_health: 100,
+                    experience: 100,
+                    ..default()
+                }
             ));
 
             if frames > 1 {
@@ -258,6 +300,17 @@ fn spawn_sprites(
         transform: Transform::from_xyz(-5., 1.1, 6.5),
         ..default()
     });
+}
+
+fn player_forward(
+    cam_transform: Query<&Transform, (With<Camera>, Without<Player>)>,
+    mut player_transform: Query<&mut Transform, With<Player>>,
+    ) {
+    let cam_transform = cam_transform.single();
+    let mut forward = cam_transform.forward();
+    //forward.y = 0.0;
+    let mut player_transform  = player_transform.single_mut();
+    player_transform.look_to(forward, Vec3::Y);
 }
 
 fn animate_sprites(

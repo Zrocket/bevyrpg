@@ -3,13 +3,12 @@ use std::f32::consts::TAU;
 use bevy::{
     prelude::*,
     utils::Duration,
-    window::{CursorGrabMode, WindowResolution, Cursor},
+    window::{ WindowResolution, Cursor},
 };
 use bevy_asset_loader::prelude::*;
 use bevy_fps_controller::controller::*;
 use bevy_rapier3d::prelude::*;
 use bevy_sprite3d::*;
-use serde::{Deserialize, Serialize};
 
 mod character;
 mod devroom;
@@ -78,6 +77,7 @@ fn main() {
         .add_plugins(ControllerPlugin)
         .add_plugins(InventoryPlugin)
         .add_systems(Update, health_test.run_if(in_state(GameState::Gameplay)))
+        .add_systems(Update, inventory_test.run_if(in_state(GameState::Gameplay)))
         .run();
 }
 
@@ -86,12 +86,21 @@ fn health_test(
     mut player: Query<(Entity, &Character), With<Player>>,
     mut damage_event_writer: EventWriter<DamageEvent>,
     ) {
-    let (player_entity, player) = player.get_single_mut().unwrap();
+    let (player_entity, _player) = player.get_single_mut().unwrap();
     if key.just_pressed(KeyCode::K) {
         damage_event_writer.send(DamageEvent {
             target: player_entity,
             ammount: 5,
         });
     }
-    //println!("{}, {}", player.health, (player.health as f32 / player.max_health as f32) * 100.);
+}
+
+fn inventory_test(
+    key: Res<Input<KeyCode>>,
+    mut player: Query<&mut Inventory, With<Player>>,
+    ) {
+    let mut player_inventory = player.get_single_mut().unwrap();
+    if key.just_pressed(KeyCode::J) {
+        player_inventory.items.push( Item { name: "Test".to_string(), description: "Test".to_string() } );
+    }
 }
