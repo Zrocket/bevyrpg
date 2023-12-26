@@ -1,4 +1,3 @@
-
 use bevy::prelude::*;
 
 
@@ -20,6 +19,8 @@ impl Plugin for NpcPlugin {
 
 fn npc_interact(
     npcs: Query<&mut Npc>,
+    interacted: EventReader<InteractEvent>,
 ) {
-    for npc in npcs.iter
+    for event in interacted.iter() {
+    }
 }

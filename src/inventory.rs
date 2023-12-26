@@ -1,7 +1,6 @@
-use bevy::{prelude::*, reflect};
+use bevy::prelude::*;
 use super::GameState;
 
-use crate::character::*;
 use crate::items::*;
 
 #[derive(Event)]
@@ -40,7 +39,7 @@ fn add_to_inventory(
     mut actor: Query<(Entity, &mut Inventory)>,
     mut item: Query<(Entity, &mut Item)>
 ) {
-    for event in pick_up_events.iter() {
+    for event in pick_up_events.read() {
         let (_, mut inventory) = actor.get_mut(event.actor).unwrap();
         let (item_entity, item) = item.get_mut(event.item).unwrap();
         inventory.items.push(item.clone());
@@ -52,7 +51,7 @@ fn remove_from_inventory(
     mut remove_events: EventReader<RemoveEvent>,
     mut actor: Query<(Entity, &mut Inventory)>,
 ){
-    for event in remove_events.iter() {
+    for event in remove_events.read() {
         let (_, mut inventory) = actor.get_mut(event.actor).unwrap();
         inventory.items.remove(event.index as usize);
     }
