@@ -1,7 +1,9 @@
 use bevy::prelude::*;
 
-#[derive(Reflect)]
+#[derive(Component, Debug, Clone, Reflect, Default)]
+#[reflect(Component)]
 pub enum ArmorType {
+    #[default]
     None,
     Chest,
     Leg,
@@ -12,13 +14,7 @@ pub enum ArmorType {
     Face,
 }
 
-impl Default for ArmorType {
-    fn default() -> Self {
-        Self::None
-    }
-}
-
-#[derive(Component, Reflect, Default)]
+#[derive(Component, Debug, Clone, Reflect, Default)]
 #[reflect(Component)]
 pub struct Armor {
     armor_type: ArmorType,

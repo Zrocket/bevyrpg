@@ -23,6 +23,7 @@ pub fn shoot(
     player: Query<Entity, With<Player>>,
     query: Query<(&Camera, &GlobalTransform)>,
 ) {
+    trace!("Event Handler: shoot");
     let player = player.get_single().unwrap();
     for _event in shoot_events.read() {
         for (_camera, global_transform) in query.iter() {
@@ -30,11 +31,11 @@ pub fn shoot(
             let direction = global_transform.forward();
 
             if let Some((entity, toi)) = rapier_context.cast_ray(
-                camera_position, direction, Real::MAX, false, QueryFilter {exclude_collider: Some(player), ..default()}
+                camera_position, direction.into(), Real::MAX, false, QueryFilter {exclude_collider: Some(player), ..default()}
                 ) {
                 let hit_point = camera_position + direction * toi;
-                println!("SHOOT Entity {:?} hit at point {}", entity, hit_point);
-                damage_event.send(DamageEvent { target: entity, ammount: 10 })
+                info!("SHOOT Entity {:?} hit at point {}", entity, hit_point);
+                damage_event.send(DamageEvent { target: entity, ammount: 10 });
             }
         }
     }

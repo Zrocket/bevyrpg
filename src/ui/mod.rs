@@ -5,72 +5,86 @@ mod console;
 mod crosshair;
 mod inventory_ui;
 mod status_bar;
+//mod dialog_ui;
+mod settings;
 
 use console::*;
 use crosshair::*;
 use inventory_ui::*;
 use status_bar::*;
+//use dialog_ui::*;
+use settings::*;
 
-#[derive(Component)]
-pub struct PlayerUi {
-    pub status_bar: bool,
-    pub inventory: bool,
-    pub console: bool,
-    pub crosshair: bool,
+#[derive(Component, Reflect, Default)]
+pub struct UiIndex(pub i32);
+
+#[derive(Component, Reflect, Default)]
+pub struct ActiveConsole;
+
+#[derive(Event)]
+pub struct UiInventoryEvent {
+    pub actor: Entity,
 }
 
-#[derive(Component)]
-pub struct UiEntity;
+#[derive(Component, Reflect, Default)]
+pub struct ActiveUi;
+
+#[derive(Component, Reflect, Default)]
+pub struct ActiveMenuUi;
+
+#[derive(Component, Reflect, Default)]
+pub struct ActiveVideoMenuUi;
+
+#[derive(Component, Reflect, Default)]
+pub struct ActiveInventoryUi;
+
+#[derive(Component, Reflect)]
+pub struct UiEntity(pub Entity);
+
+#[derive(Component, Reflect)]
+pub struct UiConsole;
+
+#[derive(Component, Reflect)]
+pub struct UiCrosshair;
+
+#[derive(Component, Reflect)]
+pub struct UiStatus;
+
+#[derive(Component, Reflect)]
+pub struct UiInventory;
+
+#[derive(Component, Reflect)]
+pub struct UiMenu;
+
+#[derive(Component, Reflect)]
+pub struct VideoUiMenu;
 
 pub struct UiPlugin;
 
 impl Plugin for UiPlugin {
     fn build(&self, app: &mut App) {
-        app.add_systems(OnEnter(GameState::Gameplay), spawn_ui)
-            .add_systems(
-                Update,
-                update_ui.run_if(in_state(GameState::Gameplay))
-            );
+            app.add_event::<UiInventoryEvent>()
+            .add_systems(Update, draw_inventory_ui)
+            //.add_systems(Update, draw_menu_ui::<InInventory>)
+            .add_systems(Update, draw_status_ui)
+            .add_systems(Update, draw_console_ui)
+            .add_systems(Update, draw_crosshair)
+            .add_systems(Update, draw_menu_ui)
+            .add_systems(Update, inventory_ui_event_handler.run_if(in_state(GameState::Gameplay)))
+            .add_systems(Update, cleanup_system::<UiEntity>)
+            .add_systems(Update, cleanup_system::<UiStatus>)
+            .add_systems(Update, cleanup_system::<UiConsole>)
+            .add_systems(Update, cleanup_system::<UiCrosshair>)
+            .add_systems(Update, cleanup_system::<UiMenu>)
+            .add_systems(Update, cleanup_system::<UiInventory>);
     }
 }
 
-fn update_ui(
+pub fn inventory_ui_event_handler(
     mut commands: Commands,
-    asset_server: Res<AssetServer>,
-    player_ui: Query<&PlayerUi, With<PlayerUi>>,
-    player: Query<(Entity, &Character, &Inventory), With<Player>>,
-    ui_entities: Query<Entity, With<UiEntity>>,
-) {
-    for ui_entity in  ui_entities.iter() {
-        commands.entity(ui_entity).despawn_recursive();
+    mut inventory_ui_events: EventReader<UiInventoryEvent>,
+    ) {
+    for event in inventory_ui_events.read() {
+        commands.entity(event.actor).insert(ActiveUi);
     }
-
-    if let Ok(player_entity) = player.get_single() {
-        if let Ok(player_ui) = player_ui.get_single() {
-            if player_ui.status_bar {
-                create_ui(&mut commands, &asset_server, &player_entity.1);
-            }
-            if player_ui.inventory {
-                create_inventory_ui(&mut commands, &asset_server, &player_entity.2);
-            }
-            if player_ui.console {
-                create_console_ui(&mut commands, &asset_server);
-            }
-            if player_ui.crosshair {
-                create_crosshair(&mut commands, &asset_server);
-            }
-        }
-    }
-}
-
-fn spawn_ui(
-    mut commands: Commands,
-) {
-    commands.spawn(
-       PlayerUi {
-            status_bar: true,
-            inventory: false,
-            console: false,
-            crosshair: true,
-       });
 }

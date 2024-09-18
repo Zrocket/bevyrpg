@@ -1,12 +1,13 @@
 use bevy::prelude::*;
 use super::GameState;
+use std::ops::Deref;
 
 use crate::items::*;
 
 #[derive(Event)]
 pub struct PickUpEvent {
     pub actor: Entity,
-    pub item: Entity,
+    pub target: Entity,
 }
 
 #[derive(Event)]
@@ -15,10 +16,48 @@ pub struct RemoveEvent {
     pub index: i32,
 }
 
-#[derive(Component, Reflect, Default)]
-#[reflect(Component)]
+#[derive(Component, Default)]
 pub struct Inventory {
     pub items: Vec<Item>,
+    pub ui_index: usize,
+    pub ui_active: bool,
+}
+
+
+#[derive(Component, Clone, Reflect)]
+#[reflect(Component)]
+pub struct InInventory(pub Entity);
+
+impl From<InInventory> for Entity {
+    fn from(in_inventory: InInventory) -> Entity {
+        in_inventory.0
+    }
+}
+
+impl From<&InInventory> for Entity {
+    fn from(in_inventory: &InInventory) -> Entity {
+        in_inventory.0
+    }
+}
+
+impl From<Entity> for InInventory {
+    fn from(entity: Entity) -> InInventory {
+        InInventory(entity)
+    }
+}
+
+impl AsRef<Entity> for InInventory {
+    fn as_ref(&self) -> &Entity {
+        &self.0
+    }
+}
+
+impl Deref for InInventory {
+    type Target = Entity;
+
+    fn deref(&self) -> &Self::Target {
+        self.as_ref()
+    }
 }
 
 pub struct InventoryPlugin;
@@ -29,21 +68,25 @@ impl Plugin for InventoryPlugin {
             .add_event::<PickUpEvent>()
             .add_event::<RemoveEvent>()
             .add_systems(Update, add_to_inventory.run_if(in_state(GameState::Gameplay)))
-            .add_systems(Update, remove_from_inventory.run_if(in_state(GameState::Gameplay)));
+            .add_systems(Update, remove_from_inventory.run_if(in_state(GameState::Gameplay)))
+            .register_type::<InInventory>();
     }
 }
 
 fn add_to_inventory(
     mut commands: Commands,
     mut pick_up_events: EventReader<PickUpEvent>,
-    mut actor: Query<(Entity, &mut Inventory)>,
-    mut item: Query<(Entity, &mut Item)>
+    mut item: Query<Entity, With<ItemType>>,
 ) {
     for event in pick_up_events.read() {
-        let (_, mut inventory) = actor.get_mut(event.actor).unwrap();
-        let (item_entity, item) = item.get_mut(event.item).unwrap();
-        inventory.items.push(item.clone());
-        commands.entity(item_entity).despawn_recursive();
+        if item.get_mut(event.target).is_ok() {
+    info!("Event Handler: add_to_inventory");
+            //commands.entity(item_entity).despawn_recursive();
+            commands.entity(event.target)
+                .insert(InInventory(event.actor))
+                .remove::<PbrBundle>();
+                //.remove::<Collider>();
+        }
     }
 }
 
@@ -51,8 +94,10 @@ fn remove_from_inventory(
     mut remove_events: EventReader<RemoveEvent>,
     mut actor: Query<(Entity, &mut Inventory)>,
 ){
+    trace!("remove_from_inventory Event Handler");
     for event in remove_events.read() {
-        let (_, mut inventory) = actor.get_mut(event.actor).unwrap();
-        inventory.items.remove(event.index as usize);
+        if let Ok((_, mut inventory)) = actor.get_mut(event.actor) {
+            inventory.items.remove(event.index as usize);
+        }
     }
 }

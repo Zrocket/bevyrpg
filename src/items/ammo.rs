@@ -1,18 +1,12 @@
 use bevy::prelude::*;
 
-#[derive(Reflect)]
+#[derive(Debug, Clone, Reflect, Default)]
 pub enum AmmoType {
+    #[default]
     None,
 }
 
-impl Default for AmmoType {
-    fn default() -> Self {
-        Self::None
-    }
-}
-
-#[derive(Component, Reflect, Default)]
-#[reflect(Component)]
+#[derive(Debug, Clone, Reflect, Default)]
 pub struct Ammo;
 
 pub struct AmmoPlugin;

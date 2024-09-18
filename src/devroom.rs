@@ -1,44 +1,19 @@
-use bevy::{prelude::*, core_pipeline::clear_color::ClearColorConfig, math::vec3};
-use rand::Rng;
+use bevy::{math::vec3, prelude::*, render::camera::ClearColorConfig};
+use bevy_tnua::controller::TnuaControllerBundle;
+use bevy_tnua_rapier3d::TnuaRapier3dIOBundle;
+
+use std::f32::consts::PI;
 
 use crate::*;
-
-#[derive(AssetCollection, Resource)]
-struct ImageAssets {
-    #[asset(texture_atlas(
-        tile_size_x = 16.,
-        tile_size_y = 16.,
-        columns = 30,
-        rows = 35,
-        padding_x = 10.,
-        padding_y = 10.,
-        offset_x = 5.,
-        offset_y = 5.
-    ))]
-    #[asset(path = "tileset_padded.png")]
-    tileset: Handle<TextureAtlas>,
-}
-
-#[derive(Component)]
-struct Animation {
-    frames: Vec<usize>,
-    current: usize,
-    timer: Timer,
-}
-
-#[derive(Component)]
-struct FaceCamera;
 
 pub struct DevRoomPlugin;
 
 impl Plugin for DevRoomPlugin {
     fn build(&self, app: &mut App) {
         app.add_systems(OnEnter(GameState::Loading), spawn_basic_scene)
-            .add_collection_to_loading_state::<_, ImageAssets>(GameState::Loading)
-            .add_systems(OnEnter(GameState::Gameplay), spawn_sprites)
-            .add_systems(Update, face_camera.run_if(in_state(GameState::Gameplay)))
-            .add_systems(Update, animate_sprites.run_if(in_state(GameState::Gameplay)))
-            .add_systems(Update, player_forward.run_if(in_state(GameState::Gameplay)));
+            //.add_systems(OnEnter(GameState::Gameplay), spawn_sprites)
+            .add_systems(Update, player_forward.run_if(in_state(GameState::Gameplay)))
+            .add_plugins(SpritesPlugin);
     }
 }
 
@@ -47,37 +22,31 @@ fn spawn_basic_scene(
     mut meshes: ResMut<Assets<Mesh>>,
     mut materials: ResMut<Assets<StandardMaterial>>,
     asset_server: Res<AssetServer>,
-    windows: Query<&Window>,
 ) {
+    trace!("Spawn basic scene");
+
+    info!("Creating DirectionalLightBundle");
     commands.spawn(DirectionalLightBundle {
         directional_light: DirectionalLight {
-            illuminance: 2000.0,
+            illuminance: light_consts::lux::OFFICE,
             shadows_enabled: true,
             ..default()
         },
-        transform: Transform::from_xyz(-38.0, 40.0, 34.0),
+        transform: Transform {
+            translation: Vec3::new(0.0, 2.0, 0.0),
+            rotation: Quat::from_rotation_x(-PI / 4.),
+            ..default()
+        },
         ..default()
     });
 
-    // Ground
-    commands.spawn((
-        Collider::cuboid(20.0, 0.25, 20.0),
-        RigidBody::Fixed,
-        PbrBundle {
-            mesh: meshes.add(Mesh::from(shape::Box {
-                min_x: -20.0,
-                max_x: 20.0,
-                min_y: -0.25,
-                max_y: 0.25,
-                min_z: -20.0,
-                max_z: 20.0,
-            })),
-            transform: Transform::from_xyz(0.0, -0.25, 0.0),
-            ..default()
-        },
-    ));
+    info!("Loading DevRoom");
+    //commands.spawn(SceneBundle { scene: asset_server.load("levels/Scene.glb#Scene0"), ..default() });
+    commands.spawn(SceneBundle { scene: asset_server.load("levels/__temp_scene.glb#Scene0"), ..default() });
+    info!("DevRoom Loaded");
 
     // Gun
+    info!("Creating Gun");
     let gun = commands
         .spawn(
             SceneBundle {
@@ -91,13 +60,20 @@ fn spawn_basic_scene(
                 ..default()
             }
         )
-        .insert(Weapon)
+        .insert(Item {
+            name: Name::new("gun"),
+            description: Description("gun".to_string()),
+            item_type: ItemType::Weapon(Weapon::default()),
+            weight: Weight(0),
+            interact: Interactable::Misc,
+        })
         .id();
 
     // Player
+    info!("Creating Player");
     let logical_entity = commands
         .spawn((
-            Collider::capsule(Vec3::Y * 0.5, Vec3::Y * 1.5, 0.1),
+            Collider::capsule(Vec3::Y * 0.1, Vec3::Y * 1.5, 0.5),
             Friction {
                 coefficient: 0.0,
                 combine_rule: CoefficientCombineRule::Min,
@@ -110,78 +86,89 @@ fn spawn_basic_scene(
             AdditionalMassProperties::Mass(1.0),
             GravityScale(0.0),
             Ccd { enabled: true },
-            TransformBundle::from_transform(Transform::from_xyz(0.0, 1.0, 0.0)),
+            TransformBundle::from_transform(Transform::from_xyz(0.0, 2.0, 0.0)),
             LogicalPlayer,
             FpsControllerInput {
                 pitch: -TAU / 12.0,
                 yaw: TAU * 5.0 / 8.0,
                 ..default()
             },
-            FpsController { ..default() },
+            FpsController {
+                height: 1.5,
+                upright_height: 1.5,
+                crouch_height: 0.01,
+                ..default()
+            },
         ))
         .insert(CameraConfig {
             height_offset: 0.0,
-            radius_scale: 0.75,
+        //    radius_scale: 0.75,
         })
         .insert(Player)
-        .insert(Character {
-            mana: 100,
-            max_mana: 100,
-            health: 100,
-            max_health: 100,
-            experience: 100,
+        .insert(CharacterBundle {
+            mana: Mana(100),
+            max_mana: MaxMana(100),
+            health: Health(100),
+            max_health: MaxHealth(100),
+            experience: Experience(100),
             ..default()
         })
+        //.insert(UiEntity::default())
         .insert(Inventory { ..default() })
         .id();
 
+    let rand_character: CharacterBundle = rand::random();
     // Cube
+    info!("Creating Cube");
     commands.spawn((PbrBundle {
-        mesh: meshes.add(Mesh::from(shape::Cube { size: 1.0 })),
-        material: materials.add(Color::WHITE.into()),
-        transform: Transform::from_xyz(-0.9, 0.5, -3.2),
+        mesh: meshes.add(Cuboid::new(1.0, 1.0, 1.0)),
+        material: materials.add(Color::WHITE),
+        transform: Transform::from_xyz(-0.9, 1.5, -3.2),
         ..default()
     },
-        RigidBody::Fixed,
+        RigidBody::Dynamic,
         Collider::cuboid(0.5, 0.5, 0.5),
+        Item {
+            name: Name::new("Cube"),
+            description: Description("Cube".to_string()),
+            item_type: ItemType::Misc,
+            interact: Interactable::Misc,
+            weight: Weight(0),
+        }
     ))
-    .insert(
-            Character {
-                mana: 100,
-                max_mana: 100,
-                health: 100,
-                max_health: 100,
-                experience: 100,
-                ..default()
-            }
-           );
+    .insert(rand_character)
+    .insert(TnuaRapier3dIOBundle::default())
+    .insert(TnuaControllerBundle::default())
+    .insert(FloatHeight(0.5))
+    .insert(Walk::default())
+    .insert(DesiredPosition(Vec3 {x:-15.0, y:5.0, z:-15.0}))
+    .insert(Name::new("Cube"));
+
     // Sphere
-    commands.spawn(PbrBundle {
-        mesh: meshes.add(
-            Mesh::try_from(shape::Icosphere {
-                radius: 0.6,
-                subdivisions: 20,
-            })
-            .unwrap(),
-        ),
-        material: materials.add(Color::WHITE.into()),
+    info!("Creating Sphere");
+    commands.spawn((PbrBundle {
+        mesh: meshes.add(Sphere::new(0.6).mesh().ico(20).unwrap()),
+        material: materials.add(Color::WHITE),
         transform: Transform::from_xyz(-0.9, 0.5, -4.2),
         ..default()
-    });
+    },
+    Interactable::Trade))
+    .insert(Name::new("Sphere"));
 
     // Camera
+    info!("Creating Camera");
     commands.spawn((
         Camera3dBundle {
             camera: Camera {
                 hdr: true,
+                clear_color: ClearColorConfig::Custom(Srgba::rgb(0.0, 0.0, 0.0).into()),
                 ..default()
             },
             camera_3d: Camera3d {
-                clear_color: ClearColorConfig::Custom(Color::rgb(0.0, 0.0, 0.0)),
                 ..default()
             },
             projection: Projection::Perspective(PerspectiveProjection {
-                fov: std::f32::consts::PI / 6.0,
+                fov: std::f32::consts::PI / 2.0,
                 ..default()
             }),
             ..default()
@@ -191,74 +178,49 @@ fn spawn_basic_scene(
     .add_child(gun);
 }
 
+fn player_forward(
+    cam_transform: Query<&Transform, (With<Camera>, Without<Player>)>,
+    mut player_transform: Query<&mut Transform, With<Player>>,
+    ) {
+    trace!("System: player_forward");
+    let cam_transform = cam_transform.single();
+    let forward = cam_transform.forward();
+    let mut player_transform  = player_transform.single_mut();
+    player_transform.look_to(*forward, Vec3::Y);
+}
+
 fn spawn_sprites(
     mut commands: Commands,
     images: Res<ImageAssets>,
     mut sprite_params: Sprite3dParams,
+    mut sprite_event: EventWriter<SpriteEvent>,
 ) {
-    let mut rng = rand::thread_rng();
+    info!("Spawn sprites System");
+    sprite_event.send(SpriteEvent { sprite_type: SpriteType::Character, tile_x: 8, tile_y: 0, x: 4.5, y: -4.0, height:1, frames:2 });
+    sprite_event.send(SpriteEvent { sprite_type: SpriteType::Character, tile_x: 4, tile_y: 0, x: 1.5, y: -7.0, height: 4, frames: 2});
+    sprite_event.send(SpriteEvent { sprite_type: SpriteType::Character, tile_x: 6, tile_y: 0, x: 0.5, y: 2.0, height: 4, frames: 2 });
+    sprite_event.send(SpriteEvent { sprite_type: SpriteType::Character, tile_x: 0, tile_y: 19, x: 3.5, y: 1.0, height: 1, frames: 1 });
+    sprite_event.send(SpriteEvent { sprite_type: SpriteType::Character, tile_x: 1, tile_y: 19, x: 4.0, y: 6.0, height: 1, frames: 1 });
+    sprite_event.send(SpriteEvent { sprite_type: SpriteType::Character, tile_x: 4, tile_y: 19, x: 0.0, y: 5.0, height: 1, frames: 1 });
+    sprite_event.send(SpriteEvent { sprite_type: SpriteType::Character, tile_x: 5, tile_y: 19, x: -4.0, y: 5.4, height:1, frames: 1});
+    sprite_event.send(SpriteEvent { sprite_type: SpriteType::Character, tile_x: 2, tile_y: 19, x: -0.5, y: -8.5, height:1, frames: 1 });
+    sprite_event.send(SpriteEvent { sprite_type: SpriteType::Character, tile_x: 13, tile_y: 16, x: 4.2, y: -8., height: 2, frames: 1 });
 
-    let mut entity = |(x, y), tile_x, tile_y, height, frames| {
-        let mut timer = Timer::from_seconds(0.4, TimerMode::Repeating);
-        timer.set_elapsed(Duration::from_secs_f32(rng.gen_range(0.0..0.4)));
-
-        for i in 0usize..height {
-            let mut c = commands.spawn((
-                AtlasSprite3d {
-                    atlas: images.tileset.clone(),
-                    pixels_per_metre: 16.,
-                    index: (tile_x + (tile_y - i) * 30) as usize,
-                    transform: Transform::from_xyz(x as f32, i as f32 + 0.499, y),
-                    ..default()
-                }
-                .bundle(&mut sprite_params),
-                FaceCamera {},
-                Collider::capsule(Vec3::Y * 0.5, Vec3::Y * 1.5, 0.1),
-                Character {
-                    mana: 100,
-                    max_mana: 100,
-                    health: 100,
-                    max_health: 100,
-                    experience: 100,
-                    ..default()
-                }
-            ));
-
-            if frames > 1 {
-                c.insert(Animation {
-                    frames: (0..frames)
-                        .map(|j| j + tile_x + (tile_y - i) * 30 as usize)
-                        .collect(),
-                    current: 0,
-                    timer: timer.clone(),
-                });
-            }
-        }
+    let atlas = TextureAtlas {
+        layout: images.layout.clone(),
+        index: 30 * 32 + 14,
     };
 
-    entity((4.5, -4.0), 8, 27, 2, 2);
-    entity((1.5, -7.0), 4, 27, 2, 2);
-    entity((0.5, 2.0), 6, 27, 2, 2);
-
-    entity((3.5, 1.0), 0, 19, 1, 1);
-    entity((4.0, 6.0), 1, 19, 1, 1);
-    entity((0.0, 5.0), 4, 19, 1, 1);
-    entity((-4.0, 5.4), 5, 19, 1, 1);
-    entity((-0.5, -8.5), 2, 19, 1, 1);
-
-    entity((4.2, -8.), 13, 16, 2, 1);
-
     commands.spawn((
-        AtlasSprite3d {
-            atlas: images.tileset.clone(),
+        Sprite3d {
+            image: images.tileset.clone(),
             pixels_per_metre: 16.,
-            index: 30 * 32 + 14,
             transform: Transform::from_xyz(2.0, 0.5, -5.5),
-            emissive: Color::rgb(1.0, 0.5, 0.0),
+            emissive: Srgba::rgb(1.0, 0.5, 0.0).into(),
             unlit: true,
             ..default()
         }
-        .bundle(&mut sprite_params),
+        .bundle_with_atlas(&mut sprite_params, atlas),
         Animation {
             frames: vec![30 * 32 + 14, 30 * 32 + 15, 30 * 32 + 16],
             current: 0,
@@ -269,7 +231,7 @@ fn spawn_sprites(
     commands.spawn(PointLightBundle {
         point_light: PointLight {
             intensity: 300.0,
-            color: Color::rgb(1.0, 231. / 255., 221. / 255.),
+            color: Color::srgb(1.0, 231. / 255., 221. / 255.),
             shadows_enabled: true,
             ..default()
         },
@@ -277,65 +239,31 @@ fn spawn_sprites(
         ..default()
     });
 
+    let atlas = TextureAtlas {
+        layout: images.layout.clone(),
+        index: 22 * 30 + 22,
+    };
+
     commands.spawn((
-        AtlasSprite3d {
-            atlas: images.tileset.clone(),
+        Sprite3d {
+            image: images.tileset.clone(),
             pixels_per_metre: 16.,
-            index: 22 * 30 + 22,
             transform: Transform::from_xyz(-5., 0.7, 6.5),
-            emissive: Color::rgb(165. / 255., 1.0, 160. / 255.),
+            emissive: LinearRgba::rgb(165. / 255., 1.0, 160. / 255.),
             unlit: true,
             ..default()
         }
-        .bundle(&mut sprite_params),
+        .bundle_with_atlas(&mut sprite_params, atlas),
         FaceCamera {},
     ));
     commands.spawn(PointLightBundle {
         point_light: PointLight {
             intensity: 100.0,
-            color: Color::rgb(91. / 255., 1.0, 92. / 255.),
+            color: Srgba::rgb(91. / 255., 1.0, 92. / 255.).into(),
             shadows_enabled: true,
             ..default()
         },
         transform: Transform::from_xyz(-5., 1.1, 6.5),
         ..default()
     });
-}
-
-fn player_forward(
-    cam_transform: Query<&Transform, (With<Camera>, Without<Player>)>,
-    mut player_transform: Query<&mut Transform, With<Player>>,
-    ) {
-    let cam_transform = cam_transform.single();
-    let mut forward = cam_transform.forward();
-    //forward.y = 0.0;
-    let mut player_transform  = player_transform.single_mut();
-    player_transform.look_to(forward, Vec3::Y);
-}
-
-fn animate_sprites(
-    time: Res<Time>,
-    mut query: Query<(&mut Animation, &mut AtlasSprite3dComponent)>,
-) {
-    for (mut animation, mut sprite) in query.iter_mut() {
-        animation.timer.tick(time.delta());
-        if animation.timer.just_finished() {
-            sprite.index = animation.frames[animation.current];
-            animation.current += 1;
-            animation.current %= animation.frames.len();
-        }
-    }
-}
-
-fn face_camera(
-    cam_query: Query<&Transform, With<Camera>>,
-    mut query: Query<&mut Transform, (With<FaceCamera>, Without<Camera>)>,
-) {
-    let cam_transform = cam_query.single();
-    for mut transform in query.iter_mut() {
-        let mut delta = cam_transform.translation - transform.translation;
-        delta.y = 0.0;
-        delta += transform.translation;
-        transform.look_at(delta, Vec3::Y);
-    }
 }

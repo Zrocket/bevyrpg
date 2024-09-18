@@ -1,11 +1,10 @@
-use bevy::prelude::*;
+use bevy::{ecs::reflect, prelude::*};
 
-#[derive(Component, Reflect, Default)]
+#[derive(Component, Debug, Clone, Reflect, Default)]
 #[reflect(Component)]
 pub struct Consume;
 
-pub struct ComsumePlugin {
-}
+pub struct ComsumePlugin;
 
 impl Plugin for ComsumePlugin {
     fn build(&self, app: &mut App) {

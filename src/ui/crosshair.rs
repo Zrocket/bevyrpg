@@ -1,13 +1,14 @@
 use super::*;
 
-#[derive(Component)]
-pub struct Crosshair;
-
-pub fn create_crosshair(
-    commands: &mut Commands,
-    asset_server: &Res<AssetServer>,
-    ) -> Entity {
+pub fn draw_crosshair(
+    mut commands: Commands,
+    asset_server: Res<AssetServer>,
+    ) {
+    debug!("Creating crosshair UiNode");
+    debug!("Loading crossair asset");
     let crosshair: Handle<Image> = asset_server.load("new_crosshairs/dot.png");
+    debug!("Crosshair asset loaded");
+    debug!("Spawning UiNode");
     commands
         .spawn(ImageBundle {
             image: crosshair.clone().into(),
@@ -22,7 +23,6 @@ pub fn create_crosshair(
             },
             ..default()
         })
-    .insert(UiEntity)
-    .insert(Crosshair)
-    .id()
+    //.insert(UiEntity)
+    .insert(UiCrosshair);
 }
