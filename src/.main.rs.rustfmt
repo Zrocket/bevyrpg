@@ -1,0 +1,119 @@
+use std::f32::consts::TAU;
+
+use bevy::{
+    prelude::*,
+    utils::Duration,
+    window::{ WindowResolution, Cursor},
+};
+use bevy_asset_loader::prelude::*;
+use bevy_fps_controller::controller::*;
+use bevy_rapier3d::prelude::*;
+use bevy_sprite3d::*;
+
+mod character;
+mod devroom;
+mod player;
+mod ui;
+mod shoot;
+mod interact;
+mod controller;
+mod items;
+mod inventory;
+mod sprites;
+mod dialog;
+
+pub use character::*;
+pub use devroom::*;
+pub use player::*;
+pub use ui::*;
+pub use shoot::*;
+pub use interact::*;
+pub use controller::*;
+pub use items::*;
+pub use inventory::*;
+pub use sprites::*;
+pub use dialog::*;
+
+pub const WIDTH: f32 = 1280.0;
+pub const HEIGHT: f32 = 720.0;
+
+#[derive(Clone, Hash, Debug, Eq, PartialEq, States, Default)]
+pub enum GameState {
+    MainMenu,
+    UiMenu,
+    Gameplay,
+    #[default]
+    Loading,
+}
+
+fn main() {
+    App::new()
+        .init_state::<GameState>()
+        .add_loading_state(
+            LoadingState::new(GameState::Loading).continue_to_state(GameState::Gameplay),
+        )
+        .insert_resource(RapierConfiguration::default())
+        .insert_resource(AmbientLight {
+            color: Color::WHITE,
+            brightness: 0.25,
+        })
+        .add_plugins(
+            DefaultPlugins.set(
+                WindowPlugin {
+                    primary_window: Some(Window {
+                        cursor: Cursor {
+                            icon: CursorIcon::Crosshair,
+                            ..default()
+                        },
+                        resolution: WindowResolution::new(WIDTH, HEIGHT),
+                        title: "Wizard RPG".to_string(),
+                        resizable: false,
+                        ..default()
+                        }
+                    ),
+                    ..default()
+                }
+            )
+        )
+        .add_plugins((
+            Sprite3dPlugin,
+            RapierPhysicsPlugin::<NoUserData>::default(),
+            FpsControllerPlugin,
+            CharacterPlugin,
+            PlayerPlugin,
+            DevRoomPlugin,
+            UiPlugin,
+            ShootPlugin,
+            ControllerPlugin,
+            InventoryPlugin,
+            InteractPlugin,
+            DialogPlugin,
+            ))
+        .add_systems(Update, health_test.run_if(in_state(GameState::Gameplay)))
+        .add_systems(Update, inventory_test.run_if(in_state(GameState::Gameplay)))
+        .run();
+}
+
+fn health_test(
+    key: Res<ButtonInput<KeyCode>>,
+    mut player: Query<(Entity, &Character), With<Player>>,
+    mut damage_event_writer: EventWriter<DamageEvent>,
+    ) {
+    let (player_entity, _player) = player.get_single_mut().unwrap();
+    if key.just_pressed(KeyCode::KeyK) {
+        damage_event_writer.send(DamageEvent {
+            target: player_entity,
+            ammount: 5,
+        });
+    }
+}
+
+fn inventory_test(
+    key: Res<ButtonInput<KeyCode>>,
+    mut player: Query<&mut Inventory, With<Player>>,
+    ) {
+    let mut player_inventory = player.get_single_mut().unwrap();
+    if key.just_pressed(KeyCode::KeyJ) {
+        player_inventory.items.push( Item { name: "Test".to_string(), description: "Test".to_string() } );
+    }
+}
