@@ -1,66 +1,47 @@
+use bevy::color::palettes::css::CRIMSON;
+use sickle_ui::{ui_builder::{UiBuilderExt, UiRoot}, widgets::layout::{column::UiColumnExt, container::UiContainerExt}};
+
 use super::*;
 
-#[derive(Component)]
-pub struct PlayerInventory;
-
-pub fn create_inventory_ui(
-    commands: &mut Commands,
-    asset_server: &Res<AssetServer>,
-    inventory: &Inventory,
-) -> Entity {
-    commands
-        .spawn(NodeBundle {
-                    background_color: BackgroundColor::from(Color::BLACK),
-                    style: Style {
-                        position_type: PositionType::Absolute,
-                        width: Val::Percent(80.),
-                        height: Val::Percent(80.),
-                        left: Val::Percent(10.),
-                        flex_direction: FlexDirection::Column,
-                        justify_content: JustifyContent::Center,
-                        align_self: AlignSelf::Center,
-                        flex_wrap: FlexWrap::Wrap,
-                        ..default()
-                    },
-                    ..default()
-                }
-        )
-        .with_children(|parent| {
-            parent.spawn(NodeBundle {
+pub fn draw_inventory_ui(
+    mut commands: Commands,
+    items: Query<(Entity, &Name, &InInventory)>,
+    target: Query<Entity, With<ActiveInventoryUi>>,
+    asset_server: Res<AssetServer>,
+    ) {
+    for target_entity in target.iter() {
+        info!("Drawing InventoryUi");
+        commands.ui_builder(UiRoot).container(NodeBundle {
+                background_color: CRIMSON.into(),
                 style: Style {
-                    height: Val::Percent(100.),
+                    position_type: PositionType::Absolute,
+                    width: Val::Percent(80.),
+                    height: Val::Percent(80.),
+                    left: Val::Percent(10.),
                     flex_direction: FlexDirection::Column,
-                    align_self: AlignSelf::Stretch,
-                    overflow: Overflow::clip_y(),
+                    justify_content: JustifyContent::Center,
+                    align_self: AlignSelf::Center,
+                    flex_wrap: FlexWrap::Wrap,
                     ..default()
                 },
-                background_color: Color::CRIMSON.into(),
                 ..default()
-            })
-            .with_children(|parent| {
-                for item in inventory.items.iter() {
-                    parent.spawn(
-                        TextBundle {
-                            text: Text::from_section(
-                              &item.name,
-                              TextStyle {
-                                  font: asset_server.load("FiraSans-Bold.ttf"),
-                                  font_size: 50.0,
-                                  color: Color::WHITE,
-                              }
-                            ),
-                            style: Style { 
-                                ..default()
-                            },
-                            z_index: ZIndex::Global(10),
-                            ..default()
-                            }
-                        );
-                    }
-                });
-            }
-        )
-        .insert(UiEntity)
-        .insert(PlayerInventory)
-        .id()
+        },
+        |inventory_menu| {
+            inventory_menu.column(|column| {
+                info!("Drawing InventoryUi Entries");
+                for (_item_entity, item_name, _in_inventory) in items.iter() {
+                    column.spawn(TextBundle {
+                        text: Text::from_section(item_name, TextStyle {
+                            font: asset_server.load("FiraSans-Bold.ttf"),
+                            font_size: 50.0,
+                            color: Color::WHITE,
+                        }),
+                        ..default()
+                    });
+                }
+            });
+        })
+        .insert(UiEntity(target_entity))
+        .insert(UiInventory);
+    }
 }

@@ -1,10 +1,11 @@
 use super::*;
 
-pub fn create_console_ui(
-    commands: &mut Commands,
-    asset_server: &Res<AssetServer>,
-) -> Entity {
-    commands.spawn(
+pub fn draw_console_ui(
+    mut commands: Commands,
+    query: Query<&ActiveConsole>,
+    ) {
+    if query.get_single().is_ok() {
+        commands.spawn(
             NodeBundle {
                 background_color: BackgroundColor::from(Color::BLACK),
                 style: Style {
@@ -17,20 +18,20 @@ pub fn create_console_ui(
                 },
                 z_index: ZIndex::Global(20),
                 ..default()
-            })
-    .with_children(|parent| {
-        parent.spawn(
-            NodeBundle {
-                style: Style {
-                    flex_direction: FlexDirection::Column,
-                    align_self: AlignSelf::Stretch,
-                    overflow: Overflow::clip_y(),
+        })
+        .with_children(|parent| {
+            parent.spawn(
+                NodeBundle {
+                    style: Style {
+                        flex_direction: FlexDirection::Column,
+                        align_self: AlignSelf::Stretch,
+                        overflow: Overflow::clip_y(),
+                        ..default()
+                    },
                     ..default()
-                },
-                ..default()
-            }
-                    );
-    })
-    .insert(UiEntity)
-    .id()
+                }
+                        );
+        })
+        .insert(UiConsole);
+    }
 }
