@@ -4,8 +4,7 @@ use bevy::prelude::*;
 #[reflect(Component)]
 pub struct MiscItem;
 
-pub struct MiscItemPlugin {
-}
+pub struct MiscItemPlugin;
 
 impl Plugin for MiscItemPlugin {
     fn build(&self, app: &mut App) {

@@ -1,15 +1,19 @@
-use bevy::prelude::*;
+use bevy::{ecs::reflect, prelude::*};
 
+#[derive(Component, Debug, Clone, Reflect, Default)]
+#[reflect(Component)]
 pub enum WeaponType {
+    #[default]
     None,
 }
 
-#[derive(Component, Reflect, Default)]
+#[derive(Component, Debug, Clone, Reflect, Default)]
 #[reflect(Component)]
-pub struct Weapon;
-
-pub struct WeaponPlugin {
+pub struct Weapon {
+    weapon_type: WeaponType,
 }
+
+pub struct WeaponPlugin;
 
 impl Plugin for WeaponPlugin {
     fn build(&self, app: &mut App) {

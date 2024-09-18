@@ -4,9 +4,9 @@ use bevy::prelude::*;
 #[reflect(Component)]
 pub struct Player;
 
-pub struct PlayerPlugin;
+pub struct GamePlayerPlugin;
 
-impl Plugin for PlayerPlugin {
+impl Plugin for GamePlayerPlugin {
     fn build(&self, app: &mut App) {
         app.register_type::<Player>();
     }
