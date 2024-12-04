@@ -1,16 +1,16 @@
 use bevy::color::palettes::css::CRIMSON;
-use sickle_ui::{ui_builder::{UiBuilderExt, UiRoot}, widgets::layout::{column::UiColumnExt, container::UiContainerExt}};
-
+use sickle_ui::{ui_builder::{UiBuilderExt, UiRoot}, widgets::layout::{column::UiColumnExt, container::UiContainerExt, row::UiRowExt}};
 use super::*;
 
 pub fn draw_inventory_ui(
     mut commands: Commands,
     items: Query<(Entity, &Name, &InInventory)>,
+    inventory: Query<&Inventory, With<Player>>,
     target: Query<Entity, With<ActiveInventoryUi>>,
     asset_server: Res<AssetServer>,
     ) {
     for target_entity in target.iter() {
-        info!("Drawing InventoryUi");
+        //info!("Drawing InventoryUi");
         commands.ui_builder(UiRoot).container(NodeBundle {
                 background_color: CRIMSON.into(),
                 style: Style {
@@ -28,16 +28,28 @@ pub fn draw_inventory_ui(
         },
         |inventory_menu| {
             inventory_menu.column(|column| {
-                info!("Drawing InventoryUi Entries");
-                for (_item_entity, item_name, _in_inventory) in items.iter() {
-                    column.spawn(TextBundle {
-                        text: Text::from_section(item_name, TextStyle {
-                            font: asset_server.load("FiraSans-Bold.ttf"),
-                            font_size: 50.0,
-                            color: Color::WHITE,
-                        }),
-                        ..default()
-                    });
+                if let inventory = inventory.single() {
+                    for item in inventory.items.iter() {
+                        if let Ok((_id, item_name, _)) = items.get(*item) {
+                            column.row(|row| {
+                                row.container(
+                                    ButtonBundle {
+                                        ..default()
+                                    },
+                                    |parent| {
+                                        parent.spawn(TextBundle {
+                                            text: Text::from_section(item_name, TextStyle {
+                                            font: asset_server.load("FiraSans-Bold.ttf"),
+                                            font_size: 50.0,
+                                            color: Color::WHITE,
+                                        }),
+                                        ..default()
+                                        });
+                                    }
+                                );
+                            });
+                        }
+                    }
                 }
             });
         })
