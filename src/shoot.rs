@@ -1,5 +1,5 @@
 use bevy::prelude::*;
-use bevy_rapier3d::prelude::{*, Real};
+use avian3d::prelude::*;
 use crate::{Player, DamageEvent};
 
 use super::GameState;
@@ -19,7 +19,7 @@ impl Plugin for ShootPlugin {
 pub fn shoot(
     mut shoot_events: EventReader<ShootEvent>,
     mut damage_event: EventWriter<DamageEvent>,
-    rapier_context: Res<RapierContext>,
+    ray_caster: SpatialQuery,
     player: Query<Entity, With<Player>>,
     query: Query<(&Camera, &GlobalTransform)>,
 ) {
@@ -30,12 +30,12 @@ pub fn shoot(
             let camera_position = global_transform.translation();
             let direction = global_transform.forward();
 
-            if let Some((entity, toi)) = rapier_context.cast_ray(
-                camera_position, direction.into(), Real::MAX, false, QueryFilter {exclude_collider: Some(player), ..default()}
+            if let Some(ray_data) = ray_caster.cast_ray(
+                camera_position, direction.into(), 100.0, false, SpatialQueryFilter::default().with_excluded_entities([player]) 
                 ) {
-                let hit_point = camera_position + direction * toi;
-                info!("SHOOT Entity {:?} hit at point {}", entity, hit_point);
-                damage_event.send(DamageEvent { target: entity, ammount: 10 });
+                let hit_point = camera_position + direction * ray_data.time_of_impact;
+                info!("SHOOT Entity {:?} hit at point {}", ray_data.entity, hit_point);
+                damage_event.send(DamageEvent { target: ray_data.entity, ammount: 10 });
             }
         }
     }

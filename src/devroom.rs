@@ -1,8 +1,14 @@
 use bevy::{math::vec3, prelude::*, render::camera::ClearColorConfig};
 use bevy_tnua::controller::TnuaControllerBundle;
-use bevy_tnua_rapier3d::TnuaRapier3dIOBundle;
+//use bevy_tnua_rapier3d::TnuaRapier3dIOBundle;
+use leafwing_input_manager::{input_map::InputMap, InputManagerBundle};
+use avian3d::collision::Collider;
 
 use std::f32::consts::PI;
+
+use super::controller::*;
+use super::CameraConfig;
+use super::RenderPlayer;
 
 use crate::*;
 
@@ -22,8 +28,14 @@ fn spawn_basic_scene(
     mut meshes: ResMut<Assets<Mesh>>,
     mut materials: ResMut<Assets<StandardMaterial>>,
     asset_server: Res<AssetServer>,
+    mut window: Query<&mut Window>,
 ) {
     trace!("Spawn basic scene");
+
+    if let Ok(mut window) = window.get_single_mut() {
+        window.cursor.grab_mode = bevy::window::CursorGrabMode::Locked;
+    }
+
 
     info!("Creating DirectionalLightBundle");
     commands.spawn(DirectionalLightBundle {
@@ -71,40 +83,51 @@ fn spawn_basic_scene(
 
     // Player
     info!("Creating Player");
+    let input_map = InputMap::new([
+        (Action::Jump, KeyCode::Space),
+        (Action::Run, KeyCode::ShiftLeft),
+        (Action::Left, KeyCode::KeyA),
+        (Action::Right, KeyCode::KeyD),
+        (Action::Forward, KeyCode::KeyW),
+        (Action::Backward, KeyCode::KeyS),
+        (Action::Crouch, KeyCode::ControlLeft),
+        (Action::Up, KeyCode::KeyQ),
+        (Action::Down, KeyCode::KeyE),
+        (Action::Interact, KeyCode::KeyF),
+        (Action::OpenInventory, KeyCode::KeyI),
+        (Action::OpenConsole, KeyCode::Backslash),
+    ]);
+
     let logical_entity = commands
         .spawn((
-            Collider::capsule(Vec3::Y * 0.1, Vec3::Y * 1.5, 0.5),
+            //Collider::capsule(Vec3::Y * 0.1, Vec3::Y * 1.5, 0.5),
+            Collider::capsule(0.1, 1.5),
+            //Friction {
+            //    coefficient: 0.0,
+            //    combine_rule: CoefficientCombineRule::Min,
+            //},
             Friction {
-                coefficient: 0.0,
-                combine_rule: CoefficientCombineRule::Min,
+                combine_rule: CoefficientCombine::Min,
+                ..default()
             },
-            ActiveEvents::COLLISION_EVENTS,
-            Velocity::zero(),
+            //ActiveEvents::COLLISION_EVENTS,
+            //Velocity::zero(),
             RigidBody::Dynamic,
-            Sleeping::disabled(),
+            //Sleeping::disabled(),
             LockedAxes::ROTATION_LOCKED,
-            AdditionalMassProperties::Mass(1.0),
+            //AdditionalMassProperties::Mass(1.0),
             GravityScale(0.0),
-            Ccd { enabled: true },
-            TransformBundle::from_transform(Transform::from_xyz(0.0, 2.0, 0.0)),
-            LogicalPlayer,
-            FpsControllerInput {
-                pitch: -TAU / 12.0,
-                yaw: TAU * 5.0 / 8.0,
-                ..default()
-            },
-            FpsController {
-                height: 1.5,
-                upright_height: 1.5,
-                crouch_height: 0.01,
-                ..default()
-            },
+            //Ccd { enabled: true },
+            TransformBundle::from_transform(Transform::from_xyz(0.0, 1.0, 0.0)),
+            //AvianPickupActor::default(),
         ))
         .insert(CameraConfig {
             height_offset: 0.0,
-        //    radius_scale: 0.75,
+            //radius_scale: 0.75,
         })
         .insert(Player)
+        .insert(PlayerController::default())
+        .insert(PlayerControllerInput::default())
         .insert(CharacterBundle {
             mana: Mana(100),
             max_mana: MaxMana(100),
@@ -115,6 +138,11 @@ fn spawn_basic_scene(
         })
         //.insert(UiEntity::default())
         .insert(Inventory { ..default() })
+        //.insert(TnuaRapier3dIOBundle::default())
+        .insert(TnuaControllerBundle::default())
+        .insert(FloatHeight(0.5))
+        .insert(Walk::default())
+        .insert(InputManagerBundle::with_map(input_map))
         .id();
 
     let rand_character: CharacterBundle = rand::random();
@@ -137,7 +165,7 @@ fn spawn_basic_scene(
         }
     ))
     .insert(rand_character)
-    .insert(TnuaRapier3dIOBundle::default())
+    //.insert(TnuaRapier3dIOBundle::default())
     .insert(TnuaControllerBundle::default())
     .insert(FloatHeight(0.5))
     .insert(Walk::default())
@@ -171,6 +199,7 @@ fn spawn_basic_scene(
                 fov: std::f32::consts::PI / 2.0,
                 ..default()
             }),
+            transform: Transform { translation: Vec3 {y: 2., ..default() }, ..default() },
             ..default()
         },
         RenderPlayer{ logical_entity },

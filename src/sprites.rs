@@ -121,7 +121,8 @@ fn sprite_handler(
                     Collider::cuboid(0.5, 1., 0.5),
                     Interactable::Talk,
                     YarnNode::default(),
-                    KinematicCharacterController::default(),
+                    //KinematicCharacterController::default(),
+                    RigidBody::Kinematic,
                ));
                 //info!("Character Spawned");
                 //info!("Character frames: {}", event.frames);
