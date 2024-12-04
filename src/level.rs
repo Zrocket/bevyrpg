@@ -1,12 +1,12 @@
 use bevy::{gltf::Gltf, prelude::*};
-use bevy_rapier3d::geometry::{Collider, ComputedColliderShape};
-use bevy_tnua_rapier3d::{TnuaRapier3dIOBundle, TnuaRapier3dPlugin};
-use crate::{error_pipe, MeshExt};
+use bevy_tnua_avian3d::TnuaAvian3dPlugin;
+use crate::{error_pipe, MeshExt, Player};
 use oxidized_navigation::{self, debug_draw::{DrawNavMesh, OxidizedNavigationDebugDrawPlugin}, query::{find_polygon_path, perform_string_pulling_on_path}, NavMesh, NavMeshSettings};
 use bevy_tnua::prelude::*;
 use super::utils::{Vec3Ext, F32Ext};
 use super::GameState;
 use oxidized_navigation::{NavMeshAffector, OxidizedNavigationPlugin};
+use avian3d::collision::Collider;
 
 
 #[derive(Debug, Default, Component, Reflect)]
@@ -43,7 +43,7 @@ pub struct Walk {
 #[derive(Bundle)]
 pub struct MovementBundle {
     walk: Walk,
-    tnua_rapier3d_io: TnuaRapier3dIOBundle,
+    //tnua_rapier3d_io: TnuaRapier3dIOBundle,
     tnua_conroller: TnuaControllerBundle,
     float_height: FloatHeight,
 }
@@ -88,8 +88,9 @@ impl Plugin for BlenderTranslationPlugin {
                     250.0,
                     -1.0
         )));
+
         app.add_plugins(OxidizedNavigationDebugDrawPlugin);
-        app.add_plugins(TnuaRapier3dPlugin::default());
+        app.add_plugins(TnuaAvian3dPlugin::default());
         app.add_plugins(TnuaControllerPlugin::default());
         app.add_systems(Update, (
                 //run_blocking_pathfinding,
@@ -113,11 +114,12 @@ children: Query<&Children>,
         //info!("Translate Event");
         for (_, collider_mesh) in Mesh::search_in_children(entity, &children, &meshes, &mesh_handles) {
             //info!("Translate Components 2");
-            let rapier_collider = Collider::from_bevy_mesh(collider_mesh, &ComputedColliderShape::TriMesh)
+            //let rapier_collider = Collider::from_bevy_mesh(collider_mesh, &ComputedColliderShape::TriMesh)
+            let avian_collider = Collider::trimesh_from_mesh(collider_mesh)
                 .unwrap();
             commands
                 .entity(entity)
-                .insert(rapier_collider)
+                .insert(avian_collider)
                 .insert(NavMeshAffector);
         }
     }
@@ -181,7 +183,9 @@ fn apply_walking(
         &mut TnuaController,
         &mut Walk,
         &FloatHeight,
-    )>,
+        ),
+        Without<Player>,
+    >,
 ) {
     for (mut controller, mut walking, float_height) in &mut character_query {
         let direction = walking.direction.unwrap_or_default();

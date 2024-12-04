@@ -1,16 +1,17 @@
 use bevy::prelude::*;
-use bevy_fps_controller::controller::*;
-use crate::ActiveConsole;
+use leafwing_input_manager::prelude::ActionState;
+use crate::{ActiveConsole, Player};
+
+use super::Action;
 
 pub fn manage_console(
     mut commands: Commands,
-    key: Res<ButtonInput<KeyCode>>,
-    mut fps_controller: Query<&mut FpsController>,
+    key: Query<&ActionState<Action>, With<Player>>,
     query: Query<Entity, With<ActiveConsole>>,
 ) {
-    if key.just_pressed(KeyCode::Backslash) {
-        if let Ok(mut fps_controller) = fps_controller.get_single_mut() {
-            fps_controller.enable_input = !fps_controller.enable_input;
+    if let Ok(key) = key.get_single() {
+        if key.just_pressed(&Action::OpenConsole) {
+            info!("Backslash pressed");
             if let Ok(console_flag) = query.get_single() {
                 commands.entity(console_flag).despawn_recursive();
             } else {

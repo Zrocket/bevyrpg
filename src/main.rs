@@ -1,5 +1,6 @@
-use std::f32::consts::TAU;
-
+use avian3d::prelude::*;
+//use avian_interpolation3d::prelude::*;
+//use avian_pickup::prelude::*;
 use bevy::{
     log::LogPlugin,
     prelude::*,
@@ -7,17 +8,17 @@ use bevy::{
     window::{ WindowResolution, Cursor}
 };
 use bevy_asset_loader::prelude::*;
-//use bevy_flycam::prelude::*;
-use bevy_fps_controller::controller::*;
-use blenvy::*;
-use bevy_rapier3d::prelude::*;
+use bevy_inspector_egui::quick::WorldInspectorPlugin;
 //use bevy_registry_export::*;
 use bevy_sprite3d::*;
-use bevy_inspector_egui::quick::WorldInspectorPlugin;
 use bevy_yoleck::prelude::*;
+use blenvy::*;
 use clap::Parser;
 
+mod chair;
 mod character;
+mod computer;
+mod console;
 mod controller;
 mod devroom;
 mod dialog;
@@ -26,19 +27,22 @@ mod hunger;
 mod interact;
 mod inventory;
 mod items;
+mod level;
 mod magic;
 mod player;
+mod render;
+mod rover;
 mod shoot;
-mod stealth;
 mod sprites;
+mod stealth;
 mod trade;
 mod ui;
 mod utils;
-mod level;
-mod rover;
-mod chair;
 
+pub use chair::*;
 pub use character::*;
+pub use computer::*;
+pub use console::*;
 pub use controller::*;
 pub use devroom::*;
 pub use dialog::*;
@@ -46,17 +50,18 @@ pub use interact::*;
 pub use inventory::*;
 pub use items::*;
 pub use player::*;
+pub use render::*;
+pub use rover::*;
 pub use shoot::*;
 pub use sprites::*;
 pub use ui::*;
 pub use utils::*;
-use trade::TradePlugin;
 use level::*;
-use rover::*;
-use chair::*;
+use trade::TradePlugin;
 
-pub const WIDTH: f32 = 1280.0;
+
 pub const HEIGHT: f32 = 720.0;
+pub const WIDTH: f32 = 1280.0;
 
 #[derive(Parser, Debug)]
 struct Args {
@@ -70,11 +75,16 @@ struct Args {
 pub enum GameState {
     MainMenu,
     UiMenu,
+    Inventory,
+    Settings,
+    VideoSettings,
+    SoundSettings,
+    ControllerSettings,
+    GameplaySettings,
     Gameplay,
     #[default]
     Loading,
 }
-
 
 fn main() {
     let args = Args::parse();
@@ -93,7 +103,7 @@ fn main() {
                         resolution: WindowResolution::new(WIDTH, HEIGHT),
                         title: "Wizard RPG".to_string(),
                         resizable: false,
-                        //focused: true,
+                        focused: true,
                         ..default()
                         }
                     ),
@@ -111,7 +121,9 @@ fn main() {
         })
         .add_plugins((
             Sprite3dPlugin,
-            RapierPhysicsPlugin::<NoUserData>::default(),
+            PhysicsPlugins::default(),
+            //AvianPickupPlugin::default(),
+            //AvianInterpolationPlugin::default(),
             GamePlayerPlugin,
             CharacterPlugin,
             DevRoomPlugin,
@@ -122,8 +134,8 @@ fn main() {
             InteractPlugin,
             DialogPlugin,
             TradePlugin,
-            FpsControllerPlugin,
             BlenderTranslationPlugin,
+            GameRenderPlugin,
             ))
         .add_plugins(BlenvyPlugin::default());
         if args.editor {
@@ -134,6 +146,7 @@ fn main() {
         }
         app.add_systems(Update, health_test.run_if(in_state(GameState::Gameplay)))
         .add_systems(Update, inventory_test.run_if(in_state(GameState::Gameplay)))
+        .add_systems(Update, inventory_remove_test.run_if(in_state(GameState::Gameplay)))
         .register_type::<RigidBody>()
         .init_state::<GameState>()
         .add_loading_state(
@@ -162,19 +175,34 @@ fn inventory_test(
     mut commands: Commands,
     key: Res<ButtonInput<KeyCode>>,
     mut player: Query<Entity, With<Player>>,
+    mut event_writer: EventWriter<PickUpEvent>,
     ) {
-    //trace!("Inventory test");
     let player = player.get_single_mut().unwrap();
     if key.just_pressed(KeyCode::KeyJ) {
-        commands.spawn((
+        let item = commands.spawn((
             Item {
                 item_type: ItemType::None,
-                name: Name::new("Test"),
+                name: Name::new(format!("Test {}", rand::random::<u8>() as char)),
                 description: Description("Test".to_string()),
                 weight: Weight(0),
                 interact: Interactable::Misc,
             },
-            InInventory(player),
-        ));
+        )).id();
+        event_writer.send(PickUpEvent { actor: player, target: item});
+    }
+}
+
+fn inventory_remove_test(
+    mut commands: Commands,
+    key: Res<ButtonInput<KeyCode>>,
+    mut player: Query<Entity, With<Player>>,
+    mut inventory_query: Query<&Inventory, With<Player>>,
+    mut event_writer: EventWriter<RemoveEvent>,
+) {
+    let player = player.get_single_mut().unwrap();
+    if key.just_pressed(KeyCode::KeyL) {
+        let mut inventory = inventory_query.get_single_mut().unwrap();
+        let item = inventory.items.last().unwrap();
+        event_writer.send(RemoveEvent { actor: player, target: *item });
     }
 }

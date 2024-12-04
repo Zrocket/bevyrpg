@@ -13,12 +13,12 @@ pub struct PickUpEvent {
 #[derive(Event)]
 pub struct RemoveEvent {
     pub actor: Entity,
-    pub index: i32,
+    pub target: Entity,
 }
 
 #[derive(Component, Default)]
 pub struct Inventory {
-    pub items: Vec<Item>,
+    pub items: Vec<Entity>,
     pub ui_index: usize,
     pub ui_active: bool,
 }
@@ -76,28 +76,38 @@ impl Plugin for InventoryPlugin {
 fn add_to_inventory(
     mut commands: Commands,
     mut pick_up_events: EventReader<PickUpEvent>,
-    mut item: Query<Entity, With<ItemType>>,
+    mut item: Query<Entity>, //With<ItemType>>,
+    mut actor: Query<(Entity, &mut Inventory)>,
 ) {
     for event in pick_up_events.read() {
+        info!("Event Handler: add_to_inventory");
         if item.get_mut(event.target).is_ok() {
-    info!("Event Handler: add_to_inventory");
             //commands.entity(item_entity).despawn_recursive();
             commands.entity(event.target)
-                .insert(InInventory(event.actor))
-                .remove::<PbrBundle>();
+                .insert(InInventory(event.actor));
+                //.remove::<PbrBundle>();
                 //.remove::<Collider>();
+            if let Ok((_, mut inventory)) = actor.get_mut(event.actor) {
+                inventory.items.push(event.target);
+            }
         }
     }
 }
 
 fn remove_from_inventory(
+    mut commands: Commands,
     mut remove_events: EventReader<RemoveEvent>,
+    item_query: Query<Entity, With<ItemType>>,
     mut actor: Query<(Entity, &mut Inventory)>,
 ){
-    trace!("remove_from_inventory Event Handler");
+    //trace!("remove_from_inventory Event Handler");
     for event in remove_events.read() {
         if let Ok((_, mut inventory)) = actor.get_mut(event.actor) {
-            inventory.items.remove(event.index as usize);
+            inventory.items.retain(|item| *item != event.target);
+            if let Ok(item) = item_query.get(event.target) {
+                commands.entity(item)
+                    .remove::<InInventory>();
+            }
         }
     }
 }
