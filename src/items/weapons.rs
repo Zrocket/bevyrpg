@@ -1,4 +1,4 @@
-use bevy::{ecs::reflect, prelude::*};
+use bevy::prelude::*;
 
 #[derive(Component, Debug, Clone, Reflect, Default)]
 #[reflect(Component)]

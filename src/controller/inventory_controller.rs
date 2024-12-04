@@ -1,29 +1,37 @@
-use bevy::prelude::*;
-use bevy_fps_controller::controller::*;
+use bevy::{prelude::*, window::CursorGrabMode};
+use leafwing_input_manager::prelude::ActionState;
 use crate::{ActiveInventoryUi, ActiveUi, Player, UiIndex, UiInventory};
+
+use super::Action;
 
 pub fn manage_inventory(
     mut commands: Commands,
-    key: Res<ButtonInput<KeyCode>>,
-    mut fps_controller: Query<&mut FpsController>,
+    key: Query<&ActionState<Action>, With<Player>>,
+    mut window: Query<&mut Window>,
     mut player: Query<(Entity, Option<&ActiveInventoryUi>), With<Player>>,
 ) {
-    if key.just_pressed(KeyCode::KeyI) {
-        info!("KeyI pressed");
-        if let Ok(mut fps_controller) =fps_controller.get_single_mut() {
-            info!("Got fps_controller");
-                if let Ok((player, active)) = player.get_single_mut() {
-                    if active.is_none() {
-                        info!("adding ActiveUi");
-                        commands.entity(player).insert(ActiveUi);
-                        commands.entity(player).insert(ActiveInventoryUi);
-                    } else {
-                        info!("removing ActiveUi");
-                        commands.entity(player).remove::<ActiveUi>();
-                        commands.entity(player).remove::<ActiveInventoryUi>();
+    if let Ok(key) = key.get_single() {
+        if key.just_pressed(&Action::OpenInventory) {
+            info!("KeyI pressed");
+            if let Ok((player, active)) = player.get_single_mut() {
+                if active.is_none() {
+                    info!("adding ActiveUi");
+                    commands.entity(player).insert(ActiveUi);
+                    commands.entity(player).insert(ActiveInventoryUi);
+                    if let Ok(mut window) = window.get_single_mut() {
+                        window.cursor.grab_mode = CursorGrabMode::None;
+                        window.cursor.visible = true;
+                    }
+                } else {
+                    info!("removing ActiveUi");
+                    commands.entity(player).remove::<ActiveUi>();
+                    commands.entity(player).remove::<ActiveInventoryUi>();
+                    if let Ok(mut window) = window.get_single_mut() {
+                        window.cursor.grab_mode = CursorGrabMode::Locked;
+                        window.cursor.visible = false;
                     }
                 }
-                fps_controller.enable_input = !fps_controller.enable_input;
+            }
         }
     }
 }

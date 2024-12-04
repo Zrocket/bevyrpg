@@ -4,6 +4,10 @@ use bevy::prelude::*;
 #[reflect(Component)]
 pub struct Rover;
 
+#[derive(Event)]
+pub struct RoverCommandEvent {
+}
+
 pub struct RoverPlugin;
 
 impl Plugin for RoverPlugin {

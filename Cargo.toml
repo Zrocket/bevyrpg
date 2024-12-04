@@ -6,33 +6,39 @@ edition = "2021"
 # See more keys and their definitions at https://doc.rust-lang.org/cargo/reference/manifest.html
 
 [dependencies]
+#bevy-yoleck = "0.14.1"
+#bevy_mod_picking = "*"
+#bevy_mod_ui_texture_atlas_image = "0.4.1"
+anyhow = "1.0.86"
+avian3d = "0.1.2"
+#avian3d = { git = "https://github.com/Jondolf/avian" }
+#avian_interpolation3d = { git = "https://github.com/janhohenheim/avian_interpolation" }
+#avian_pickup = { git = "https://github.com/janhohenheim/avian_pickup" }
 bevy = "0.14.0"
 bevy-inspector-egui = "*"
-#bevy_mod_picking = "*"
-bevy_sprite3d = "3.0"
-rand = "*"
-bevy_rapier3d = "0.27.0"
-bevy_fps_controller = { git="https://github.com/qhdwight/bevy_fps_controller.git" }
-bevy_asset_loader = {version = "0.21", features = ["2d"]}
-#bevy-yoleck = "0.14.1"
-serde = "*"
-#bevy_mod_ui_texture_atlas_image = "0.4.1"
-bevy_mod_static_inventory = "*"
-bevy_simple_text_input = "*"
-bevy_yarnspinner = "*"
-lazy_static = "*"
-bevy_yarnspinner_example_dialogue_view = "*"
-standard-dist = "*"
-bevy_egui = "*"
-bevy_registry_export = "*"
-bevy-yoleck = "*"
-clap = { version = "*", features = ["derive"] }
-bevy_flycam = "*"
 bevy-scene-hook = "*"
-oxidized_navigation = { git="https://github.com/TheGrimsey/oxidized_navigation.git", branch="bevy-0.14", features = ["debug_draw", "rapier"] }
-sickle_ui = "0.2.1"
 bevy-tnua = "0.19.0"
-anyhow = "1.0.86"
-bevy-tnua-rapier3d = "0.7.0"
+bevy-tnua-avian3d = "0.1.1"
+bevy-yoleck = "*"
+bevy_asset_loader = {version = "0.21", features = ["2d"]}
+bevy_egui = "*"
+bevy_flycam = "*"
+bevy_mod_static_inventory = "*"
+bevy_registry_export = "*"
+bevy_simple_text_input = "*"
+bevy_sprite3d = "3.0"
+bevy_yarnspinner = "*"
+bevy_yarnspinner_example_dialogue_view = "*"
 big-brain = "0.21.1"
 blenvy = "0.1.0-alpha.1"
+clap = { version = "*", features = ["derive"] }
+lazy_static = "*"
+leafwing-input-manager = "0.15.1"
+oxidized_navigation = { git="https://github.com/TheGrimsey/oxidized_navigation.git", default-features = false, features = ["debug_draw", "avian"] }
+rand = "*"
+serde = "*"
+sickle_ui = "0.2.1"
+standard-dist = "*"
+
+[profile.dev]
+opt-level=3
