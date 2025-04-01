@@ -1,6 +1,6 @@
-use bevy::prelude::*;
+use crate::{DamageEvent, Player};
 use avian3d::prelude::*;
-use crate::{Player, DamageEvent};
+use bevy::prelude::*;
 
 use super::GameState;
 
@@ -31,13 +31,22 @@ pub fn shoot(
             let direction = global_transform.forward();
 
             if let Some(ray_data) = ray_caster.cast_ray(
-                camera_position, direction.into(), 100.0, false, SpatialQueryFilter::default().with_excluded_entities([player]) 
-                ) {
-                let hit_point = camera_position + direction * ray_data.time_of_impact;
-                info!("SHOOT Entity {:?} hit at point {}", ray_data.entity, hit_point);
-                damage_event.send(DamageEvent { target: ray_data.entity, ammount: 10 });
+                camera_position,
+                direction.into(),
+                100.0,
+                false,
+                &SpatialQueryFilter::default().with_excluded_entities([player]),
+            ) {
+                let hit_point = camera_position + direction * ray_data.distance;
+                info!(
+                    "SHOOT Entity {:?} hit at point {}",
+                    ray_data.entity, hit_point
+                );
+                damage_event.send(DamageEvent {
+                    target: ray_data.entity,
+                    ammount: 10,
+                });
             }
         }
     }
 }
-

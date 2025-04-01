@@ -1,4 +1,3 @@
-//use bevy_simple_text_input::{TextInput, TextInputPlugin, TextInputSubmitEvent};
 use super::*;
 
 mod console;
@@ -63,14 +62,17 @@ pub struct UiPlugin;
 
 impl Plugin for UiPlugin {
     fn build(&self, app: &mut App) {
-            app.add_event::<UiInventoryEvent>()
+        app.add_event::<UiInventoryEvent>()
             .add_systems(Update, draw_inventory_ui)
             //.add_systems(Update, draw_menu_ui::<InInventory>)
             .add_systems(Update, draw_status_ui)
             .add_systems(Update, draw_console_ui)
             .add_systems(Update, draw_crosshair)
             .add_systems(Update, draw_menu_ui)
-            .add_systems(Update, inventory_ui_event_handler.run_if(in_state(GameState::Gameplay)))
+            .add_systems(
+                Update,
+                inventory_ui_event_handler.run_if(in_state(GameState::Gameplay)),
+            )
             .add_systems(Update, cleanup_system::<UiEntity>)
             .add_systems(Update, cleanup_system::<UiStatus>)
             .add_systems(Update, cleanup_system::<UiConsole>)
@@ -83,7 +85,7 @@ impl Plugin for UiPlugin {
 pub fn inventory_ui_event_handler(
     mut commands: Commands,
     mut inventory_ui_events: EventReader<UiInventoryEvent>,
-    ) {
+) {
     for event in inventory_ui_events.read() {
         commands.entity(event.actor).insert(ActiveUi);
     }

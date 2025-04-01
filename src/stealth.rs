@@ -23,21 +23,13 @@ pub struct Sight {
 pub struct StealthPlugin;
 
 impl Plugin for StealthPlugin {
-    fn build(&self, app: &mut App) {
-    }
+    fn build(&self, app: &mut App) {}
 }
 
-fn calc_line_of_sight(
-    commands: Commands,
-    query: Query<&LineOfSight>,
-                     ) {
+fn calc_line_of_sight(commands: Commands, query: Query<&LineOfSight>) {
     todo!()
-
 }
 
-fn calc_can_see(
-    commands: Commands,
-    query: Query<(&FeildOfView, &LineOfSight, &CanSee)>,
-               ) {
+fn calc_can_see(commands: Commands, query: Query<(&FeildOfView, &LineOfSight, &CanSee)>) {
     todo!()
 }

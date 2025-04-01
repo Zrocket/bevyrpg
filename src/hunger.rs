@@ -8,7 +8,6 @@ pub struct HungerPlugin;
 
 impl Plugin for HungerPlugin {
     fn build(&self, app: &mut App) {
-        app
-            .register_type::<Hunger>();
+        app.register_type::<Hunger>();
     }
 }

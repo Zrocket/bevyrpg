@@ -1,5 +1,5 @@
 use bevy::color::palettes::css::{BLUE, GREEN};
-use sickle_ui::{ui_builder::{UiBuilderExt, UiRoot}, widgets::layout::{container::UiContainerExt, row::UiRowExt}};
+//use sickle_ui::{ui_builder::{UiBuilderExt, UiRoot}, widgets::layout::{container::UiContainerExt, row::UiRowExt}};
 
 use super::*;
 
@@ -11,6 +11,7 @@ pub fn draw_status_ui(
     //target: Query<Entity, (With<ActiveUi>, With<UiStatus>)>,
     //asset_server: Res<AssetServer>,
 ) {
+    trace!("draw_status_ui");
     trace!("Creating status bar UiNode");
     debug!("Creating health UiNode");
     debug!("Creating mana UiNode");
@@ -21,16 +22,69 @@ pub fn draw_status_ui(
     ];
     if let Ok((mana, max_mana)) = mana_query.get_single() {
         if let Ok((health, max_health)) = health_query.get_single() {
-            // Root node
-            commands.ui_builder(UiRoot)
-                .container(NodeBundle {
-                    background_color: BackgroundColor::from(GREEN),
-                    visibility: Visibility::Visible,
-                    style: Style {
+            let status_bar = commands
+                .spawn((
+                    Node {
                         width: Val::Percent(100.),
                         height: Val::Percent(10.),
                         ..default()
                     },
+                    BackgroundColor(GREEN.into()),
+                    Visibility::Visible,
+                    UiStatus,
+                ))
+                .id();
+
+            let player_health = commands
+                .spawn((
+                    Node { ..default() },
+                    Button,
+                    Text("Player Health".to_string()),
+                    TextColor(Color::WHITE),
+                    TextFont {
+                        font: asset_server.load("FiraSans-Bold.ttf"),
+                        font_size: 50.0,
+                        ..default()
+                    },
+                    ZIndex(10),
+                    ImageNode {
+                        image: health_ui_icons[0].clone().into(),
+                        ..default()
+                    },
+                ))
+                .id();
+            let player_mana = commands
+                .spawn((
+                    Node { ..default() },
+                    Button,
+                    Text("Player Mana".to_string()),
+                    TextColor(Color::WHITE),
+                    TextFont {
+                        font: asset_server.load("FiraSans-Bold.ttf"),
+                        font_size: 50.0,
+                        ..default()
+                    },
+                    BackgroundColor::from(BLUE),
+                    ZIndex(10),
+                ))
+                .id();
+
+            commands.queue(AddChild {
+                parent: status_bar,
+                child: player_health,
+            });
+            commands.queue(AddChild {
+                parent: status_bar,
+                child: player_mana,
+            });
+
+            // Root node
+            /*commands.ui_builder(UiRoot)
+                .container(Node {
+                    background_color: BackgroundColor::from(GREEN),
+                    visibility: Visibility::Visible,
+                    width: Val::Percent(100.),
+                    height: Val::Percent(10.),
                     ..default()
                 },
                 // Status bar
@@ -61,14 +115,11 @@ pub fn draw_status_ui(
                             },
                             |mana_bar| {
                                 mana_bar.spawn(
-                                    NodeBundle {
+                                    Node {
                                     visibility: Visibility::Visible,
                                     background_color: BackgroundColor::from(BLUE),
-                                    style: Style {
-                                        width: Val::Percent((mana.0 as f32 / max_mana.0 as f32) * 100.),
-                                        height: Val::Percent(100.),
-                                        ..default()
-                                    },
+                                    width: Val::Percent((mana.0 as f32 / max_mana.0 as f32) * 100.),
+                                    height: Val::Percent(100.),
                                     z_index: ZIndex::Global(9),
                                     ..default()
                                     }
@@ -77,7 +128,7 @@ pub fn draw_status_ui(
                         );
                     });
                 })
-            .insert(UiStatus);
-            }
+            .insert(UiStatus);*/
         }
+    }
 }

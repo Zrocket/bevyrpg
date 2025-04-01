@@ -8,7 +8,6 @@ pub struct EnemyPlugin;
 
 impl Plugin for EnemyPlugin {
     fn build(&self, app: &mut App) {
-        app
-            .register_type::<Enemy>();
+        app.register_type::<Enemy>();
     }
 }

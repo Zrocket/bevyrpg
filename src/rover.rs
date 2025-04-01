@@ -5,8 +5,7 @@ use bevy::prelude::*;
 pub struct Rover;
 
 #[derive(Event)]
-pub struct RoverCommandEvent {
-}
+pub struct RoverCommandEvent {}
 
 pub struct RoverPlugin;
 
