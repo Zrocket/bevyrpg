@@ -1,5 +1,5 @@
-use bevy::prelude::*;
 use super::GameState;
+use bevy::prelude::*;
 use std::ops::Deref;
 
 use crate::items::*;
@@ -22,7 +22,6 @@ pub struct Inventory {
     pub ui_index: usize,
     pub ui_active: bool,
 }
-
 
 #[derive(Component, Clone, Reflect)]
 #[reflect(Component)]
@@ -64,11 +63,16 @@ pub struct InventoryPlugin;
 
 impl Plugin for InventoryPlugin {
     fn build(&self, app: &mut App) {
-        app
-            .add_event::<PickUpEvent>()
+        app.add_event::<PickUpEvent>()
             .add_event::<RemoveEvent>()
-            .add_systems(Update, add_to_inventory.run_if(in_state(GameState::Gameplay)))
-            .add_systems(Update, remove_from_inventory.run_if(in_state(GameState::Gameplay)))
+            .add_systems(
+                Update,
+                add_to_inventory.run_if(in_state(GameState::Gameplay)),
+            )
+            .add_systems(
+                Update,
+                remove_from_inventory.run_if(in_state(GameState::Gameplay)),
+            )
             .register_type::<InInventory>();
     }
 }
@@ -79,14 +83,16 @@ fn add_to_inventory(
     mut item: Query<Entity>, //With<ItemType>>,
     mut actor: Query<(Entity, &mut Inventory)>,
 ) {
+    trace!("add_to_inventory");
     for event in pick_up_events.read() {
         info!("Event Handler: add_to_inventory");
         if item.get_mut(event.target).is_ok() {
             //commands.entity(item_entity).despawn_recursive();
-            commands.entity(event.target)
+            commands
+                .entity(event.target)
                 .insert(InInventory(event.actor));
-                //.remove::<PbrBundle>();
-                //.remove::<Collider>();
+            //.remove::<PbrBundle>();
+            //.remove::<Collider>();
             if let Ok((_, mut inventory)) = actor.get_mut(event.actor) {
                 inventory.items.push(event.target);
             }
@@ -99,14 +105,13 @@ fn remove_from_inventory(
     mut remove_events: EventReader<RemoveEvent>,
     item_query: Query<Entity, With<ItemType>>,
     mut actor: Query<(Entity, &mut Inventory)>,
-){
-    //trace!("remove_from_inventory Event Handler");
+) {
+    trace!("remove_from_inventory Event Handler");
     for event in remove_events.read() {
         if let Ok((_, mut inventory)) = actor.get_mut(event.actor) {
             inventory.items.retain(|item| *item != event.target);
             if let Ok(item) = item_query.get(event.target) {
-                commands.entity(item)
-                    .remove::<InInventory>();
+                commands.entity(item).remove::<InInventory>();
             }
         }
     }

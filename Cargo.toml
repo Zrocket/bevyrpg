@@ -6,39 +6,53 @@ edition = "2021"
 # See more keys and their definitions at https://doc.rust-lang.org/cargo/reference/manifest.html
 
 [dependencies]
-#bevy-yoleck = "0.14.1"
-#bevy_mod_picking = "*"
-#bevy_mod_ui_texture_atlas_image = "0.4.1"
 anyhow = "1.0.86"
-avian3d = "0.1.2"
-#avian3d = { git = "https://github.com/Jondolf/avian" }
-#avian_interpolation3d = { git = "https://github.com/janhohenheim/avian_interpolation" }
-#avian_pickup = { git = "https://github.com/janhohenheim/avian_pickup" }
-bevy = "0.14.0"
-bevy-inspector-egui = "*"
-bevy-scene-hook = "*"
-bevy-tnua = "0.19.0"
-bevy-tnua-avian3d = "0.1.1"
-bevy-yoleck = "*"
-bevy_asset_loader = {version = "0.21", features = ["2d"]}
-bevy_egui = "*"
-bevy_flycam = "*"
-bevy_mod_static_inventory = "*"
-bevy_registry_export = "*"
-bevy_simple_text_input = "*"
-bevy_sprite3d = "3.0"
-bevy_yarnspinner = "*"
-bevy_yarnspinner_example_dialogue_view = "*"
-big-brain = "0.21.1"
-blenvy = "0.1.0-alpha.1"
+bevy = "0.15.0"
 clap = { version = "*", features = ["derive"] }
 lazy_static = "*"
-leafwing-input-manager = "0.15.1"
-oxidized_navigation = { git="https://github.com/TheGrimsey/oxidized_navigation.git", default-features = false, features = ["debug_draw", "avian"] }
-rand = "*"
+rand = "0.8.5"
 serde = "*"
-sickle_ui = "0.2.1"
 standard-dist = "*"
+
+
+#
+# BEVY ADDONS
+#
+#bevy_mod_picking = "*"
+#bevy_mod_ui_texture_atlas_image = "0.4.1"
+# bevy 0.15 ready
+avian3d = "0.2"
+bevy-inspector-egui = "0.28"
+bevy_flycam = "0.15.0"
+bevy-tnua = "0.21"
+bevy-tnua-avian3d = "0.2.0"
+bevy-tnua-physics-integration-layer = "0.5.0"
+bevy-yoleck = "0.23"
+bevy_sprite3d = "4.0"
+bevy_egui = "0.31"
+big-brain = "0.22.0"
+leafwing-input-manager = { git ="https://github.com/Leafwing-Studios/leafwing-input-manager.git" }
+bevy_simple_text_input = "0.10"
+bevy_asset_loader = {version = "0.22", features = ["2d"]}
+avian_interpolation3d = { path = "../avian_interpolation/crates/avian_interpolation3d" } #awaiting pull
+avian_pickup = { git="https://github.com/Zrocket/avian_pickup" } #awaiting pull
+oxidized_navigation = { git = "https://github.com/TheGrimsey/oxidized_navigation.git", default-features = false, features = ["debug_draw", "avian"] }
+blenvy = { git = "https://github.com/ptsd/Blenvy.git", branch = "blenvy-bevy-0.15" } #awaiting pull
+bevy_yarnspinner = { git = "https://github.com/wiggleforlife/YarnSpinner-Rust.git" } #waiting for update
+
+
+# waiting for update
+#bevy-tnua-avian3d = "0.1.1"
+#bevy_yarnspinner = "*" #waiting for update
+#bevy_yarnspinner_example_dialogue_view = "*" #waiting for update
+#blenvy = "0.1.0-alpha.1" #waiting for update
+
+
+#possibly abandonded
+#bevy_mod_static_inventory = "*" #possibly abandonded
+#bevy-scene-hook = "*" #possibly abandonded
+#bevy_registry_export = "*" #waiting for update
+
 
 [profile.dev]
 opt-level=3
