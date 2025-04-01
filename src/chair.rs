@@ -20,8 +20,7 @@ pub struct Chair;
 pub struct ChairPlugin;
 
 impl Plugin for ChairPlugin {
-    fn build(&self, app: &mut App) {
-    }
+    fn build(&self, app: &mut App) {}
 }
 
 fn sit_event_handler(
@@ -29,11 +28,10 @@ fn sit_event_handler(
     mut events: EventReader<SitEvent>,
     mut actors: Query<Entity, With<Player>>,
 ) {
-    for event in events.read() {
-    }
+    for event in events.read() {}
     if let Ok(player) = actors.get_single_mut() {
         commands.entity(player);
-           // .remove::<>()
+        // .remove::<>()
     }
 }
 
@@ -42,6 +40,5 @@ fn stand_event_handler(
     mut events: EventReader<StandEvent>,
     mut actors: Query<Entity, With<Player>>,
 ) {
-    for event in events.read() {
-    }
+    for event in events.read() {}
 }

@@ -13,6 +13,5 @@ pub struct Console {
 pub struct ConsolePlugin;
 
 impl Plugin for ConsolePlugin {
-    fn build(&self, app: &mut App) {
-    }
+    fn build(&self, app: &mut App) {}
 }

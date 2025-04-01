@@ -8,6 +8,7 @@ pub struct GamePlayerPlugin;
 
 impl Plugin for GamePlayerPlugin {
     fn build(&self, app: &mut App) {
+        trace!("GamePlayerPlugin build");
         app.register_type::<Player>();
     }
 }

@@ -1,13 +1,11 @@
 use bevy::{
     prelude::*,
-    render::mesh::{MeshVertexAttributeId, VertexAttributeValues, PrimitiveTopology}};
+    render::mesh::{MeshVertexAttributeId, PrimitiveTopology, VertexAttributeValues},
+};
 
-pub fn cleanup_system<T: Component>(
-    mut commands: Commands,
-    q: Query<Entity, With<T>>,
-    ) {
-    for e in q.iter() {
-        commands.entity(e).despawn_recursive();
+pub fn cleanup_system<T: Component>(mut commands: Commands, query: Query<Entity, With<T>>) {
+    for entity_id in query.iter() {
+        commands.entity(entity_id).despawn_recursive();
     }
 }
 
@@ -19,8 +17,9 @@ pub trait MeshExt {
         parent: Entity,
         children: &'a Query<&Children>,
         meshes: &'a Assets<Mesh>,
-        mesh_handles: &'a Query<&Handle<Mesh>>,
-        ) -> Vec<(Entity, &'a Mesh)>;
+        //mesh_handles: &'a Query<&Handle<Mesh>>,
+        mesh_handles: &'a Query<&Mesh3d>,
+    ) -> Vec<(Entity, &'a Mesh)>;
 }
 
 impl MeshExt for Mesh {
@@ -48,40 +47,41 @@ impl MeshExt for Mesh {
         match self
             .attribute_mut(id)
             .expect("Failed tot read unknown mesh attribute")
-            {
-                VertexAttributeValues::Float32x3(values) => values,
-                // Guranteed by Bevy for the current usage
-                _ => unreachable!(),
-            }
+        {
+            VertexAttributeValues::Float32x3(values) => values,
+            // Guranteed by Bevy for the current usage
+            _ => unreachable!(),
+        }
     }
 
     fn search_in_children<'a>(
-            parent: Entity,
-            children_query: &'a Query<&Children>,
-            meshes: &'a Assets<Mesh>,
-            mesh_handles: &'a Query<&Handle<Mesh>>,
-            ) -> Vec<(Entity, &'a Mesh)> {
-        if let Ok(children) = children_query.get(parent) {
-            let mut result: Vec<_> = children
+        parent: Entity,
+        children: &'a Query<&Children>,
+        meshes: &'a Assets<Mesh>,
+        //mesh_handles: &'a Query<&Handle<Mesh>>,
+        mesh_handles: &'a Query<&Mesh3d>,
+    ) -> Vec<(Entity, &'a Mesh)> {
+        if let Ok(children_result) = children.get(parent) {
+            let mut result: Vec<_> = children_result
                 .iter()
                 .filter_map(|entity| mesh_handles.get(*entity).ok().map(|mesh| (*entity, mesh)))
                 .map(|(entity, mesh_handle)| {
                     (
                         entity,
                         meshes
-                        .get(mesh_handle)
-                        .expect("Failed to get mesh from handle"),
+                            .get(mesh_handle)
+                            .expect("Failed to get mesh from handle"),
                     )
                 })
-            .map(|(entity, mesh)| {
-                assert_eq!(mesh.primitive_topology(), PrimitiveTopology::TriangleList);
-                (entity, mesh)
-            })
-            .collect();
-            let mut inner_result = children
+                .map(|(entity, mesh)| {
+                    assert_eq!(mesh.primitive_topology(), PrimitiveTopology::TriangleList);
+                    (entity, mesh)
+                })
+                .collect();
+            let mut inner_result = children_result
                 .iter()
                 .flat_map(|entity| {
-                    Self::search_in_children(*entity, children_query, meshes, mesh_handles)
+                    Self::search_in_children(*entity, children, meshes, mesh_handles)
                 })
                 .collect();
             result.append(&mut inner_result);

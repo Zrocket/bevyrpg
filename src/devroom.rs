@@ -1,8 +1,10 @@
-use bevy::{math::vec3, prelude::*, render::camera::ClearColorConfig};
-use bevy_tnua::controller::TnuaControllerBundle;
-//use bevy_tnua_rapier3d::TnuaRapier3dIOBundle;
-use leafwing_input_manager::{input_map::InputMap, InputManagerBundle};
 use avian3d::collision::Collider;
+use bevy::{
+    core_pipeline::core_3d::Camera3d, math::vec3, prelude::*, render::camera::ClearColorConfig,
+};
+use bevy_tnua::prelude::*;
+use bevy_tnua_avian3d::*;
+use leafwing_input_manager::{input_map::InputMap, InputManagerBundle};
 
 use std::f32::consts::PI;
 
@@ -18,8 +20,8 @@ impl Plugin for DevRoomPlugin {
     fn build(&self, app: &mut App) {
         app.add_systems(OnEnter(GameState::Loading), spawn_basic_scene)
             //.add_systems(OnEnter(GameState::Gameplay), spawn_sprites)
-            .add_systems(Update, player_forward.run_if(in_state(GameState::Gameplay)))
-            .add_plugins(SpritesPlugin);
+            .add_systems(Update, player_forward.run_if(in_state(GameState::Gameplay)));
+        //.add_plugins(SpritesPlugin);
     }
 }
 
@@ -33,52 +35,44 @@ fn spawn_basic_scene(
     trace!("Spawn basic scene");
 
     if let Ok(mut window) = window.get_single_mut() {
-        window.cursor.grab_mode = bevy::window::CursorGrabMode::Locked;
+        window.cursor_options.grab_mode = bevy::window::CursorGrabMode::Locked;
     }
 
-
     info!("Creating DirectionalLightBundle");
-    commands.spawn(DirectionalLightBundle {
-        directional_light: DirectionalLight {
+    commands.spawn((
+        DirectionalLight {
             illuminance: light_consts::lux::OFFICE,
             shadows_enabled: true,
             ..default()
         },
-        transform: Transform {
+        Transform {
             translation: Vec3::new(0.0, 2.0, 0.0),
             rotation: Quat::from_rotation_x(-PI / 4.),
             ..default()
         },
-        ..default()
-    });
+    ));
 
     info!("Loading DevRoom");
-    //commands.spawn(SceneBundle { scene: asset_server.load("levels/Scene.glb#Scene0"), ..default() });
-    commands.spawn(SceneBundle { scene: asset_server.load("levels/__temp_scene.glb#Scene0"), ..default() });
+    commands.spawn(SceneRoot(
+        asset_server.load("levels/__temp_scene.glb#Scene0"),
+    ));
+    //commands.spawn(SceneBundle { scene: asset_server.load("levels/__temp_scene.glb#Scene0"), ..default() });
     info!("DevRoom Loaded");
 
     // Gun
     info!("Creating Gun");
     let gun = commands
-        .spawn(
-            SceneBundle {
-                scene: asset_server.load("guns/uzi.glb#Scene0"),
-                //scene: asset_server.load("guns/shotgun.glb#Scene0"),
-                //scene: asset_server.load("guns/revolver-python.glb#Scene0"),
-                //scene: asset_server.load("guns/pistol-coonan.glb#Scene0"),
-                //scene: asset_server.load("guns/smg-mp5x.glb#Scene0"),
-                //scene: asset_server.load("guns/sniper.glb#Scene0"),
-                transform: Transform::from_translation(vec3(0.1, -0.2, -0.5)),
-                ..default()
-            }
-        )
-        .insert(Item {
-            name: Name::new("gun"),
-            description: Description("gun".to_string()),
-            item_type: ItemType::Weapon(Weapon::default()),
-            weight: Weight(0),
-            interact: Interactable::Misc,
-        })
+        .spawn((
+            Transform::from_translation(vec3(0.1, -0.2, -0.5)),
+            SceneRoot(asset_server.load("guns/uzi.glb#Scene0")),
+            Item {
+                name: Name::new("gun"),
+                description: Description("gun".to_string()),
+                item_type: ItemType::Weapon(Weapon::default()),
+                weight: Weight(0),
+                interact: Interactable::Misc,
+            },
+        ))
         .id();
 
     // Player
@@ -118,107 +112,110 @@ fn spawn_basic_scene(
             //AdditionalMassProperties::Mass(1.0),
             GravityScale(0.0),
             //Ccd { enabled: true },
-            TransformBundle::from_transform(Transform::from_xyz(0.0, 1.0, 0.0)),
+            //TransformBundle::from_transform(Transform::from_xyz(0.0, 1.0, 0.0)),
+            Transform::from_xyz(0.0, 1.0, 0.0),
             //AvianPickupActor::default(),
+            CameraConfig {
+                height_offset: 0.0,
+                //radius_scale: 0.75,
+            },
+            Player,
+            PlayerController::default(),
+            PlayerControllerInput::default(),
+            CharacterBundle {
+                mana: Mana(100),
+                max_mana: MaxMana(100),
+                health: Health(100),
+                max_health: MaxHealth(100),
+                experience: Experience(100),
+                ..default()
+            },
+            Inventory { ..default() },
+            TnuaController::default(),
+            TnuaAvian3dSensorShape(Collider::capsule(0.1, 1.5)),
+            FloatHeight(0.5),
         ))
-        .insert(CameraConfig {
-            height_offset: 0.0,
-            //radius_scale: 0.75,
-        })
-        .insert(Player)
-        .insert(PlayerController::default())
-        .insert(PlayerControllerInput::default())
-        .insert(CharacterBundle {
-            mana: Mana(100),
-            max_mana: MaxMana(100),
-            health: Health(100),
-            max_health: MaxHealth(100),
-            experience: Experience(100),
-            ..default()
-        })
+        .insert((Walk::default(), InputManagerBundle::with_map(input_map)))
         //.insert(UiEntity::default())
-        .insert(Inventory { ..default() })
-        //.insert(TnuaRapier3dIOBundle::default())
-        .insert(TnuaControllerBundle::default())
-        .insert(FloatHeight(0.5))
-        .insert(Walk::default())
-        .insert(InputManagerBundle::with_map(input_map))
         .id();
 
     let rand_character: CharacterBundle = rand::random();
     // Cube
     info!("Creating Cube");
-    commands.spawn((PbrBundle {
-        mesh: meshes.add(Cuboid::new(1.0, 1.0, 1.0)),
-        material: materials.add(Color::WHITE),
-        transform: Transform::from_xyz(-0.9, 1.5, -3.2),
-        ..default()
-    },
-        RigidBody::Dynamic,
-        Collider::cuboid(0.5, 0.5, 0.5),
-        Item {
-            name: Name::new("Cube"),
-            description: Description("Cube".to_string()),
-            item_type: ItemType::Misc,
-            interact: Interactable::Misc,
-            weight: Weight(0),
-        }
-    ))
-    .insert(rand_character)
-    //.insert(TnuaRapier3dIOBundle::default())
-    .insert(TnuaControllerBundle::default())
-    .insert(FloatHeight(0.5))
-    .insert(Walk::default())
-    .insert(DesiredPosition(Vec3 {x:-15.0, y:5.0, z:-15.0}))
-    .insert(Name::new("Cube"));
+    commands
+        .spawn((
+            Mesh3d(meshes.add(Cuboid::new(1.0, 1.0, 1.0))),
+            MeshMaterial3d(materials.add(Color::WHITE)),
+            Transform::from_xyz(-0.9, 1.5, -3.2),
+            RigidBody::Dynamic,
+            Collider::cuboid(0.5, 0.5, 0.5),
+            Item {
+                name: Name::new("Cube"),
+                description: Description("Cube".to_string()),
+                item_type: ItemType::Misc,
+                interact: Interactable::Misc,
+                weight: Weight(0),
+            },
+        ))
+        .insert(rand_character)
+        //.insert(TnuaRapier3dIOBundle::default())
+        .insert(TnuaController::default())
+        .insert(TnuaAvian3dSensorShape(Collider::cuboid(0.5, 0.5, 0.5)))
+        .insert(FloatHeight(0.5))
+        .insert(Walk::default())
+        .insert(DesiredPosition(Vec3 {
+            x: -15.0,
+            y: 5.0,
+            z: -15.0,
+        }))
+        .insert(Name::new("Cube"));
 
     // Sphere
     info!("Creating Sphere");
-    commands.spawn((PbrBundle {
-        mesh: meshes.add(Sphere::new(0.6).mesh().ico(20).unwrap()),
-        material: materials.add(Color::WHITE),
-        transform: Transform::from_xyz(-0.9, 0.5, -4.2),
-        ..default()
-    },
-    Interactable::Trade))
-    .insert(Name::new("Sphere"));
+    commands
+        .spawn((
+            Mesh3d(meshes.add(Sphere::new(0.0).mesh().ico(20).unwrap())),
+            MeshMaterial3d(materials.add(Color::WHITE)),
+            Transform::from_xyz(-0.9, 0.5, -4.2),
+            Interactable::Trade,
+        ))
+        .insert(Name::new("Sphere"));
 
     // Camera
     info!("Creating Camera");
-    commands.spawn((
-        Camera3dBundle {
-            camera: Camera {
+    commands
+        .spawn((
+            Camera {
                 hdr: true,
                 clear_color: ClearColorConfig::Custom(Srgba::rgb(0.0, 0.0, 0.0).into()),
                 ..default()
             },
-            camera_3d: Camera3d {
-                ..default()
-            },
-            projection: Projection::Perspective(PerspectiveProjection {
+            Camera3d { ..default() },
+            Projection::Perspective(PerspectiveProjection {
                 fov: std::f32::consts::PI / 2.0,
                 ..default()
             }),
-            transform: Transform { translation: Vec3 {y: 2., ..default() }, ..default() },
-            ..default()
-        },
-        RenderPlayer{ logical_entity },
-    ))
-    .add_child(gun);
+            Transform {
+                translation: Vec3 { y: 2., ..default() },
+                ..default()
+            },
+            RenderPlayer { logical_entity },
+        ))
+        .add_child(gun);
 }
 
 fn player_forward(
     cam_transform: Query<&Transform, (With<Camera>, Without<Player>)>,
     mut player_transform: Query<&mut Transform, With<Player>>,
-    ) {
+) {
     trace!("System: player_forward");
     let cam_transform = cam_transform.single();
     let forward = cam_transform.forward();
-    let mut player_transform  = player_transform.single_mut();
+    let mut player_transform = player_transform.single_mut();
     player_transform.look_to(*forward, Vec3::Y);
 }
 
-fn spawn_sprites(
+/*fn spawn_sprites(
     mut commands: Commands,
     images: Res<ImageAssets>,
     mut sprite_params: Sprite3dParams,
@@ -295,4 +292,4 @@ fn spawn_sprites(
         transform: Transform::from_xyz(-5., 1.1, 6.5),
         ..default()
     });
-}
+}*/

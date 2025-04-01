@@ -1,6 +1,6 @@
+use crate::{ActiveConsole, Player};
 use bevy::prelude::*;
 use leafwing_input_manager::prelude::ActionState;
-use crate::{ActiveConsole, Player};
 
 use super::Action;
 

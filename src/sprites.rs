@@ -74,11 +74,15 @@ pub struct SpritesPlugin;
 
 impl Plugin for SpritesPlugin {
     fn build(&self, app: &mut App) {
+        trace!("SpritesPlugin build");
         //app.add_collection_to_loading_state::<_, ImageAssets>(GameState::Loading)
         app.add_event::<SpriteEvent>()
             .add_systems(Update, sprite_handler.run_if(in_state(GameState::Gameplay)))
             .add_systems(Update, face_camera.run_if(in_state(GameState::Gameplay)))
-            .add_systems(Update, animate_sprites.run_if(in_state(GameState::Gameplay)));
+            .add_systems(
+                Update,
+                animate_sprites.run_if(in_state(GameState::Gameplay)),
+            );
     }
 }
 
@@ -88,80 +92,97 @@ fn sprite_handler(
     images: Res<ImageAssets>,
     mut sprite_params: Sprite3dParams,
 ) {
-    //info!("Event Handler: sprite_handler");
+    trace!("Event Handler: sprite_handler");
     let mut rng = rand::thread_rng();
 
     for event in sprite_events.read() {
-    //info!("event {} {}", event.tile_x, event.tile_y);
-        //info!("Sprite Event read");
-        let mut atlas = TextureAtlas{
+        info!("event {} {}", event.tile_x, event.tile_y);
+        info!("Sprite Event read");
+        let mut atlas = TextureAtlas {
             index: event.tile_x,
             ..default()
         };
 
         let mut timer = Timer::from_seconds(0.4, TimerMode::Repeating);
-        //info!("Timer declared");
+        info!("Timer declared");
         timer.set_elapsed(Duration::from_secs_f32(rng.gen_range(0.0..0.4)));
         atlas.layout = images.character_layout.clone();
-        //info!("atlas layout decalred");
+        info!("atlas layout decalred");
 
         match event.sprite_type {
             SpriteType::Character => {
-                //info!("Character Sprite");
+                let atlas = TextureAtlas {
+                    layout: images.character_layout.clone(),
+                    index: event.tile_x,
+                };
+
+                info!("Character Sprite");
                 let mut c = commands.spawn((
-                    Sprite3d {
+                    //Sprite3d {
+                    //    texture_atlas: Some(atlas),
+                    //    texture_atlas_keys: Some(()),
+                    //    ..default()
+                    //}
+                    Sprite3dBuilder {
                         image: images.character_tileset.clone(),
                         pixels_per_metre: 16.,
-                        transform: Transform::from_xyz(event.x, 1.0, event.y),
+                        double_sided: false,
                         ..default()
                     }
                     .bundle_with_atlas(&mut sprite_params, atlas),
-                    FaceCamera{},
+                    FaceCamera {},
                     CharacterBundle::default(),
                     Collider::cuboid(0.5, 1., 0.5),
                     Interactable::Talk,
-                    YarnNode::default(),
+                    //YarnNode::default(),
                     //KinematicCharacterController::default(),
                     RigidBody::Kinematic,
-               ));
-                //info!("Character Spawned");
-                //info!("Character frames: {}", event.frames);
+                ));
+                info!("Character Spawned");
+                info!("Character frames: {}", event.frames);
                 if event.frames > 1 {
                     //info!("Character Frame");
-                    c.insert(
-                        Animation {
-                            frames: (0..event.frames)
-                                .map(|j| j + event.tile_x + event.tile_y * 30_usize)
-                                .collect(),
-                            current: 0,
-                            timer: timer.clone(),
-                        }
-                    );
+                    c.insert(Animation {
+                        frames: (0..event.frames)
+                            .map(|j| j + event.tile_x + event.tile_y * 30_usize)
+                            .collect(),
+                        current: 0,
+                        timer: timer.clone(),
+                    });
                 }
                 //c.insert(Interactable::Trade);
             }
             SpriteType::Item => {
-                //info!("Item Sprite");
+                let atlas = TextureAtlas {
+                    layout: images.layout.clone(),
+                    index: event.tile_x,
+                };
+
+                info!("Item Sprite");
                 let mut c = commands.spawn((
-                    Sprite3d {
-                        image: images.character_tileset.clone(),
+                    //Sprite3d {
+                    //    image: images.character_tileset.clone(),
+                    //    pixels_per_metre: 16.,
+                    //    transform: Transform::from_xyz(event.x, 1.0, event.y),
+                    //    ..default()
+                    //}
+                    Sprite3dBuilder {
+                        image: images.tileset.clone(),
                         pixels_per_metre: 16.,
-                        transform: Transform::from_xyz(event.x, 1.0, event.y),
+                        double_sided: false,
                         ..default()
                     }
                     .bundle_with_atlas(&mut sprite_params, atlas),
-                    FaceCamera{},
-               ));
+                    FaceCamera {},
+                ));
                 if event.frames > 1 {
-                    c.insert(
-                        Animation {
-                            frames: (0..event.frames)
-                                .map(|j| j + event.tile_x + event.tile_y * 30_usize)
-                                .collect(),
-                            current: 0,
-                            timer: timer.clone(),
-                        }
-                    );
+                    c.insert(Animation {
+                        frames: (0..event.frames)
+                            .map(|j| j + event.tile_x + event.tile_y * 30_usize)
+                            .collect(),
+                        current: 0,
+                        timer: timer.clone(),
+                    });
                 }
             }
         }
@@ -169,15 +190,13 @@ fn sprite_handler(
     }
 }
 
-fn animate_sprites(
-    time: Res<Time>,
-    mut query: Query<(&mut Animation, &mut TextureAtlas)>,
-) {
+fn animate_sprites(time: Res<Time>, mut query: Query<(&mut Animation, &mut Sprite3d)>) {
     trace!("System: animate_sprites");
     for (mut animation, mut sprite) in query.iter_mut() {
         animation.timer.tick(time.delta());
         if animation.timer.just_finished() {
-            sprite.index = animation.frames[animation.current];
+            let atlas = sprite.texture_atlas.as_mut().unwrap();
+            atlas.index = animation.frames[animation.current];
             animation.current += 1;
             animation.current %= animation.frames.len();
         }
