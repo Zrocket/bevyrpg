@@ -1,9 +1,9 @@
 use std::f32::consts::*;
 
-use bevy::{prelude::*, input::mouse};
-use leafwing_input_manager::prelude::*;
+use bevy::{input::mouse, prelude::*};
 use bevy_tnua::builtins::{TnuaBuiltinJump, TnuaBuiltinWalk};
 use bevy_tnua::controller::TnuaController;
+use leafwing_input_manager::prelude::*;
 
 use crate::Player;
 
@@ -61,14 +61,15 @@ const GROUNDED_DISTANCE: f32 = 0.125;
 
 const SLIGHT_SCALE_DOWN: f32 = 0.9375;
 
-
 pub fn player_controller_input(
     key_input: Query<&ActionState<Action>, With<Player>>,
     mut mouse_events: EventReader<mouse::MouseMotion>,
     mut query: Query<(&PlayerController, &mut PlayerControllerInput)>,
 ) {
-    for (controller, mut input) in query.iter_mut()
-        .filter(|(controller, _)| controller.enable_input) {
+    for (controller, mut input) in query
+        .iter_mut()
+        .filter(|(controller, _)| controller.enable_input)
+    {
         let mut mouse_delta = Vec2::ZERO;
         for mouse_event in mouse_events.read() {
             mouse_delta += mouse_event.delta;
@@ -116,7 +117,7 @@ pub fn tnua_player_input(
     key_query: Query<&ActionState<Action>, With<Player>>,
     mut tnua_query: Query<&mut TnuaController, With<Player>>,
     player_input: Query<&PlayerControllerInput>,
-    ) {
+) {
     let action_state = key_query.single();
     let Ok(mut controller) = tnua_query.get_single_mut() else {
         return;
@@ -132,11 +133,11 @@ pub fn tnua_player_input(
     // Each action has a button-like state of its own that you can check
     if action_state.pressed(&Action::Jump) {
         controller.action(TnuaBuiltinJump {
-        // The height is the only mandatory field of the jump button.
-        height: 4.0,
-        // `TnuaBuiltinJump` also has customization fields with sensible defaults.
-        ..Default::default()
-    });
+            // The height is the only mandatory field of the jump button.
+            height: 4.0,
+            // `TnuaBuiltinJump` also has customization fields with sensible defaults.
+            ..Default::default()
+        });
     }
 
     // Feed the basis every frame. Even if the player doesn't move - just use `desired_velocity:

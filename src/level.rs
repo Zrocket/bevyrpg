@@ -1,13 +1,17 @@
-use bevy::{gltf::Gltf, prelude::*};
-use bevy_tnua_avian3d::TnuaAvian3dPlugin;
-use crate::{error_pipe, MeshExt, Player};
-use oxidized_navigation::{self, debug_draw::{DrawNavMesh, OxidizedNavigationDebugDrawPlugin}, query::{find_polygon_path, perform_string_pulling_on_path}, NavMesh, NavMeshSettings};
-use bevy_tnua::prelude::*;
-use super::utils::{Vec3Ext, F32Ext};
+use super::utils::{F32Ext, Vec3Ext};
 use super::GameState;
-use oxidized_navigation::{NavMeshAffector, OxidizedNavigationPlugin};
+use crate::{error_pipe, MeshExt, Player};
 use avian3d::collision::Collider;
-
+use bevy::{gltf::Gltf, prelude::*};
+use bevy_tnua::prelude::*;
+use bevy_tnua_avian3d::TnuaAvian3dPlugin;
+use oxidized_navigation::{
+    self,
+    debug_draw::{DrawNavMesh, OxidizedNavigationDebugDrawPlugin},
+    query::{find_polygon_path, perform_string_pulling_on_path},
+    NavMesh, NavMeshSettings,
+};
+use oxidized_navigation::{NavMeshAffector, OxidizedNavigationPlugin};
 
 #[derive(Debug, Default, Component, Reflect)]
 #[reflect(Component)]
@@ -23,7 +27,6 @@ pub struct BlenderBoxCollider {
 #[reflect(Component)]
 pub struct BlenderNavmesh;
 
-
 #[derive(Resource)]
 pub struct ActiveLevel(Handle<Gltf>);
 
@@ -37,14 +40,15 @@ pub struct Walk {
     /// Top speed on the ground
     pub speed: f32,
     /// Direction in which we want to walk and turn this tick.
-    pub direction: Option<Vec3>,
+    //pub direction: Option<Vec3>,
+    pub direction: Option<Dir3>,
 }
 
 #[derive(Bundle)]
 pub struct MovementBundle {
     walk: Walk,
     //tnua_rapier3d_io: TnuaRapier3dIOBundle,
-    tnua_conroller: TnuaControllerBundle,
+    tnua_conroller: TnuaController,
     float_height: FloatHeight,
 }
 
@@ -73,8 +77,7 @@ pub struct BlenderTranslationPlugin;
 
 impl Plugin for BlenderTranslationPlugin {
     fn build(&self, app: &mut App) {
-        app
-            .register_type::<BlenderCollider>()
+        app.register_type::<BlenderCollider>()
             .register_type::<BlenderBoxCollider>()
             .register_type::<BlenderNavmesh>()
             .register_type::<Walk>()
@@ -82,50 +85,53 @@ impl Plugin for BlenderTranslationPlugin {
             .register_type::<DesiredPosition>()
             .add_systems(OnEnter(GameState::Gameplay), translate_components);
 
-        app.add_plugins(OxidizedNavigationPlugin::<Collider>::new(NavMeshSettings::from_agent_and_bounds(
-                    0.5,
-                    1.9,
-                    250.0,
-                    -1.0
-        )));
+        app.add_plugins(OxidizedNavigationPlugin::<Collider>::new(
+            NavMeshSettings::from_agent_and_bounds(0.5, 1.9, 250.0, -1.0),
+        ));
 
         app.add_plugins(OxidizedNavigationDebugDrawPlugin);
-        app.add_plugins(TnuaAvian3dPlugin::default());
+        app.add_plugins(TnuaAvian3dPlugin::new(Update));
         app.add_plugins(TnuaControllerPlugin::default());
-        app.add_systems(Update, (
+        app.add_systems(
+            Update,
+            (
                 //run_blocking_pathfinding,
                 toggle_nav_mesh_system,
                 navmesh_pathfinding.pipe(error_pipe),
                 apply_walking,
-                ));
+            ),
+        );
     }
 }
 
 fn translate_components(
-mut commands: Commands,
-query: Query<Entity, With<BlenderCollider>>,
-box_query: Query<(Entity, &BlenderBoxCollider)>,
-meshes: Res<Assets<Mesh>>,
-mesh_handles: Query<&Handle<Mesh>>,
-children: Query<&Children>,
+    mut commands: Commands,
+    query: Query<Entity, With<BlenderCollider>>,
+    //box_query: Query<(Entity, &BlenderBoxCollider)>,
+    meshes: Res<Assets<Mesh>>,
+    //mesh_handles: Query<&Handle<Mesh>>,
+    mesh_handles: Query<&Mesh3d>,
+    children: Query<&Children>,
 ) {
     //info!("Translate Components");
     for entity in query.iter() {
         //info!("Translate Event");
-        for (_, collider_mesh) in Mesh::search_in_children(entity, &children, &meshes, &mesh_handles) {
+        //for (_, collider_mesh) in Mesh::search_in_children(entity, &children, &meshes, &mesh_handles) {
+        for (_, collider_mesh) in
+            Mesh::search_in_children(entity, &children, &meshes, &mesh_handles)
+        {
             //info!("Translate Components 2");
             //let rapier_collider = Collider::from_bevy_mesh(collider_mesh, &ComputedColliderShape::TriMesh)
-            let avian_collider = Collider::trimesh_from_mesh(collider_mesh)
-                .unwrap();
+            let avian_collider = Collider::trimesh_from_mesh(collider_mesh).unwrap();
             commands
                 .entity(entity)
                 .insert(avian_collider)
                 .insert(NavMeshAffector);
         }
     }
-    for (entity, box_collider) in box_query.iter() {
-        !todo!()
-    }
+    //for (entity, box_collider) in box_query.iter() {
+    //    !todo!()
+    //}
 }
 
 //
@@ -151,27 +157,29 @@ fn navmesh_pathfinding(
                 transform.translation,
                 desired_position.0,
                 None,
-                Some(&[1.0, 0.5])
+                Some(&[1.0, 0.5]),
             ) {
                 let path = perform_string_pulling_on_path(
                     &nav_mesh,
                     transform.translation,
                     desired_position.0,
-                    &path
-                    )
-                    .map_err(|e| anyhow::Error::msg(format!("{e:?}")))?;
-                        //commands.spawn(DrawPath {
-                        //    timer: Some(Timer::from_seconds(4.0, TimerMode::Once)),
-                        //    pulled_path: path,
-                        //    color: palettes::css::RED.into(),
-                        //});
-                        let dir = path
-                            .into_iter()
-                            .map(|next_point| (next_point - transform.translation).horizontal())
-                            .filter(|dir| dir.length_squared() > 1e-3f32.squared())
-                            .filter_map(|dir| dir.try_normalize())
-                            .next();
-                        walk.direction = dir;
+                    &path,
+                )
+                .map_err(|e| anyhow::Error::msg(format!("{e:?}")))?;
+                //commands.spawn(DrawPath {
+                //    timer: Some(Timer::from_seconds(4.0, TimerMode::Once)),
+                //    pulled_path: path,
+                //    color: palettes::css::RED.into(),
+                //});
+
+                let dir = path
+                    .into_iter()
+                    .map(|next_point| (next_point - transform.translation).horizontal())
+                    .filter(|dir| dir.length_squared() > 1e-3f32.squared())
+                    .filter_map(|dir| dir.try_normalize())
+                    .next();
+                let dir = Dir3::new(dir.unwrap()).unwrap();
+                walk.direction = Some(dir);
             }
         }
     }
@@ -179,29 +187,27 @@ fn navmesh_pathfinding(
 }
 
 fn apply_walking(
-    mut character_query: Query<(
-        &mut TnuaController,
-        &mut Walk,
-        &FloatHeight,
-        ),
-        Without<Player>,
-    >,
+    mut character_query: Query<(&mut TnuaController, &mut Walk, &FloatHeight), Without<Player>>,
 ) {
     for (mut controller, mut walking, float_height) in &mut character_query {
-        let direction = walking.direction.unwrap_or_default();
+        //let direction = walking.direction.unwrap_or_default();
+        if let Some(direction) = walking.direction {
+            let speed = walking.speed;
+            controller.basis(TnuaBuiltinWalk {
+                desired_velocity: direction * speed,
+                //desired_forward: direction.normalize_or_zero(),
+                desired_forward: Some(direction),
+                float_height: float_height.0,
+                cling_distance: 1.0,
+                ..Default::default()
+            });
+            walking.direction = None;
+        }
+        //let direction = walking.direction.unwrap();
         //let sprinting_multiplier = sprinting
         //    .filter(|s| s.requested)
         //    .map(|s| s.multiplier)
         //    .unwrap_or(1.);
         //let speed = walking.speed * sprinting_multiplier;
-        let speed = walking.speed;
-        controller.basis(TnuaBuiltinWalk {
-            desired_velocity: direction * speed,
-            desired_forward: direction.normalize_or_zero(),
-            float_height: float_height.0,
-            cling_distance: 1.0,
-            ..Default::default()
-        });
-        walking.direction = None;
     }
 }

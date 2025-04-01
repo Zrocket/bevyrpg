@@ -1,4 +1,5 @@
 use bevy::prelude::*;
+//use rand::distributions;
 use standard_dist::StandardDist;
 //use super::Name;
 
@@ -127,15 +128,26 @@ pub struct CharacterPlugin;
 
 impl Plugin for CharacterPlugin {
     fn build(&self, app: &mut App) {
-        app
-            .add_event::<DamageEvent>()
+        app.add_event::<DamageEvent>()
             .add_event::<LevelUpEvent>()
             .add_event::<ExperienceEvent>()
             .add_event::<AttackEvent>()
-            .add_systems(Update, damage_event_handler.run_if(in_state(GameState::Gameplay)))
-            .add_systems(Update, experience_event_handler.run_if(in_state(GameState::Gameplay)))
-            .add_systems(Update, level_up_event_handler.run_if(in_state(GameState::Gameplay)))
-            .add_systems(Update, attack_event_handler.run_if(in_state(GameState::Gameplay)))
+            .add_systems(
+                Update,
+                damage_event_handler.run_if(in_state(GameState::Gameplay)),
+            )
+            .add_systems(
+                Update,
+                experience_event_handler.run_if(in_state(GameState::Gameplay)),
+            )
+            .add_systems(
+                Update,
+                level_up_event_handler.run_if(in_state(GameState::Gameplay)),
+            )
+            .add_systems(
+                Update,
+                attack_event_handler.run_if(in_state(GameState::Gameplay)),
+            )
             .register_type::<Health>()
             .register_type::<MaxHealth>()
             .register_type::<Level>()
@@ -173,7 +185,8 @@ fn attack_event_handler(
     mut attack_events: EventReader<AttackEvent>,
     mut damage_event_writer: EventWriter<DamageEvent>,
     actors: Query<AnyOf<(&Matter, &Maneuver)>>,
-    ) {
+) {
+    trace!("attack_event_handler");
     for event in attack_events.read() {
         if let Ok(attacker) = actors.get(event.attacker) {
             if let Ok(defender) = actors.get(event.defender) {
@@ -220,7 +233,7 @@ fn damage_event_handler(
     mut commands: Commands,
     mut health_query: Query<&mut Health>,
     mut damage_events: EventReader<DamageEvent>,
-    ) {
+) {
     for event in damage_events.read() {
         if let Ok(mut health) = health_query.get_mut(event.target) {
             if event.ammount > health.0 {
@@ -238,7 +251,7 @@ fn experience_event_handler(
     mut experience_query: Query<&mut Experience>,
     mut events: EventReader<ExperienceEvent>,
     mut level_up_writer: EventWriter<LevelUpEvent>,
-    ) {
+) {
     for event in events.read() {
         if let Ok(mut experience) = experience_query.get_mut(event.target) {
             info!("Giving {} experience to {:?}", event.ammount, event.target);
@@ -283,7 +296,7 @@ fn experience_event_handler(
 fn level_up_event_handler(
     mut level_query: Query<&mut Level>,
     mut level_up_events: EventReader<LevelUpEvent>,
-    ) {
+) {
     for event in level_up_events.read() {
         if let Ok(mut level) = level_query.get_mut(event.0) {
             level.0 += 1;

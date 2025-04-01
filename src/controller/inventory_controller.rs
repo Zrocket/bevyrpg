@@ -1,6 +1,6 @@
+use crate::{ActiveInventoryUi, ActiveUi, Player, UiIndex, UiInventory};
 use bevy::{prelude::*, window::CursorGrabMode};
 use leafwing_input_manager::prelude::ActionState;
-use crate::{ActiveInventoryUi, ActiveUi, Player, UiIndex, UiInventory};
 
 use super::Action;
 
@@ -19,16 +19,16 @@ pub fn manage_inventory(
                     commands.entity(player).insert(ActiveUi);
                     commands.entity(player).insert(ActiveInventoryUi);
                     if let Ok(mut window) = window.get_single_mut() {
-                        window.cursor.grab_mode = CursorGrabMode::None;
-                        window.cursor.visible = true;
+                        window.cursor_options.grab_mode = CursorGrabMode::None;
+                        window.cursor_options.visible = true;
                     }
                 } else {
                     info!("removing ActiveUi");
                     commands.entity(player).remove::<ActiveUi>();
                     commands.entity(player).remove::<ActiveInventoryUi>();
                     if let Ok(mut window) = window.get_single_mut() {
-                        window.cursor.grab_mode = CursorGrabMode::Locked;
-                        window.cursor.visible = false;
+                        window.cursor_options.grab_mode = CursorGrabMode::Locked;
+                        window.cursor_options.visible = false;
                     }
                 }
             }
@@ -39,8 +39,8 @@ pub fn manage_inventory(
 pub fn inventory_navigation(
     key: Res<ButtonInput<KeyCode>>,
     mut index_query: Query<&mut UiIndex, With<UiInventory>>,
-                           ) {
-    for mut index in index_query.iter_mut(){
+) {
+    for mut index in index_query.iter_mut() {
         // navigate up
         if (key.just_pressed(KeyCode::KeyW) || key.just_pressed(KeyCode::ArrowUp)) && index.0 > 0 {
             index.0 -= 1;
