@@ -1,5 +1,4 @@
 use bevy::color::palettes::css::{BLUE, GREEN};
-//use sickle_ui::{ui_builder::{UiBuilderExt, UiRoot}, widgets::layout::{container::UiContainerExt, row::UiRowExt}};
 
 use super::*;
 
@@ -8,8 +7,6 @@ pub fn draw_status_ui(
     asset_server: Res<AssetServer>,
     health_query: Query<(&Health, &MaxHealth), With<Player>>,
     mana_query: Query<(&Mana, &MaxMana), With<Player>>,
-    //target: Query<Entity, (With<ActiveUi>, With<UiStatus>)>,
-    //asset_server: Res<AssetServer>,
 ) {
     trace!("draw_status_ui");
     trace!("Creating status bar UiNode");
@@ -22,7 +19,7 @@ pub fn draw_status_ui(
     ];
     if let Ok((mana, max_mana)) = mana_query.get_single() {
         if let Ok((health, max_health)) = health_query.get_single() {
-            let status_bar = commands
+            let status_bar_node = commands
                 .spawn((
                     Node {
                         width: Val::Percent(100.),
@@ -35,7 +32,7 @@ pub fn draw_status_ui(
                 ))
                 .id();
 
-            let player_health = commands
+            let player_health_node = commands
                 .spawn((
                     Node { ..default() },
                     Button,
@@ -53,7 +50,7 @@ pub fn draw_status_ui(
                     },
                 ))
                 .id();
-            let player_mana = commands
+            let player_mana_node = commands
                 .spawn((
                     Node { ..default() },
                     Button,
@@ -70,65 +67,13 @@ pub fn draw_status_ui(
                 .id();
 
             commands.queue(AddChild {
-                parent: status_bar,
-                child: player_health,
+                parent: status_bar_node,
+                child: player_health_node,
             });
             commands.queue(AddChild {
-                parent: status_bar,
-                child: player_mana,
+                parent: status_bar_node,
+                child: player_mana_node,
             });
-
-            // Root node
-            /*commands.ui_builder(UiRoot)
-                .container(Node {
-                    background_color: BackgroundColor::from(GREEN),
-                    visibility: Visibility::Visible,
-                    width: Val::Percent(100.),
-                    height: Val::Percent(10.),
-                    ..default()
-                },
-                // Status bar
-                |root| {
-                    root.row(|status_bar| {
-                        status_bar.container(
-                            TextBundle {
-                                text: Text::from_section("Player Health",TextStyle {font: asset_server.load("FiraSans-Bold.ttf"),font_size: 50.0,color: Color::WHITE,}),
-                                style: Style { width: Val::Percent(30.),height: Val::Percent(100.),..default()}
-                                ,z_index: ZIndex::Global(10),..default()
-                            },
-                            |health_bar| {
-                                health_bar.spawn(
-                                    ImageBundle {
-                                        image: health_ui_icons[0].clone().into(),
-                                        visibility: Visibility::Visible,
-                                        style: Style {width: Val::Percent((health.0 as f32 / max_health.0 as f32) * 100.),
-                                        height: Val::Percent(100.),..default()},
-                                        z_index: ZIndex::Global(9),..default()
-                                });
-                            }
-                        );
-                        status_bar.container(
-                            TextBundle {
-                                text: Text::from_section("Player Mana",TextStyle {font: asset_server.load("FiraSans-Bold.ttf"),font_size: 50.0,color: Color::WHITE,}),
-                                style: Style { width: Val::Percent(30.),height: Val::Percent(100.),..default()}
-                                ,z_index: ZIndex::Global(10),..default()
-                            },
-                            |mana_bar| {
-                                mana_bar.spawn(
-                                    Node {
-                                    visibility: Visibility::Visible,
-                                    background_color: BackgroundColor::from(BLUE),
-                                    width: Val::Percent((mana.0 as f32 / max_mana.0 as f32) * 100.),
-                                    height: Val::Percent(100.),
-                                    z_index: ZIndex::Global(9),
-                                    ..default()
-                                    }
-                                );
-                            }
-                        );
-                    });
-                })
-            .insert(UiStatus);*/
         }
     }
 }

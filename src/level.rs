@@ -1,15 +1,14 @@
-use super::utils::{F32Ext, Vec3Ext};
 use super::GameState;
-use crate::{error_pipe, MeshExt, Player};
+use super::utils::{F32Ext, Vec3Ext};
+use crate::{MeshExt, Player, error_pipe};
 use avian3d::collision::Collider;
 use bevy::{gltf::Gltf, prelude::*};
 use bevy_tnua::prelude::*;
 use bevy_tnua_avian3d::TnuaAvian3dPlugin;
 use oxidized_navigation::{
-    self,
+    self, NavMesh, NavMeshSettings,
     debug_draw::{DrawNavMesh, OxidizedNavigationDebugDrawPlugin},
     query::{find_polygon_path, perform_string_pulling_on_path},
-    NavMesh, NavMeshSettings,
 };
 use oxidized_navigation::{NavMeshAffector, OxidizedNavigationPlugin};
 
@@ -178,8 +177,14 @@ fn navmesh_pathfinding(
                     .filter(|dir| dir.length_squared() > 1e-3f32.squared())
                     .filter_map(|dir| dir.try_normalize())
                     .next();
-                let dir = Dir3::new(dir.unwrap()).unwrap();
-                walk.direction = Some(dir);
+                if let Some(dir) = dir {
+                    let dir = Dir3::new(dir);
+                    if dir.is_ok() {
+                        walk.direction = Some(dir.unwrap());
+                    }
+                };
+                //let dir = Dir3::new(dir.unwrap()).unwrap();
+                //walk.direction = Some(dir);
             }
         }
     }

@@ -2,15 +2,16 @@ use avian3d::collision::Collider;
 use bevy::{
     core_pipeline::core_3d::Camera3d, math::vec3, prelude::*, render::camera::ClearColorConfig,
 };
+use bevy_tnua::control_helpers::TnuaSimpleAirActionsCounter;
 use bevy_tnua::prelude::*;
 use bevy_tnua_avian3d::*;
-use leafwing_input_manager::{input_map::InputMap, InputManagerBundle};
+use leafwing_input_manager::{InputManagerBundle, input_map::InputMap};
 
 use std::f32::consts::PI;
 
-use super::controller::*;
 use super::CameraConfig;
 use super::RenderPlayer;
+use super::controller::*;
 
 use crate::*;
 
@@ -113,7 +114,7 @@ fn spawn_basic_scene(
             GravityScale(0.0),
             //Ccd { enabled: true },
             //TransformBundle::from_transform(Transform::from_xyz(0.0, 1.0, 0.0)),
-            Transform::from_xyz(0.0, 1.0, 0.0),
+            Transform::from_xyz(0.0, 5.0, 0.0),
             //AvianPickupActor::default(),
             CameraConfig {
                 height_offset: 0.0,
@@ -132,10 +133,11 @@ fn spawn_basic_scene(
             },
             Inventory { ..default() },
             TnuaController::default(),
-            TnuaAvian3dSensorShape(Collider::capsule(0.1, 1.5)),
-            FloatHeight(0.5),
+            TnuaAvian3dSensorShape(Collider::capsule(0.1, 0.1)),
+            FloatHeight(1.5),
         ))
         .insert((Walk::default(), InputManagerBundle::with_map(input_map)))
+        .insert(TnuaSimpleAirActionsCounter::default())
         //.insert(UiEntity::default())
         .id();
 
