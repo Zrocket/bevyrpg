@@ -1,7 +1,7 @@
 use bevy::prelude::*;
 
 //use crate::{trade::TradeEvent, DialogEvent, PickUpEvent};
-use crate::{trade::TradeEvent, PickUpEvent};
+use crate::{PickUpEvent, trade::TradeEvent};
 
 #[derive(Default, Clone, Component, Reflect)]
 #[reflect(Component)]
