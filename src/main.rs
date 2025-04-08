@@ -1,6 +1,6 @@
-use avian3d::prelude::*;
 use avian_interpolation3d::prelude::*;
 use avian_pickup::prelude::*;
+use avian3d::prelude::*;
 use bevy::{
     log::LogPlugin,
     prelude::*,
@@ -81,6 +81,7 @@ pub enum GameState {
     UiMenu,
     Inventory,
     Settings,
+    Console,
     VideoSettings,
     SoundSettings,
     ControllerSettings,
@@ -137,6 +138,7 @@ fn main() {
         ControllerPlugin,
         InventoryPlugin,
         InteractPlugin,
+        ConsolePlugin,
         //DialogPlugin,
         TradePlugin,
         BlenderTranslationPlugin,

@@ -1,19 +1,32 @@
-use crate::{ActiveInventoryUi, ActiveUi, Player, UiIndex, UiInventory};
+use crate::{inventory, ActiveInventoryUi, ActiveUi, Player, UiIndex, UiInventory};
 use bevy::{prelude::*, window::CursorGrabMode};
 use leafwing_input_manager::prelude::ActionState;
 
 use super::Action;
 
 pub fn manage_inventory(
-    mut commands: Commands,
+    //mut commands: Commands,
     key: Query<&ActionState<Action>, With<Player>>,
-    mut window: Query<&mut Window>,
-    mut player: Query<(Entity, Option<&ActiveInventoryUi>), With<Player>>,
+    //mut window: Query<&mut Window>,
+    //mut player: Query<(Entity, Option<&ActiveInventoryUi>), With<Player>>,
+    mut inventory_node_query: Query<&mut Node, With<UiInventory>>
 ) {
     if let Ok(key) = key.get_single() {
         if key.just_pressed(&Action::OpenInventory) {
-            info!("KeyI pressed");
-            if let Ok((player, active)) = player.get_single_mut() {
+            info!("Inventory key pressed");
+            if let Ok(mut inventory_node) = inventory_node_query.get_single_mut() {
+            info!("AAAAAAAAAAAAAa");
+                match inventory_node.display {
+                    Display::None => inventory_node.display = Display::Flex,
+                    _ => inventory_node.display = Display::None,
+                }
+            }
+
+
+
+
+
+            /*if let Ok((player, active)) = player.get_single_mut() {
                 if active.is_none() {
                     info!("adding ActiveUi");
                     commands.entity(player).insert(ActiveUi);
@@ -31,7 +44,7 @@ pub fn manage_inventory(
                         window.cursor_options.visible = false;
                     }
                 }
-            }
+            }*/
         }
     }
 }
