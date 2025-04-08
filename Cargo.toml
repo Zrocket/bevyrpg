@@ -1,13 +1,14 @@
 [package]
 name = "bevyrpg"
 version = "0.1.0"
-edition = "2021"
+edition = "2024"
 
 # See more keys and their definitions at https://doc.rust-lang.org/cargo/reference/manifest.html
 
 [dependencies]
 anyhow = "1.0.86"
-bevy = "0.15.0"
+#bevy = "0.15.0"
+bevy = "*"
 clap = { version = "*", features = ["derive"] }
 lazy_static = "*"
 rand = "0.8.5"
@@ -22,16 +23,17 @@ standard-dist = "*"
 #bevy_mod_ui_texture_atlas_image = "0.4.1"
 # bevy 0.15 ready
 avian3d = "0.2"
-bevy-inspector-egui = "0.28"
+bevy-inspector-egui = "0.30"
 bevy_flycam = "0.15.0"
 bevy-tnua = "0.21"
 bevy-tnua-avian3d = "0.2.0"
 bevy-tnua-physics-integration-layer = "0.5.0"
-bevy-yoleck = "0.23"
+bevy-yoleck = "0.25"
 bevy_sprite3d = "4.0"
-bevy_egui = "0.31"
+bevy_egui = "0.33"
 big-brain = "0.22.0"
-leafwing-input-manager = { git ="https://github.com/Leafwing-Studios/leafwing-input-manager.git" }
+#leafwing-input-manager = { git ="https://github.com/Leafwing-Studios/leafwing-input-manager.git" }
+leafwing-input-manager = "0.16"
 bevy_simple_text_input = "0.10"
 bevy_asset_loader = {version = "0.22", features = ["2d"]}
 avian_interpolation3d = { path = "../avian_interpolation/crates/avian_interpolation3d" } #awaiting pull
@@ -39,6 +41,7 @@ avian_pickup = { git="https://github.com/Zrocket/avian_pickup" } #awaiting pull
 oxidized_navigation = { git = "https://github.com/TheGrimsey/oxidized_navigation.git", default-features = false, features = ["debug_draw", "avian"] }
 blenvy = { git = "https://github.com/ptsd/Blenvy.git", branch = "blenvy-bevy-0.15" } #awaiting pull
 bevy_yarnspinner = { git = "https://github.com/wiggleforlife/YarnSpinner-Rust.git" } #waiting for update
+nom = "8.0.0"
 
 
 # waiting for update
