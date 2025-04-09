@@ -111,7 +111,7 @@ fn spawn_basic_scene(
             //Sleeping::disabled(),
             LockedAxes::ROTATION_LOCKED,
             //AdditionalMassProperties::Mass(1.0),
-            GravityScale(0.0),
+            GravityScale(1.0),
             //Ccd { enabled: true },
             //TransformBundle::from_transform(Transform::from_xyz(0.0, 1.0, 0.0)),
             Transform::from_xyz(0.0, 5.0, 0.0),
