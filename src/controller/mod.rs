@@ -6,7 +6,7 @@ mod player_controller;
 
 use bevy::prelude::*;
 use bevy_tnua::TnuaUserControlsSystemSet;
-use console_controller::*;
+//use console_controller::*;
 use interact_controller::*;
 use inventory_controller::*;
 use menu_controller::*;
@@ -36,7 +36,7 @@ impl Plugin for ControllerPlugin {
                 Update,
                 manage_interact.run_if(in_state(GameState::Gameplay)),
             )
-            .add_systems(Update, manage_console.run_if(in_state(GameState::Gameplay)))
+            //.add_systems(Update, manage_console.run_if(in_state(GameState::Gameplay)))
             .add_systems(
                 Update,
                 manage_inventory.run_if(in_state(GameState::Gameplay)),
