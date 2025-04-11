@@ -138,7 +138,7 @@ fn main() {
         ControllerPlugin,
         InventoryPlugin,
         InteractPlugin,
-        ConsolePlugin,
+        MyConsolePlugin,
         //DialogPlugin,
         TradePlugin,
         BlenderTranslationPlugin,
@@ -152,11 +152,11 @@ fn main() {
         app.add_plugins(YoleckPluginForGame);
     }
     app.add_systems(Update, health_test.run_if(in_state(GameState::Gameplay)))
-        .add_systems(Update, inventory_test.run_if(in_state(GameState::Gameplay)))
+        /*.add_systems(Update, inventory_test.run_if(in_state(GameState::Gameplay)))
         .add_systems(
             Update,
             inventory_remove_test.run_if(in_state(GameState::Gameplay)),
-        )
+        )*/
         //.register_type::<RigidBody>()
         .init_state::<GameState>()
         .add_loading_state(

@@ -68,7 +68,7 @@ impl Plugin for UiPlugin {
             .add_systems(Startup, draw_inventory_ui)
             //.add_systems(Update, draw_menu_ui::<InInventory>)
             .add_systems(Startup, draw_status_ui)
-            .add_systems(Startup, draw_console_ui)
+            //.add_systems(Startup, draw_console_ui)
             .add_systems(Startup, draw_crosshair)
             .add_systems(Startup, draw_menu_ui)
             .add_systems(

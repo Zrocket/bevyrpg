@@ -42,6 +42,7 @@ oxidized_navigation = { git = "https://github.com/TheGrimsey/oxidized_navigation
 blenvy = { git = "https://github.com/ptsd/Blenvy.git", branch = "blenvy-bevy-0.15" } #awaiting pull
 bevy_yarnspinner = { git = "https://github.com/wiggleforlife/YarnSpinner-Rust.git" } #waiting for update
 nom = "8.0.0"
+bevy_console = "0.13.1"
 
 
 # waiting for update
