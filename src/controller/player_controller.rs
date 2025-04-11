@@ -141,7 +141,7 @@ pub fn tnua_player_input(
     //);
     //println!("Action State: {}", action_state.just_pressed(&Action::Jump));
     //if action_state.just_pressed(&Action::Jump) && air_actions_counter.air_count_for(TnuaBuiltinJump::NAME) == 0 {
-    if action_state.just_pressed(&Action::Jump) {
+    if action_state.pressed(&Action::Jump) {
         tnua_controller.action(TnuaBuiltinJump {
             allow_in_air: false,
             // The height is the only mandatory field of the jump button.
