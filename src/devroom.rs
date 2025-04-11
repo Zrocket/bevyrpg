@@ -71,7 +71,7 @@ fn spawn_basic_scene(
                 description: Description("gun".to_string()),
                 item_type: ItemType::Weapon(Weapon::default()),
                 weight: Weight(0),
-                interact: Interactable::Misc,
+                interact: Interactable::None,
             },
         ))
         .id();
@@ -95,27 +95,15 @@ fn spawn_basic_scene(
 
     let logical_entity = commands
         .spawn((
-            //Collider::capsule(Vec3::Y * 0.1, Vec3::Y * 1.5, 0.5),
             Collider::capsule(0.1, 1.5),
-            //Friction {
-            //    coefficient: 0.0,
-            //    combine_rule: CoefficientCombineRule::Min,
-            //},
             Friction {
                 combine_rule: CoefficientCombine::Min,
                 ..default()
             },
-            //ActiveEvents::COLLISION_EVENTS,
-            //Velocity::zero(),
             RigidBody::Dynamic,
-            //Sleeping::disabled(),
             LockedAxes::ROTATION_LOCKED,
-            //AdditionalMassProperties::Mass(1.0),
             GravityScale(1.0),
-            //Ccd { enabled: true },
-            //TransformBundle::from_transform(Transform::from_xyz(0.0, 1.0, 0.0)),
             Transform::from_xyz(0.0, 5.0, 0.0),
-            //AvianPickupActor::default(),
             CameraConfig {
                 height_offset: 0.0,
                 //radius_scale: 0.75,
@@ -138,7 +126,7 @@ fn spawn_basic_scene(
         ))
         .insert((Walk::default(), InputManagerBundle::with_map(input_map)))
         .insert(TnuaSimpleAirActionsCounter::default())
-        //.insert(UiEntity::default())
+        .insert(AvianPickupActor::default())
         .id();
 
     let rand_character: CharacterBundle = rand::random();
@@ -160,7 +148,6 @@ fn spawn_basic_scene(
             },
         ))
         .insert(rand_character)
-        //.insert(TnuaRapier3dIOBundle::default())
         .insert(TnuaController::default())
         .insert(TnuaAvian3dSensorShape(Collider::cuboid(0.5, 0.5, 0.5)))
         .insert(FloatHeight(0.5))
@@ -176,10 +163,12 @@ fn spawn_basic_scene(
     info!("Creating Sphere");
     commands
         .spawn((
-            Mesh3d(meshes.add(Sphere::new(0.0).mesh().ico(20).unwrap())),
+            Mesh3d(meshes.add(Sphere::new(0.5).mesh().ico(20).unwrap())),
             MeshMaterial3d(materials.add(Color::WHITE)),
-            Transform::from_xyz(-0.9, 0.5, -4.2),
-            Interactable::Trade,
+            Transform::from_xyz(-0.9, 1.5, -4.2),
+            Interactable::Misc,
+            RigidBody::Dynamic,
+            Collider::sphere(0.5),
         ))
         .insert(Name::new("Sphere"));
 

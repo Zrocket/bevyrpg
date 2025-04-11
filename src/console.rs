@@ -25,10 +25,110 @@ struct ExampleCommand { /// Some message
     msg: String,
 }
 
+/// Kills the given character
 #[derive(Parser, ConsoleCommand)]
-#[command(name = "example")]
+#[command(name = "kill")]
 struct KillCommand {
-    msg: String,
+    entity: String,
+}
+
+/// Kills the player
+#[derive(Parser, ConsoleCommand)]
+#[command(name = "suicide")]
+struct SuicideCommand;
+
+/// Toggles god mode
+#[derive(Parser, ConsoleCommand)]
+#[command(name = "god")]
+struct GodCommand;
+
+/// Toggles noclip mode
+#[derive(Parser, ConsoleCommand)]
+#[command(name = "noclip")]
+struct NoclipCommand;
+
+/// Spawns the given entity
+#[derive(Parser, ConsoleCommand)]
+#[command(name = "spawn")]
+struct SpawnCommand {
+    entity: String,
+}
+
+/// Toggles fps counter
+#[derive(Parser, ConsoleCommand)]
+#[command(name = "fps")]
+struct FpsCommand;
+
+/// Set player speed
+#[derive(Parser, ConsoleCommand)]
+#[command(name = "speed")]
+struct SpeedCommand {
+    value: u8,
+}
+
+/// Set player gravity
+#[derive(Parser, ConsoleCommand)]
+#[command(name = "gravity")]
+struct GravityCommand {
+    value: u8,
+}
+
+#[derive(Parser, ConsoleCommand)]
+#[command(name = "time")]
+struct TimeCommand {
+    value: String,
+}
+
+
+/// Set the weather
+#[derive(Parser, ConsoleCommand)]
+#[command(name = "weather")]
+struct WeatherCommand {
+    value: String,
+}
+
+
+/// Saves the game
+#[derive(Parser, ConsoleCommand)]
+#[command(name = "save")]
+struct SaveCommand;
+
+/// Reloads entities
+#[derive(Parser, ConsoleCommand)]
+#[command(name = "reload")]
+struct ReloadCommand;
+
+/// Set the field of view
+#[derive(Parser, ConsoleCommand)]
+#[command(name = "fov")]
+struct FovCommand {
+    value: u8,
+}
+
+/// Set the volume
+#[derive(Parser, ConsoleCommand)]
+#[command(name = "volume")]
+struct VolumeCommand {
+    value: u8,
+}
+
+/// Toggles HUD display
+#[derive(Parser, ConsoleCommand)]
+#[command(name = "hud")]
+struct HudCommand;
+
+/// Gives the specified item
+#[derive(Parser, ConsoleCommand)]
+#[command(name = "give")]
+struct GiveCommand {
+    item: String,
+}
+
+/// Activates specified event
+#[derive(Parser, ConsoleCommand)]
+#[command(name = "event")]
+struct EventCommand {
+    event: String,
 }
 
 pub struct MyConsolePlugin;
