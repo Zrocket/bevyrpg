@@ -1,4 +1,4 @@
-use avian_interpolation3d::prelude::*;
+//use avian_interpolation3d::prelude::*;
 use avian_pickup::prelude::*;
 use avian3d::prelude::*;
 use bevy::{
@@ -128,8 +128,7 @@ fn main() {
     .add_plugins((
         //Sprite3dPlugin,
         PhysicsPlugins::default(),
-        AvianPickupPlugin::default(),
-        AvianInterpolationPlugin::default(),
+        //AvianPickupPlugin::default(),
         GamePlayerPlugin,
         CharacterPlugin,
         DevRoomPlugin,
