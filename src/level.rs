@@ -2,6 +2,7 @@ use super::GameState;
 use super::utils::{F32Ext, Vec3Ext};
 use crate::{MeshExt, Player, error_pipe};
 use avian3d::collision::Collider;
+use avian3d::prelude::RigidBody;
 use bevy::{gltf::Gltf, prelude::*};
 use bevy_tnua::prelude::*;
 use bevy_tnua_avian3d::TnuaAvian3dPlugin;
@@ -125,6 +126,7 @@ fn translate_components(
             commands
                 .entity(entity)
                 .insert(avian_collider)
+                .insert(RigidBody::Static)
                 .insert(NavMeshAffector);
         }
     }
