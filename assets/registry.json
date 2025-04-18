@@ -3508,44 +3508,6 @@
       "type": "object",
       "typeInfo": "Struct"
     },
-    "avian_interpolation3d::InterpolateTransformFields": {
-      "additionalProperties": false,
-      "isComponent": true,
-      "isResource": false,
-      "long_name": "avian_interpolation3d::InterpolateTransformFields",
-      "properties": {
-        "rotation": {
-          "type": {
-            "$ref": "#/$defs/avian_interpolation3d::InterpolationMode"
-          }
-        },
-        "translation": {
-          "type": {
-            "$ref": "#/$defs/avian_interpolation3d::InterpolationMode"
-          }
-        }
-      },
-      "required": [
-        "translation",
-        "rotation"
-      ],
-      "short_name": "InterpolateTransformFields",
-      "type": "object",
-      "typeInfo": "Struct"
-    },
-    "avian_interpolation3d::InterpolationMode": {
-      "isComponent": true,
-      "isResource": false,
-      "long_name": "avian_interpolation3d::InterpolationMode",
-      "oneOf": [
-        "Linear",
-        "Last",
-        "None"
-      ],
-      "short_name": "InterpolationMode",
-      "type": "string",
-      "typeInfo": "Enum"
-    },
     "avian_pickup::actor::AvianPickupActor": {
       "additionalProperties": false,
       "isComponent": true,
@@ -7900,6 +7862,36 @@
       "short_name": "Entity",
       "type": "object",
       "typeInfo": "Value"
+    },
+    "bevy_egui::EguiSettings": {
+      "additionalProperties": false,
+      "isComponent": false,
+      "isResource": false,
+      "long_name": "bevy_egui::EguiSettings",
+      "properties": {
+        "default_open_url_target": {
+          "type": {
+            "$ref": "#/$defs/core::option::Option<alloc::string::String>"
+          }
+        },
+        "run_manually": {
+          "type": {
+            "$ref": "#/$defs/bool"
+          }
+        },
+        "scale_factor": {
+          "type": {
+            "$ref": "#/$defs/f32"
+          }
+        }
+      },
+      "required": [
+        "run_manually",
+        "scale_factor"
+      ],
+      "short_name": "EguiSettings",
+      "type": "object",
+      "typeInfo": "Struct"
     },
     "bevy_gizmos::aabb::AabbGizmoConfigGroup": {
       "additionalProperties": false,
@@ -13871,6 +13863,175 @@
       "type": "array",
       "typeInfo": "TupleStruct"
     },
+    "bevy_simple_text_input::TextInputCursorPos": {
+      "isComponent": false,
+      "isResource": false,
+      "items": false,
+      "long_name": "bevy_simple_text_input::TextInputCursorPos",
+      "prefixItems": [
+        {
+          "type": {
+            "$ref": "#/$defs/usize"
+          }
+        }
+      ],
+      "short_name": "TextInputCursorPos",
+      "type": "array",
+      "typeInfo": "TupleStruct"
+    },
+    "bevy_simple_text_input::TextInputCursorTimer": {
+      "additionalProperties": false,
+      "isComponent": false,
+      "isResource": false,
+      "long_name": "bevy_simple_text_input::TextInputCursorTimer",
+      "properties": {
+        "should_reset": {
+          "type": {
+            "$ref": "#/$defs/bool"
+          }
+        },
+        "timer": {
+          "type": {
+            "$ref": "#/$defs/bevy_time::timer::Timer"
+          }
+        }
+      },
+      "required": [
+        "timer",
+        "should_reset"
+      ],
+      "short_name": "TextInputCursorTimer",
+      "type": "object",
+      "typeInfo": "Struct"
+    },
+    "bevy_simple_text_input::TextInputInactive": {
+      "isComponent": false,
+      "isResource": false,
+      "items": false,
+      "long_name": "bevy_simple_text_input::TextInputInactive",
+      "prefixItems": [
+        {
+          "type": {
+            "$ref": "#/$defs/bool"
+          }
+        }
+      ],
+      "short_name": "TextInputInactive",
+      "type": "array",
+      "typeInfo": "TupleStruct"
+    },
+    "bevy_simple_text_input::TextInputInner": {
+      "additionalProperties": false,
+      "isComponent": false,
+      "isResource": false,
+      "long_name": "bevy_simple_text_input::TextInputInner",
+      "properties": {},
+      "required": [],
+      "short_name": "TextInputInner",
+      "type": "object",
+      "typeInfo": "Struct"
+    },
+    "bevy_simple_text_input::TextInputPlaceholder": {
+      "additionalProperties": false,
+      "isComponent": false,
+      "isResource": false,
+      "long_name": "bevy_simple_text_input::TextInputPlaceholder",
+      "properties": {
+        "text_color": {
+          "type": {
+            "$ref": "#/$defs/core::option::Option<bevy_text::text::TextColor>"
+          }
+        },
+        "text_font": {
+          "type": {
+            "$ref": "#/$defs/core::option::Option<bevy_text::text::TextFont>"
+          }
+        },
+        "value": {
+          "type": {
+            "$ref": "#/$defs/alloc::string::String"
+          }
+        }
+      },
+      "required": [
+        "value"
+      ],
+      "short_name": "TextInputPlaceholder",
+      "type": "object",
+      "typeInfo": "Struct"
+    },
+    "bevy_simple_text_input::TextInputSettings": {
+      "additionalProperties": false,
+      "isComponent": false,
+      "isResource": false,
+      "long_name": "bevy_simple_text_input::TextInputSettings",
+      "properties": {
+        "mask_character": {
+          "type": {
+            "$ref": "#/$defs/core::option::Option<char>"
+          }
+        },
+        "retain_on_submit": {
+          "type": {
+            "$ref": "#/$defs/bool"
+          }
+        }
+      },
+      "required": [
+        "retain_on_submit"
+      ],
+      "short_name": "TextInputSettings",
+      "type": "object",
+      "typeInfo": "Struct"
+    },
+    "bevy_simple_text_input::TextInputTextColor": {
+      "isComponent": false,
+      "isResource": false,
+      "items": false,
+      "long_name": "bevy_simple_text_input::TextInputTextColor",
+      "prefixItems": [
+        {
+          "type": {
+            "$ref": "#/$defs/bevy_text::text::TextColor"
+          }
+        }
+      ],
+      "short_name": "TextInputTextColor",
+      "type": "array",
+      "typeInfo": "TupleStruct"
+    },
+    "bevy_simple_text_input::TextInputTextFont": {
+      "isComponent": false,
+      "isResource": false,
+      "items": false,
+      "long_name": "bevy_simple_text_input::TextInputTextFont",
+      "prefixItems": [
+        {
+          "type": {
+            "$ref": "#/$defs/bevy_text::text::TextFont"
+          }
+        }
+      ],
+      "short_name": "TextInputTextFont",
+      "type": "array",
+      "typeInfo": "TupleStruct"
+    },
+    "bevy_simple_text_input::TextInputValue": {
+      "isComponent": false,
+      "isResource": false,
+      "items": false,
+      "long_name": "bevy_simple_text_input::TextInputValue",
+      "prefixItems": [
+        {
+          "type": {
+            "$ref": "#/$defs/alloc::string::String"
+          }
+        }
+      ],
+      "short_name": "TextInputValue",
+      "type": "array",
+      "typeInfo": "TupleStruct"
+    },
     "bevy_sprite::SpriteSource": {
       "additionalProperties": false,
       "isComponent": true,
@@ -19399,6 +19560,17 @@
       "type": "object",
       "typeInfo": "Enum"
     },
+    "bevyrpg::chair::Chair": {
+      "additionalProperties": false,
+      "isComponent": true,
+      "isResource": false,
+      "long_name": "bevyrpg::chair::Chair",
+      "properties": {},
+      "required": [],
+      "short_name": "Chair",
+      "type": "object",
+      "typeInfo": "Struct"
+    },
     "bevyrpg::character::Health": {
       "isComponent": true,
       "isResource": false,
@@ -19581,6 +19753,19 @@
       "type": "string",
       "typeInfo": "Enum"
     },
+    "bevyrpg::devroom::CollisionLayer": {
+      "isComponent": true,
+      "isResource": false,
+      "long_name": "bevyrpg::devroom::CollisionLayer",
+      "oneOf": [
+        "Default",
+        "Player",
+        "Prop"
+      ],
+      "short_name": "CollisionLayer",
+      "type": "string",
+      "typeInfo": "Enum"
+    },
     "bevyrpg::interact::Interactable": {
       "isComponent": true,
       "isResource": false,
@@ -19588,7 +19773,14 @@
       "oneOf": [
         "Talk",
         "Misc",
-        "Trade"
+        "Trade",
+        "Chair",
+        "Door",
+        "Button",
+        "Container",
+        "Item",
+        "Read",
+        "Consume"
       ],
       "short_name": "Interactable",
       "type": "string",
@@ -19609,6 +19801,223 @@
       "short_name": "InInventory",
       "type": "array",
       "typeInfo": "TupleStruct"
+    },
+    "bevyrpg::items::ItemType": {
+      "isComponent": false,
+      "isResource": false,
+      "long_name": "bevyrpg::items::ItemType",
+      "oneOf": [
+        {
+          "long_name": "None"
+        },
+        {
+          "items": false,
+          "long_name": "Weapon",
+          "prefixItems": [
+            {
+              "type": {
+                "$ref": "#/$defs/bevyrpg::items::weapons::Weapon"
+              }
+            }
+          ],
+          "short_name": "Weapon",
+          "type": "array",
+          "typeInfo": "Tuple"
+        },
+        {
+          "items": false,
+          "long_name": "Armor",
+          "prefixItems": [
+            {
+              "type": {
+                "$ref": "#/$defs/bevyrpg::items::armor::Armor"
+              }
+            }
+          ],
+          "short_name": "Armor",
+          "type": "array",
+          "typeInfo": "Tuple"
+        },
+        {
+          "items": false,
+          "long_name": "Consume",
+          "prefixItems": [
+            {
+              "type": {
+                "$ref": "#/$defs/bevyrpg::items::consume::Consume"
+              }
+            }
+          ],
+          "short_name": "Consume",
+          "type": "array",
+          "typeInfo": "Tuple"
+        },
+        {
+          "items": false,
+          "long_name": "Book",
+          "prefixItems": [
+            {
+              "type": {
+                "$ref": "#/$defs/bevyrpg::items::books::Book"
+              }
+            }
+          ],
+          "short_name": "Book",
+          "type": "array",
+          "typeInfo": "Tuple"
+        },
+        {
+          "items": false,
+          "long_name": "Ammo",
+          "prefixItems": [
+            {
+              "type": {
+                "$ref": "#/$defs/bevyrpg::items::ammo::Ammo"
+              }
+            }
+          ],
+          "short_name": "Ammo",
+          "type": "array",
+          "typeInfo": "Tuple"
+        },
+        {
+          "long_name": "Misc"
+        }
+      ],
+      "short_name": "ItemType",
+      "type": "object",
+      "typeInfo": "Enum"
+    },
+    "bevyrpg::items::ammo::Ammo": {
+      "additionalProperties": false,
+      "isComponent": true,
+      "isResource": false,
+      "long_name": "bevyrpg::items::ammo::Ammo",
+      "properties": {},
+      "required": [],
+      "short_name": "Ammo",
+      "type": "object",
+      "typeInfo": "Struct"
+    },
+    "bevyrpg::items::armor::Armor": {
+      "additionalProperties": false,
+      "isComponent": true,
+      "isResource": false,
+      "long_name": "bevyrpg::items::armor::Armor",
+      "properties": {
+        "armor_type": {
+          "type": {
+            "$ref": "#/$defs/bevyrpg::items::armor::ArmorType"
+          }
+        },
+        "defense": {
+          "type": {
+            "$ref": "#/$defs/i32"
+          }
+        }
+      },
+      "required": [
+        "armor_type",
+        "defense"
+      ],
+      "short_name": "Armor",
+      "type": "object",
+      "typeInfo": "Struct"
+    },
+    "bevyrpg::items::armor::ArmorType": {
+      "isComponent": true,
+      "isResource": false,
+      "long_name": "bevyrpg::items::armor::ArmorType",
+      "oneOf": [
+        "None",
+        "Chest",
+        "Leg",
+        "Foot",
+        "Head",
+        "Arm",
+        "Hand",
+        "Face"
+      ],
+      "short_name": "ArmorType",
+      "type": "string",
+      "typeInfo": "Enum"
+    },
+    "bevyrpg::items::books::Book": {
+      "additionalProperties": false,
+      "isComponent": true,
+      "isResource": false,
+      "long_name": "bevyrpg::items::books::Book",
+      "properties": {
+        "contents": {
+          "type": {
+            "$ref": "#/$defs/alloc::string::String"
+          }
+        },
+        "title": {
+          "type": {
+            "$ref": "#/$defs/alloc::string::String"
+          }
+        }
+      },
+      "required": [
+        "title",
+        "contents"
+      ],
+      "short_name": "Book",
+      "type": "object",
+      "typeInfo": "Struct"
+    },
+    "bevyrpg::items::consume::Consume": {
+      "additionalProperties": false,
+      "isComponent": true,
+      "isResource": false,
+      "long_name": "bevyrpg::items::consume::Consume",
+      "properties": {},
+      "required": [],
+      "short_name": "Consume",
+      "type": "object",
+      "typeInfo": "Struct"
+    },
+    "bevyrpg::items::misc::MiscItem": {
+      "additionalProperties": false,
+      "isComponent": true,
+      "isResource": false,
+      "long_name": "bevyrpg::items::misc::MiscItem",
+      "properties": {},
+      "required": [],
+      "short_name": "MiscItem",
+      "type": "object",
+      "typeInfo": "Struct"
+    },
+    "bevyrpg::items::weapons::Weapon": {
+      "additionalProperties": false,
+      "isComponent": true,
+      "isResource": false,
+      "long_name": "bevyrpg::items::weapons::Weapon",
+      "properties": {
+        "weapon_type": {
+          "type": {
+            "$ref": "#/$defs/bevyrpg::items::weapons::WeaponType"
+          }
+        }
+      },
+      "required": [
+        "weapon_type"
+      ],
+      "short_name": "Weapon",
+      "type": "object",
+      "typeInfo": "Struct"
+    },
+    "bevyrpg::items::weapons::WeaponType": {
+      "isComponent": true,
+      "isResource": false,
+      "long_name": "bevyrpg::items::weapons::WeaponType",
+      "oneOf": [
+        "None"
+      ],
+      "short_name": "WeaponType",
+      "type": "string",
+      "typeInfo": "Enum"
     },
     "bevyrpg::level::BlenderBoxCollider": {
       "additionalProperties": false,
@@ -19648,6 +20057,17 @@
       "properties": {},
       "required": [],
       "short_name": "BlenderNavmesh",
+      "type": "object",
+      "typeInfo": "Struct"
+    },
+    "bevyrpg::level::BlenderProp": {
+      "additionalProperties": false,
+      "isComponent": true,
+      "isResource": false,
+      "long_name": "bevyrpg::level::BlenderProp",
+      "properties": {},
+      "required": [],
+      "short_name": "BlenderProp",
       "type": "object",
       "typeInfo": "Struct"
     },
@@ -20876,6 +21296,60 @@
         }
       ],
       "short_name": "Option<TextureAtlas>",
+      "type": "object",
+      "typeInfo": "Enum"
+    },
+    "core::option::Option<bevy_text::text::TextColor>": {
+      "isComponent": false,
+      "isResource": false,
+      "long_name": "core::option::Option<bevy_text::text::TextColor>",
+      "oneOf": [
+        {
+          "long_name": "None"
+        },
+        {
+          "items": false,
+          "long_name": "Some",
+          "prefixItems": [
+            {
+              "type": {
+                "$ref": "#/$defs/bevy_text::text::TextColor"
+              }
+            }
+          ],
+          "short_name": "Some",
+          "type": "array",
+          "typeInfo": "Tuple"
+        }
+      ],
+      "short_name": "Option<TextColor>",
+      "type": "object",
+      "typeInfo": "Enum"
+    },
+    "core::option::Option<bevy_text::text::TextFont>": {
+      "isComponent": false,
+      "isResource": false,
+      "long_name": "core::option::Option<bevy_text::text::TextFont>",
+      "oneOf": [
+        {
+          "long_name": "None"
+        },
+        {
+          "items": false,
+          "long_name": "Some",
+          "prefixItems": [
+            {
+              "type": {
+                "$ref": "#/$defs/bevy_text::text::TextFont"
+              }
+            }
+          ],
+          "short_name": "Some",
+          "type": "array",
+          "typeInfo": "Tuple"
+        }
+      ],
+      "short_name": "Option<TextFont>",
       "type": "object",
       "typeInfo": "Enum"
     },
