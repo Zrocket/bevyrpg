@@ -18,7 +18,7 @@ pub struct GameRenderPlugin;
 
 impl Plugin for GameRenderPlugin {
     fn build(&self, app: &mut App) {
-        trace!("GameRenderPlugin build");
+        info!("GameRenderPlugin build");
         app.add_systems(
             Update,
             player_controller_render.run_if(in_state(GameState::Gameplay)),

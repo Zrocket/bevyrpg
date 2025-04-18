@@ -149,6 +149,7 @@ impl Plugin for MyConsolePlugin {
 
 
 fn example_command(mut log: ConsoleCommand<ExampleCommand>) {
+    info!("Example command");
     if let Some(Ok(ExampleCommand { msg })) = log.take() {
         // handle command
     }
@@ -156,6 +157,7 @@ fn example_command(mut log: ConsoleCommand<ExampleCommand>) {
 
 
 fn log_command(mut log: ConsoleCommand<LogCommand>) {
+    info!("Log command");
     if let Some(Ok(LogCommand { msg, num })) = log.take() {
         let repeat_count = num.unwrap_or(1);
 
