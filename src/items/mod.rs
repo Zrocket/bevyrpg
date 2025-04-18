@@ -51,6 +51,13 @@ pub struct ItemPlugin;
 
 impl Plugin for ItemPlugin {
     fn build(&self, app: &mut App) {
-        app.register_type::<ItemType>();
+        app.register_type::<ItemType>()
+            .add_plugins((
+   //                 AmmoPlugin,
+  //                  ArmorPlugin,
+ //                   BookPlugin,
+                    MiscItemPlugin,
+//                    WeaponPlugin,
+            ));
     }
 }

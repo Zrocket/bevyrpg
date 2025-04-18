@@ -35,7 +35,7 @@ pub struct MagicPlugin;
 
 impl Plugin for MagicPlugin {
     fn build(&self, app: &mut App) {
-        trace!("MagicPlugin build");
+        info!("MagicPlugin build");
         app.register_type::<BaseDmg>()
             .register_type::<ManaCost>()
             .register_type::<CastTime>();

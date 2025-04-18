@@ -1,8 +1,9 @@
 use super::GameState;
 use super::utils::{F32Ext, Vec3Ext};
-use crate::{MeshExt, Player, error_pipe};
+use crate::{error_pipe, CollisionLayer, MeshExt, Player};
 use avian3d::collision::Collider;
-use avian3d::prelude::RigidBody;
+use avian3d::prelude::{CollisionLayers, LayerMask, RigidBody};
+use bevy::render::mesh::MeshAabb;
 use bevy::{gltf::Gltf, prelude::*};
 use bevy_tnua::prelude::*;
 use bevy_tnua_avian3d::TnuaAvian3dPlugin;
@@ -16,6 +17,10 @@ use oxidized_navigation::{NavMeshAffector, OxidizedNavigationPlugin};
 #[derive(Debug, Default, Component, Reflect)]
 #[reflect(Component)]
 pub struct BlenderCollider;
+
+#[derive(Debug, Default, Component, Reflect)]
+#[reflect(Component)]
+pub struct BlenderProp;
 
 #[derive(Debug, Default, Component, Reflect)]
 #[reflect(Component)]
@@ -79,6 +84,7 @@ impl Plugin for BlenderTranslationPlugin {
     fn build(&self, app: &mut App) {
         app.register_type::<BlenderCollider>()
             .register_type::<BlenderBoxCollider>()
+            .register_type::<BlenderProp>()
             .register_type::<BlenderNavmesh>()
             .register_type::<Walk>()
             .register_type::<FloatHeight>()
@@ -106,33 +112,37 @@ impl Plugin for BlenderTranslationPlugin {
 
 fn translate_components(
     mut commands: Commands,
-    query: Query<Entity, With<BlenderCollider>>,
-    //box_query: Query<(Entity, &BlenderBoxCollider)>,
-    meshes: Res<Assets<Mesh>>,
-    //mesh_handles: Query<&Handle<Mesh>>,
-    mesh_handles: Query<&Mesh3d>,
-    children: Query<&Children>,
+    //query: Query<Entity, With<BlenderCollider>>,
+    //box_query: Query<Entity, With<BlenderBoxCollider>>,
+    prop_query: Query<Entity, With<BlenderProp>>,
+    //meshes: Res<Assets<Mesh>>,
+    //mesh_handles: Query<&Mesh3d>,
+    //children: Query<&Children>,
+    //mut materials: ResMut<Assets<StandardMaterial>>,
 ) {
-    //info!("Translate Components");
-    for entity in query.iter() {
+    trace!("Translate Blender Components");
+    //for entity in query.iter() {
         //info!("Translate Event");
-        //for (_, collider_mesh) in Mesh::search_in_children(entity, &children, &meshes, &mesh_handles) {
-        for (_, collider_mesh) in
-            Mesh::search_in_children(entity, &children, &meshes, &mesh_handles)
-        {
+        //for (_, collider_mesh) in
+            //Mesh::search_in_children(entity, &children, &meshes, &mesh_handles)
+        //{
             //info!("Translate Components 2");
-            //let rapier_collider = Collider::from_bevy_mesh(collider_mesh, &ComputedColliderShape::TriMesh)
-            let avian_collider = Collider::trimesh_from_mesh(collider_mesh).unwrap();
-            commands
-                .entity(entity)
-                .insert(avian_collider)
-                .insert(RigidBody::Static)
-                .insert(NavMeshAffector);
-        }
-    }
-    //for (entity, box_collider) in box_query.iter() {
-    //    !todo!()
+            //let avian_collider = Collider::trimesh_from_mesh(collider_mesh).unwrap();
+            //commands
+            //    .entity(entity)
+            //    .insert(avian_collider);
+        //}
     //}
+    //for entity in box_query.iter() {
+    //    commands
+    //        .entity(entity)
+    //        .insert(Collider::cuboid(1.0, 1.0, 1.0));
+    //}
+    for entity in prop_query.iter() {
+        commands
+            .entity(entity)
+            .insert(CollisionLayers::new(CollisionLayer::Prop, LayerMask::ALL));
+    }
 }
 
 //

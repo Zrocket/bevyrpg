@@ -96,8 +96,7 @@ fn main() {
 
     let mut app = App::new();
     app.add_plugins(
-        DefaultPlugins
-            .set(WindowPlugin {
+        DefaultPlugins .set(WindowPlugin {
                 primary_window: Some(Window {
                     cursor_options: CursorOptions {
                         grab_mode: CursorGrabMode::Locked,
@@ -128,7 +127,6 @@ fn main() {
     .add_plugins((
         //Sprite3dPlugin,
         PhysicsPlugins::default(),
-        //AvianPickupPlugin::default(),
         GamePlayerPlugin,
         CharacterPlugin,
         DevRoomPlugin,
@@ -142,14 +140,23 @@ fn main() {
         TradePlugin,
         BlenderTranslationPlugin,
         GameRenderPlugin,
+        ChairPlugin,
+        BlenvyPlugin::default(),
     ))
-    .add_plugins(BlenvyPlugin::default());
+    .add_plugins(ItemPlugin);
+    //.add_plugins(BlenvyPlugin::default());
+    
+    //app.add_plugins(WorldInspectorPlugin::new());
     if args.editor {
-        app.add_plugins(YoleckPluginForEditor);
-        app.add_plugins(WorldInspectorPlugin::new());
+        println!("!AAAAAAAAAAAAAAAAAAAAAAA");
+        app.add_plugins((
+            YoleckPluginForEditor,
+            WorldInspectorPlugin::new(),
+        ));
     } else {
         app.add_plugins(YoleckPluginForGame);
     }
+
     app.add_systems(Update, health_test.run_if(in_state(GameState::Gameplay)))
         /*.add_systems(Update, inventory_test.run_if(in_state(GameState::Gameplay)))
         .add_systems(

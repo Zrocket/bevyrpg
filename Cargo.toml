@@ -8,7 +8,7 @@ edition = "2024"
 [dependencies]
 anyhow = "1.0.86"
 #bevy = "0.15.0"
-bevy = "*"
+bevy = { version = "*", features = ["jpeg"] }
 clap = { version = "*", features = ["derive"] }
 lazy_static = "*"
 rand = "0.8.5"
