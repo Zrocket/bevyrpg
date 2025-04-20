@@ -1,12 +1,24 @@
-use bevy::prelude::*;
+use avian_pickup::input::AvianPickupInput;
+use bevy::{ecs::system::QueryLens, prelude::*};
 
-use crate::InteractEvent;
+use crate::{interact::Interaction, InteractEvent, Interactable};
 
 #[derive(Component, Debug, Clone, Reflect, Default)]
 #[reflect(Component)]
 pub struct Consume;
 
 pub struct ComsumePlugin;
+
+impl Interaction for Consume {
+    fn interact(
+        &self,
+        actor: &Entity,
+        query: QueryLens<&Interactable>
+    ) -> Option<AvianPickupInput>
+    {
+        None
+    }
+}
 
 impl Plugin for ComsumePlugin {
     fn build(&self, app: &mut App) {

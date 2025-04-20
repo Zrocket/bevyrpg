@@ -1,12 +1,24 @@
-use bevy::prelude::*;
+use avian_pickup::input::AvianPickupInput;
+use bevy::{ecs::system::QueryLens, prelude::*};
 
-use crate::InteractEvent;
+use crate::{interact::Interaction, InteractEvent, Interactable};
 
 #[derive(Component, Reflect, Default, Clone, Debug)]
 #[reflect(Component)]
 pub struct Book {
     pub title: String,
     pub contents: String,
+}
+
+impl Interaction for Book {
+    fn interact(
+        &self,
+        actor: &Entity,
+        query: QueryLens<&Interactable>
+    ) -> Option<AvianPickupInput>
+    {
+        None
+    }
 }
 
 pub struct BookPlugin;

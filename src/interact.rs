@@ -1,5 +1,5 @@
 use avian3d::prelude::{CollisionLayers, LayerMask};
-use bevy::prelude::*;
+use bevy::{ecs::system::QueryLens, prelude::*};
 use avian_pickup::{prelude::*, prop::HeldProp};
 
 //use crate::{trade::TradeEvent, DialogEvent, PickUpEvent};
@@ -19,6 +19,15 @@ pub enum Interactable {
     Item,
     Read,
     Consume,
+}
+
+#[bevy_trait_query::queryable]
+pub trait Interaction {
+    fn interact(
+        &self,
+        entity: &Entity,
+        query: QueryLens<&Interactable>
+        ) -> Option<AvianPickupInput>;
 }
 
 #[derive(Event)]

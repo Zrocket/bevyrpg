@@ -1,6 +1,7 @@
-use bevy::prelude::*;
+use avian_pickup::input::AvianPickupInput;
+use bevy::{ecs::system::QueryLens, prelude::*};
 
-use crate::InteractEvent;
+use crate::{interact::Interaction, InteractEvent, Interactable};
 
 #[derive(Debug, Clone, Reflect, Default)]
 pub enum AmmoType {
@@ -11,6 +12,17 @@ pub enum AmmoType {
 #[derive(Debug, Clone, Component,  Reflect, Default)]
 #[reflect(Component)]
 pub struct Ammo;
+
+impl Interaction for Ammo {
+    fn interact(
+        &self,
+        actor: &Entity,
+        query: QueryLens<&Interactable>,
+    ) -> Option<AvianPickupInput>
+    {
+        None
+    }
+}
 
 pub struct AmmoPlugin;
 

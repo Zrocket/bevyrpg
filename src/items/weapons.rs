@@ -1,6 +1,7 @@
-use bevy::prelude::*;
+use avian_pickup::input::AvianPickupInput;
+use bevy::{ecs::system::QueryLens, prelude::*};
 
-use crate::InteractEvent;
+use crate::{interact::Interaction, InteractEvent, Interactable};
 
 #[derive(Component, Debug, Clone, Reflect, Default)]
 #[reflect(Component)]
@@ -13,6 +14,17 @@ pub enum WeaponType {
 #[reflect(Component)]
 pub struct Weapon {
     weapon_type: WeaponType,
+}
+
+impl Interaction for Weapon {
+    fn interact(
+        &self,
+        actor: &Entity,
+        query: QueryLens<&Interactable>,
+    ) -> Option<AvianPickupInput>
+    {
+        None
+    }
 }
 
 pub struct WeaponPlugin;

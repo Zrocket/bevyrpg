@@ -44,6 +44,7 @@ bevy_yarnspinner = { git = "https://github.com/wiggleforlife/YarnSpinner-Rust.gi
 nom = "8.0.0"
 bevy_console = "0.13.1"
 avian_pickup = "0.1.0"
+bevy-trait-query = "0.7.0"
 
 
 # waiting for update

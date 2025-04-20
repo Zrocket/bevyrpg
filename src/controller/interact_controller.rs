@@ -1,18 +1,21 @@
-use crate::interact::InteractEvent;
+use crate::interact::{InteractEvent, Interaction};
 use crate::player::Player;
-use crate::{CollisionLayer, HEIGHT, WIDTH};
+use crate::{CollisionLayer, Interactable, HEIGHT, WIDTH};
 use avian3d::prelude::*;
 use avian_pickup::input::AvianPickupInput;
 use avian_pickup::prop::HeldProp;
 use bevy::prelude::*;
 
 pub fn manage_interact(
-    mut commands: Commands,
+    //mut commands: Commands,
     key: Res<ButtonInput<KeyCode>>,
     ray_caster: SpatialQuery,
-    mut interact_event_writer: EventWriter<InteractEvent>,
+    //mut interact_event_writer: EventWriter<InteractEvent>,
     player: Query<Entity, With<Player>>,
+    mut interactable_query: Query<&Interactable>,
     query: Query<(&Camera, &GlobalTransform), Without<HeldProp>>,
+    interact_query: Query<&dyn Interaction>,
+    mut avian_pickup_input_writer: EventWriter<AvianPickupInput>,
 ) {
     if key.just_pressed(KeyCode::KeyE) {
         if let Ok(player) = player.get_single() {
@@ -33,10 +36,18 @@ pub fn manage_interact(
                         "INTERACT Entity {:?} hit at point {}, from {}",
                         ray_data.entity, hit_point, camera_position
                     );
-                    commands.entity(ray_data.entity).trigger(InteractEvent {
-                        actor: player,
-                        target: ray_data.entity
-                    });
+                    if let Ok(interaction) = interact_query.get(ray_data.entity) {
+                        for act in interaction.iter() {
+                            let interactable_query = interactable_query.transmute_lens();
+                            if let Some(temp) = act.interact(&player, interactable_query) {
+                                avian_pickup_input_writer.send(temp);
+                            }
+                        }
+                    }
+                    //commands.trigger_targets(InteractEvent {
+                    //    actor: player,
+                    //    target: ray_data.entity
+                    //}, ray_data.entity);
                     //interact_event_writer.send(InteractEvent {
                     //    actor: player,
                     //    target: ray_data.entity,
