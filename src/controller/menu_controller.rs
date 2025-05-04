@@ -24,7 +24,7 @@ pub fn manage_menu(
     }
 }
 
-pub fn menu_navigation(
+pub fn _menu_navigation(
     key: Res<ButtonInput<KeyCode>>,
     mut index_query: Query<&mut UiIndex, With<UiMenu>>,
 ) {

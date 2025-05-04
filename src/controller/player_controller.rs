@@ -1,7 +1,6 @@
 use std::f32::consts::*;
 
 use bevy::{input::mouse, prelude::*};
-use bevy_tnua::TnuaAction;
 use bevy_tnua::builtins::{TnuaBuiltinJump, TnuaBuiltinWalk};
 use bevy_tnua::control_helpers::TnuaSimpleAirActionsCounter;
 use bevy_tnua::controller::TnuaController;
@@ -59,9 +58,9 @@ pub struct PlayerControllerInput {
 const ANGLE_EPSILON: f32 = 0.001953125;
 
 // If the distance to the ground is less than this value, the player is considered grounded
-const GROUNDED_DISTANCE: f32 = 0.125;
+const _GROUNDED_DISTANCE: f32 = 0.125;
 
-const SLIGHT_SCALE_DOWN: f32 = 0.9375;
+const _SLIGHT_SCALE_DOWN: f32 = 0.9375;
 
 pub fn player_controller_input(
     key_input_query: Query<&ActionState<Action>, With<Player>>,

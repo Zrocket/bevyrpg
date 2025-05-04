@@ -1,5 +1,4 @@
 use avian3d::collision::Collider;
-use bevy::ecs::reflect;
 use bevy::{
     core_pipeline::core_3d::Camera3d, math::vec3, prelude::*, render::camera::ClearColorConfig,
 };
@@ -82,7 +81,7 @@ fn spawn_basic_scene(
                 description: Description("gun".to_string()),
                 item_type: ItemType::Weapon(Weapon::default()),
                 weight: Weight(0),
-                interact: Interactable::Item,
+                //interact: Interactable::Item,
             },
         ))
         .id();
@@ -153,9 +152,9 @@ fn spawn_basic_scene(
         })
         .id();
 
-    let rand_character: CharacterBundle = rand::random();
     // Cube
     info!("Creating Cube");
+    let rand_character: CharacterBundle = rand::random();
     commands
         .spawn((
             Mesh3d(meshes.add(Cuboid::new(1.0, 1.0, 1.0))),
@@ -167,7 +166,7 @@ fn spawn_basic_scene(
                 name: Name::new("Cube"),
                 description: Description("Cube".to_string()),
                 item_type: ItemType::Misc,
-                interact: Interactable::Misc,
+                //interact: Interactable::Misc,
                 weight: Weight(0),
             },
         ))
@@ -190,7 +189,7 @@ fn spawn_basic_scene(
             Mesh3d(meshes.add(Sphere::new(0.5).mesh().ico(20).unwrap())),
             MeshMaterial3d(materials.add(Color::WHITE)),
             Transform::from_xyz(-0.9, 1.5, -4.2),
-            Interactable::Misc,
+            //Interactable::Misc,
             RigidBody::Dynamic,
             Collider::sphere(0.5),
             CollisionLayers::new(CollisionLayer::Prop, LayerMask::ALL),

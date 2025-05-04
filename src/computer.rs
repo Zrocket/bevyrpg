@@ -10,7 +10,7 @@ pub struct UseComputerEvent {
 pub struct ComputerPlugin;
 
 impl Plugin for ComputerPlugin {
-    fn build(&self, app: &mut App) {}
+    fn build(&self, _app: &mut App) {}
 }
 
-fn use_computer_event_handler(player_query: Query<Entity, With<Player>>) {}
+fn _use_computer_event_handler(_player_query: Query<Entity, With<Player>>) {}

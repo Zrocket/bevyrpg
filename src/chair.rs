@@ -1,4 +1,4 @@
-use bevy::{prelude::*, transform};
+use bevy::prelude::*;
 
 use crate::Player;
 
@@ -27,7 +27,7 @@ impl Plugin for ChairPlugin {
     }
 }
 
-fn sit_event_handler(
+fn _sit_event_handler(
     mut commands: Commands,
     mut player_query: Query<&Transform, With<Player>>,
     transform_query: Query<&Transform>,
@@ -35,9 +35,9 @@ fn sit_event_handler(
     mut actors: Query<Entity, With<Player>>,
 ) {
     for event in events.read() {
-        if let Ok(mut player_transform) = player_query.get_single_mut() {
+        if let Ok(mut _player_transform) = player_query.get_single_mut() {
             if let Ok(chair_transform) = transform_query.get(event.target) {
-                player_transform = chair_transform;
+                _player_transform = chair_transform;
             }
         }
     }
@@ -49,10 +49,10 @@ fn sit_event_handler(
     }
 }
 
-fn stand_event_handler(
-    mut commands: Commands,
+fn _stand_event_handler(
+    mut _commands: Commands,
     mut events: EventReader<StandEvent>,
-    mut actors: Query<Entity, With<Player>>,
+    mut _actors: Query<Entity, With<Player>>,
 ) {
-    for event in events.read() {}
+    for _event in events.read() {}
 }
