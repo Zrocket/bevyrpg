@@ -4,6 +4,7 @@ pub trait Vec3Ext: Copy {
     fn is_approx_zero(self) -> bool;
     fn horizontal(self) -> Vec3;
 }
+
 impl Vec3Ext for Vec3 {
     #[inline]
     fn is_approx_zero(self) -> bool {
@@ -19,6 +20,7 @@ impl Vec3Ext for Vec3 {
 pub trait Vec2Ext: Copy {
     fn is_approx_zero(self) -> bool;
 }
+
 impl Vec2Ext for Vec2 {
     #[inline]
     fn is_approx_zero(self) -> bool {

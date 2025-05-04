@@ -90,7 +90,7 @@ fn manage_cursor(
     }
 }
 
-fn weapon_select(key: Res<ButtonInput<KeyCode>>) {
+fn _weapon_select(key: Res<ButtonInput<KeyCode>>) {
     if key.just_pressed(KeyCode::Digit1) {
     } else if key.just_pressed(KeyCode::Digit2) {
         todo!();

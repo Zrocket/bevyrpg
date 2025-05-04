@@ -1,5 +1,5 @@
-use crate::{inventory, ActiveInventoryUi, ActiveUi, Player, UiIndex, UiInventory};
-use bevy::{prelude::*, window::CursorGrabMode};
+use crate::{Player, UiIndex, UiInventory};
+use bevy::prelude::*;
 use leafwing_input_manager::prelude::ActionState;
 
 use super::Action;
