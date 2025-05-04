@@ -1,7 +1,7 @@
 use avian_pickup::input::AvianPickupInput;
-use bevy::{ecs::system::QueryLens, prelude::*};
+use bevy::prelude::*;
 
-use crate::{interact::Interaction, InteractEvent, Interactable};
+use crate::{interact::Interaction, InteractEvent};
 
 #[derive(Component, Reflect, Default, Clone, Debug)]
 #[reflect(Component)]
@@ -13,8 +13,9 @@ pub struct Book {
 impl Interaction for Book {
     fn interact(
         &self,
-        actor: &Entity,
-        query: QueryLens<&Interactable>
+        _commands: &mut Commands,
+        _actor: &Entity,
+        _prop: &Entity,
     ) -> Option<AvianPickupInput>
     {
         None
@@ -33,6 +34,6 @@ impl Plugin for BookPlugin {
 fn book_observer_handler(
     trigger: Trigger<InteractEvent, Book>
 ) {
-    let player = trigger.event().actor;
-    let book = trigger.entity();
+    let _player = trigger.event().actor;
+    let _book = trigger.entity();
 }

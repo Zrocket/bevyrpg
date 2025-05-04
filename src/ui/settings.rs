@@ -1,5 +1,3 @@
-use std::process::id;
-
 use bevy::color::palettes::css::CRIMSON;
 
 use super::*;
@@ -180,7 +178,7 @@ pub fn draw_menu_ui(
     }
 }
 
-pub fn draw_settings_ui(
+pub fn _draw_settings_ui(
     mut commands: Commands,
     target: Query<Entity, With<ActiveMenuUi>>,
     asset_server: Res<AssetServer>,
@@ -357,7 +355,7 @@ pub fn draw_settings_ui(
     }
 }
 
-pub fn draw_controller_settings_ui(
+pub fn _draw_controller_settings_ui(
     mut commands: Commands,
     target: Query<Entity, With<ActiveMenuUi>>,
     asset_server: Res<AssetServer>,
@@ -461,7 +459,7 @@ pub fn draw_controller_settings_ui(
     }
 }
 
-pub fn draw_sound_settings_ui(
+pub fn _draw_sound_settings_ui(
     mut commands: Commands,
     target: Query<Entity, With<ActiveMenuUi>>,
     asset_server: Res<AssetServer>,
@@ -567,17 +565,17 @@ pub fn draw_sound_settings_ui(
     }
 }
 
-pub fn draw_video_settings_ui(
+pub fn _draw_video_settings_ui(
     mut commands: Commands,
     target: Query<Entity, With<ActiveMenuUi>>,
-    projection: Query<&Projection>,
-    asset_server: Res<AssetServer>,
+    _projection: Query<&Projection>,
+    _asset_server: Res<AssetServer>,
 ) {
     trace!("draw_video_settings_ui");
     for _target_entity in target.iter() {
         info!("Drawing MenuUi");
 
-        let menu_parent = commands
+        let _menu_parent = commands
             .spawn((
                 Node {
                     position_type: PositionType::Absolute,

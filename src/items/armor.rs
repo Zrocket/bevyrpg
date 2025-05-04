@@ -1,7 +1,7 @@
 use avian_pickup::input::AvianPickupInput;
-use bevy::{ecs::system::QueryLens, prelude::*};
+use bevy::prelude::*;
 
-use crate::{interact::Interaction, InteractEvent, Interactable};
+use crate::{interact::Interaction, InteractEvent};
 
 #[derive(Component, Debug, Clone, Reflect, Default)]
 #[reflect(Component)]
@@ -27,10 +27,12 @@ pub struct Armor {
 impl Interaction for Armor {
     fn interact(
         &self,
-        actor: &Entity,
-        query: QueryLens<&Interactable>,
+        commands: &mut Commands,
+        _actor: &Entity,
+        prop: &Entity,
     ) -> Option<AvianPickupInput>
     {
+        commands.entity(*prop).despawn();
         None
     }
 }
@@ -47,6 +49,6 @@ impl Plugin for ArmorPlugin {
 fn armor_observer_handler(
         trigger: Trigger<InteractEvent, Armor>
 ) {
-    let player = trigger.event().actor;
-    let armor = trigger.entity();
+    let _player = trigger.event().actor;
+    let _armor = trigger.entity();
 }

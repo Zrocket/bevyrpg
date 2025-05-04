@@ -17,8 +17,8 @@ pub fn draw_status_ui(
         asset_server.load("HP/Style_2.png"),
         asset_server.load("HP/Style_3.png"),
     ];
-    if let Ok((mana, max_mana)) = mana_query.get_single() {
-        if let Ok((health, max_health)) = health_query.get_single() {
+    if let Ok((_mana, _max_mana)) = mana_query.get_single() {
+        if let Ok((_health, _max_health)) = health_query.get_single() {
             let status_bar_node = commands
                 .spawn((
                     Node {

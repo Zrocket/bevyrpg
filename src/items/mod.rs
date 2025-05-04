@@ -14,7 +14,7 @@ pub use weapons::*;
 
 use bevy::prelude::*;
 
-use crate::{Interactable, Name};
+use crate::Name;
 
 #[derive(Component, Reflect, Clone)]
 pub enum ItemType {
@@ -44,7 +44,6 @@ pub struct Item {
     pub description: Description,
     pub item_type: ItemType,
     pub weight: Weight,
-    pub interact: Interactable,
 }
 
 pub struct ItemPlugin;
