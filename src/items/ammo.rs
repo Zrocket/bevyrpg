@@ -1,7 +1,7 @@
 use avian_pickup::input::AvianPickupInput;
-use bevy::{ecs::system::QueryLens, prelude::*};
+use bevy::prelude::*;
 
-use crate::{interact::Interaction, InteractEvent, Interactable};
+use crate::{interact::Interaction, InteractEvent};
 
 #[derive(Debug, Clone, Reflect, Default)]
 pub enum AmmoType {
@@ -16,10 +16,12 @@ pub struct Ammo;
 impl Interaction for Ammo {
     fn interact(
         &self,
-        actor: &Entity,
-        query: QueryLens<&Interactable>,
+        commands: &mut Commands,
+        _actor: &Entity,
+        prop: &Entity,
     ) -> Option<AvianPickupInput>
     {
+        commands.entity(*prop).despawn();
         None
     }
 }
@@ -37,6 +39,6 @@ impl Plugin for AmmoPlugin {
 fn ammo_observer_handler(
         trigger: Trigger<InteractEvent, Ammo>
 ) {
-    let player = trigger.event().actor;
-    let ammo = trigger.entity();
+    let _player = trigger.event().actor;
+    let _ammo = trigger.entity();
 }

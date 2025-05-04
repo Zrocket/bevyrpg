@@ -1,5 +1,5 @@
 use bevy::prelude::*;
-use bevy_console::{ConsolePlugin, ConsoleConfiguration, reply, AddConsoleCommand, ConsoleCommand, PrintConsoleLine, ConsoleSet};
+use bevy_console::{ConsolePlugin, ConsoleConfiguration, reply, AddConsoleCommand, ConsoleCommand, PrintConsoleLine};
 //use bevy_simple_text_input::{TextInputSubmitEvent, TextInputSystem};
 use clap::Parser;
 
@@ -150,7 +150,7 @@ impl Plugin for MyConsolePlugin {
 
 fn example_command(mut log: ConsoleCommand<ExampleCommand>) {
     info!("Example command");
-    if let Some(Ok(ExampleCommand { msg })) = log.take() {
+    if let Some(Ok(ExampleCommand { msg: _ })) = log.take() {
         // handle command
     }
 }
@@ -169,6 +169,6 @@ fn log_command(mut log: ConsoleCommand<LogCommand>) {
     }
 }
 
-fn write_to_console(mut console_line: EventWriter<PrintConsoleLine>) {
+fn _write_to_console(mut console_line: EventWriter<PrintConsoleLine>) {
     console_line.send(PrintConsoleLine::new("Hello".into()));
 }

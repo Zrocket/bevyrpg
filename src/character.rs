@@ -1,7 +1,5 @@
 use bevy::prelude::*;
-//use rand::distributions;
 use standard_dist::StandardDist;
-//use super::Name;
 
 use crate::*;
 
@@ -161,26 +159,6 @@ impl Plugin for CharacterPlugin {
     }
 }
 
-/*fn attack_character(
-    mut attack_events: EventReader<AttackEvent>,
-    mut damage_event_writer: EventWriter<DamageEvent>,
-    charactes: Query<&mut Character>,
-) {
-    for event in attack_events.read() {
-        let attacker = charactes
-            .get(event.attacker)
-            .expect("Attacking a non-character entity!");
-        let defender = charactes.get(event.defender).unwrap();
-        if attacker.matter > defender.maneuver {
-            info!("Sending damage event");
-            damage_event_writer.send(DamageEvent {
-                target: event.defender,
-                ammount: attacker.matter,
-            });
-        }
-    }
-}*/
-
 fn attack_event_handler(
     mut attack_events: EventReader<AttackEvent>,
     mut damage_event_writer: EventWriter<DamageEvent>,
@@ -204,30 +182,6 @@ fn attack_event_handler(
         }
     }
 }
-
-/*fn damage_character(
-    mut commands: Commands,
-    mut characters: Query<&mut Character>,
-    mut damage_events: EventReader<DamageEvent>,
-) {
-    for event in damage_events.read() {
-        let target = characters
-            .get_mut(event.target);
-        if target.is_err() {
-            return;
-        }
-
-        let mut target = target.unwrap();
-
-        if event.ammount > target.health {
-            target.health = 0;
-            info!("TARGET IS DEAD!!!");
-            commands.entity(event.target).despawn_recursive();
-        } else {
-            target.health -= event.ammount;
-        }
-    }
-}*/
 
 fn damage_event_handler(
     mut commands: Commands,
@@ -262,36 +216,6 @@ fn experience_event_handler(
         }
     }
 }
-
-/*fn get_experience(
-    mut characters: Query<&mut Character>,
-    mut experience_events: EventReader<ExperienceEvent>,
-    mut level_up_writer: EventWriter<LevelUpEvent>,
-) {
-    for event in experience_events.read() {
-        let mut character = characters
-            .get_mut(event.target)
-            .expect("Trying to give experience to a non-character entity!");
-        info!("Giving {} experience to {:?}", event.ammount, event.target);
-        character.experience += event.ammount;
-        if character.experience >= 100 {
-            level_up_writer.send(LevelUpEvent(event.target));
-        }
-    }
-}*/
-
-/*fn level_up(
-    mut characters: Query<&mut Character>,
-    mut level_up_events: EventReader<LevelUpEvent>,
-    ) {
-    for event in level_up_events.read() {
-        let mut character = characters
-            .get_mut(event.0)
-            .expect("Trying to level up a non-character entity!");
-        character.level += 1;
-        info!("Character {:?} leveled up!", event.0);
-    }
-}*/
 
 fn level_up_event_handler(
     mut level_query: Query<&mut Level>,

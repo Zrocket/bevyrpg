@@ -6,9 +6,9 @@ edition = "2024"
 # See more keys and their definitions at https://doc.rust-lang.org/cargo/reference/manifest.html
 
 [dependencies]
-anyhow = "1.0.86"
+anyhow = "1.0.98"
 #bevy = "0.15.0"
-bevy = { version = "*", features = ["jpeg"] }
+bevy = { version = "0.15.0", features = ["jpeg"] }
 clap = { version = "*", features = ["derive"] }
 lazy_static = "*"
 rand = "0.8.5"
@@ -38,13 +38,15 @@ bevy_simple_text_input = "0.10"
 bevy_asset_loader = {version = "0.22", features = ["2d"]}
 #avian_interpolation3d = { path = "../avian_interpolation/crates/avian_interpolation3d" } #awaiting pull
 #avian_pickup = { git="https://github.com/Zrocket/avian_pickup" } #awaiting pull
-oxidized_navigation = { git = "https://github.com/TheGrimsey/oxidized_navigation.git", default-features = false, features = ["debug_draw", "avian"] }
+#oxidized_navigation = { git = "https://github.com/TheGrimsey/oxidized_navigation.git", default-features = false, features = ["debug_draw", "avian"] }
+oxidized_navigation = { version = "0.12.0", default-features = false, features = ["debug_draw", "avian"] }
 blenvy = { git = "https://github.com/ptsd/Blenvy.git", branch = "blenvy-bevy-0.15" } #awaiting pull
 bevy_yarnspinner = { git = "https://github.com/wiggleforlife/YarnSpinner-Rust.git" } #waiting for update
 nom = "8.0.0"
 bevy_console = "0.13.1"
-avian_pickup = "0.1.0"
+avian_pickup = "0.1.6"
 bevy-trait-query = "0.7.0"
+moonshine-kind = "0.2.3"
 
 
 # waiting for update

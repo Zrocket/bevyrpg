@@ -145,7 +145,6 @@ fn main() {
     ))
     .add_plugins(ItemPlugin);
     //.add_plugins(BlenvyPlugin::default());
-    
     //app.add_plugins(WorldInspectorPlugin::new());
     if args.editor {
         println!("!AAAAAAAAAAAAAAAAAAAAAAA");
@@ -188,7 +187,7 @@ fn health_test(
     }
 }
 
-fn inventory_test(
+fn _inventory_test(
     mut commands: Commands,
     key: Res<ButtonInput<KeyCode>>,
     mut player: Query<Entity, With<Player>>,
@@ -203,7 +202,6 @@ fn inventory_test(
                 name: Name::new(format!("Test {}", rand::random::<u8>() as char)),
                 description: Description("Test".to_string()),
                 weight: Weight(0),
-                interact: Interactable::Misc,
             },))
             .id();
         event_writer.send(PickUpEvent {
@@ -213,7 +211,7 @@ fn inventory_test(
     }
 }
 
-fn inventory_remove_test(
+fn _inventory_remove_test(
     key: Res<ButtonInput<KeyCode>>,
     mut player: Query<Entity, With<Player>>,
     mut inventory_query: Query<&Inventory, With<Player>>,
