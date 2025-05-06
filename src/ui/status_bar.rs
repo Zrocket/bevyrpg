@@ -9,9 +9,6 @@ pub fn draw_status_ui(
     mana_query: Query<(&Mana, &MaxMana), With<Player>>,
 ) {
     trace!("draw_status_ui");
-    trace!("Creating status bar UiNode");
-    debug!("Creating health UiNode");
-    debug!("Creating mana UiNode");
     let health_ui_icons: [Handle<Image>; 3] = [
         asset_server.load("HP/Style_1.png"),
         asset_server.load("HP/Style_2.png"),
