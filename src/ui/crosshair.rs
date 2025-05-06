@@ -2,11 +2,7 @@ use super::*;
 
 pub fn draw_crosshair(mut commands: Commands, asset_server: Res<AssetServer>) {
     trace!("draw_crosshair");
-    debug!("Creating crosshair UiNode");
-    debug!("Loading crossair asset");
     let crosshair: Handle<Image> = asset_server.load("new_crosshairs/dot.png");
-    debug!("Crosshair asset loaded");
-    debug!("Spawning UiNode");
     commands.spawn((ImageNode {
         image: crosshair.clone().into(),
         ..default()
@@ -27,6 +23,5 @@ pub fn draw_crosshair(mut commands: Commands, asset_server: Res<AssetServer>) {
                 ..default()
             },
         ))
-        //.insert(UiEntity)
         .insert(UiCrosshair);
 }
