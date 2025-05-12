@@ -64,8 +64,8 @@ use trade::TradePlugin;
 pub use ui::*;
 pub use utils::*;
 
-pub const HEIGHT: f32 = 720.0;
-pub const WIDTH: f32 = 1280.0;
+pub const RESOLUTION_HEIGHT: f32 = 720.0;
+pub const RESOLUTION_WIDTH: f32 = 1280.0;
 
 #[derive(Parser, Debug)]
 struct Args {
@@ -102,12 +102,7 @@ fn main() {
                         grab_mode: CursorGrabMode::Locked,
                         ..default()
                     },
-                    /*cursor: Cursor {
-                        icon: CursorIcon::Crosshair,
-                        //grab_mode: bevy::window::CursorGrabMode::Locked,
-                        ..default()
-                    },*/
-                    resolution: WindowResolution::new(WIDTH, HEIGHT),
+                    resolution: WindowResolution::new(RESOLUTION_WIDTH, RESOLUTION_HEIGHT),
                     title: "Wizard RPG".to_string(),
                     resizable: false,
                     focused: true,
