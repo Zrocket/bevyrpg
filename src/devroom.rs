@@ -1,6 +1,6 @@
 use avian3d::collision::Collider;
 use bevy::asset::RenderAssetUsages;
-use bevy::color::palettes::css::RED;
+use bevy::color::palettes::css::{RED};
 use bevy::render::render_resource::{Extent3d, TextureFormat, TextureUsages};
 use bevy::render::view::RenderLayers;
 use bevy::sprite::Material2d;
@@ -42,13 +42,12 @@ pub struct DevRoomPlugin;
 
 impl Plugin for DevRoomPlugin {
     fn build(&self, app: &mut App) {
-        //app.add_systems(OnEnter(GameState::Loading), spawn_basic_scene)
         app
             .add_systems(
                 OnEnter(GameState::Loading),
                 (
                     spawn_basic_scene,
-                    spawn_player_camera,
+                    spawn_player,
                     spawn_walking_cube,
                     spawn_sphere,
                     spawn_projection_cube
@@ -68,12 +67,8 @@ impl Plugin for DevRoomPlugin {
 
 fn spawn_basic_scene(
     mut commands: Commands,
-    mut meshes: ResMut<Assets<Mesh>>,
-    mut materials: ResMut<Assets<StandardMaterial>>,
-    mut color_materials: ResMut<Assets<ColorMaterial>>,
     asset_server: Res<AssetServer>,
     mut window: Query<&mut Window>,
-    mut images: ResMut<Assets<Image>>,
 ) {
     trace!("Spawn basic scene");
 
@@ -101,18 +96,11 @@ fn spawn_basic_scene(
     ));
     //commands.spawn(SceneBundle { scene: asset_server.load("levels/__temp_scene.glb#Scene0"), ..default() });
     info!("DevRoom Loaded");
-
-
 }
 
-fn _spawn_player(
+fn spawn_player(
     mut commands: Commands,
-    mut meshes: ResMut<Assets<Mesh>>,
-    mut materials: ResMut<Assets<StandardMaterial>>,
-    mut color_materials: ResMut<Assets<ColorMaterial>>,
     asset_server: Res<AssetServer>,
-    mut window: Query<&mut Window>,
-    mut images: ResMut<Assets<Image>>,
 ) {
     // Gun
     info!("Creating Gun");
@@ -125,7 +113,6 @@ fn _spawn_player(
                 description: Description("gun".to_string()),
                 item_type: ItemType::Weapon(Weapon::default()),
                 weight: Weight(0),
-                //interact: Interactable::Item,
             },
         ))
         .id();
@@ -220,36 +207,10 @@ fn _spawn_player(
         .add_child(gun);
 }
 
-fn _spawn_gun(
-    mut commands: Commands,
-    mut meshes: ResMut<Assets<Mesh>>,
-    mut materials: ResMut<Assets<StandardMaterial>>,
-    mut color_materials: ResMut<Assets<ColorMaterial>>,
-    asset_server: Res<AssetServer>,
-    mut window: Query<&mut Window>,
-    mut images: ResMut<Assets<Image>>,
-) {
-}
-
-fn spawn_player_camera(
-    mut commands: Commands,
-    mut meshes: ResMut<Assets<Mesh>>,
-    mut materials: ResMut<Assets<StandardMaterial>>,
-    mut color_materials: ResMut<Assets<ColorMaterial>>,
-    asset_server: Res<AssetServer>,
-    mut window: Query<&mut Window>,
-    mut images: ResMut<Assets<Image>>,
-) {
-}
-
 fn spawn_walking_cube(
     mut commands: Commands,
     mut meshes: ResMut<Assets<Mesh>>,
     mut materials: ResMut<Assets<StandardMaterial>>,
-    mut color_materials: ResMut<Assets<ColorMaterial>>,
-    asset_server: Res<AssetServer>,
-    mut window: Query<&mut Window>,
-    mut images: ResMut<Assets<Image>>,
 ) {
     // Cube
     info!("Creating Cube");
@@ -265,7 +226,6 @@ fn spawn_walking_cube(
                 name: Name::new("Cube"),
                 description: Description("Cube".to_string()),
                 item_type: ItemType::Misc,
-                //interact: Interactable::Misc,
                 weight: Weight(0),
             },
         ))
@@ -286,10 +246,6 @@ fn spawn_sphere(
     mut commands: Commands,
     mut meshes: ResMut<Assets<Mesh>>,
     mut materials: ResMut<Assets<StandardMaterial>>,
-    mut color_materials: ResMut<Assets<ColorMaterial>>,
-    asset_server: Res<AssetServer>,
-    mut window: Query<&mut Window>,
-    mut images: ResMut<Assets<Image>>,
 ) {
     // Sphere
     info!("Creating Sphere");
@@ -298,7 +254,6 @@ fn spawn_sphere(
             Mesh3d(meshes.add(Sphere::new(0.5).mesh().ico(20).unwrap())),
             MeshMaterial3d(materials.add(Color::WHITE)),
             Transform::from_xyz(-0.9, 1.5, -4.2),
-            //Interactable::Misc,
             RigidBody::Dynamic,
             Collider::sphere(0.5),
             CollisionLayers::new(CollisionLayer::Prop, LayerMask::ALL),
@@ -307,13 +262,11 @@ fn spawn_sphere(
         .insert(MiscItem);
 }
 
-fn spawn_projection_cube(
+fn _spawn_projection_cat(
     mut commands: Commands,
     mut meshes: ResMut<Assets<Mesh>>,
     mut materials: ResMut<Assets<StandardMaterial>>,
     mut color_materials: ResMut<Assets<ColorMaterial>>,
-    asset_server: Res<AssetServer>,
-    mut window: Query<&mut Window>,
     mut images: ResMut<Assets<Image>>,
 ) {
     // Render to Texture test
@@ -338,7 +291,8 @@ fn spawn_projection_cube(
 
     let image_handle = images.add(image);
 
-    let cube_handle = meshes.add(Cuboid::new(40.0, 0.0, 40.0));
+    //let cube_handle = meshes.add(Cuboid::new(40.0, 0.0, 40.0));
+    let cube_handle = meshes.add(Rectangle::new(50., 50.));
     let cube_material_handle = materials.add(StandardMaterial {
         base_color: Color::srgb(0.8, 0.7, 0.6),
         reflectance: 0.02,
@@ -359,12 +313,14 @@ fn spawn_projection_cube(
             first_pass_layer.clone(),
     ));
 
+    // Light
     commands.spawn((
             PointLight::default(),
             Transform::from_translation(Vec3::new(0.0, 0.0, 10.0)),
             RenderLayers::layer(0).with(1),
     ));
 
+    // Camera
     commands.spawn((
             Camera2d::default(),
             Camera {
@@ -396,8 +352,151 @@ fn spawn_projection_cube(
     ));
 }
 
+fn spawn_projection_cube(
+    mut commands: Commands,
+    mut meshes: ResMut<Assets<Mesh>>,
+    mut materials: ResMut<Assets<StandardMaterial>>,
+    mut color_materials: ResMut<Assets<ColorMaterial>>,
+    mut images: ResMut<Assets<Image>>,
+) {
+    // Render to Texture test
+
+    let size = Extent3d {
+        width: 512,
+        height: 512,
+        ..default()
+    };
+
+    // This is the texture to be rendered to.
+    let mut image = Image::new_fill(
+        size,
+        bevy::render::render_resource::TextureDimension::D2,
+        &[0, 0, 0, 0],
+        TextureFormat::Bgra8UnormSrgb,
+        RenderAssetUsages::default(),
+    );
+    // You need to set these texture usage flags in order to use the image as a render target
+    image.texture_descriptor.usage =
+        TextureUsages::TEXTURE_BINDING | TextureUsages::COPY_DST | TextureUsages::RENDER_ATTACHMENT;
+
+    let image_handle = images.add(image);
+
+    //let cube_handle = meshes.add(Cuboid::new(40.0, 0.0, 40.0));
+    let cube_handle = meshes.add(Rectangle::new(50., 50.));
+    let cube_material_handle = materials.add(StandardMaterial {
+        base_color: Color::srgb(0.8, 0.7, 0.6),
+        reflectance: 0.02,
+        unlit: false,
+        ..default()
+    });
+
+    // This specifies the layer used for the first pass, which will be attached to the first pass
+    // camera and cube.
+    let first_pass_layer = RenderLayers::layer(1);
+
+    // The cube that will be rendered to the texture.
+    commands.spawn((
+            Mesh2d(cube_handle),
+            MeshMaterial2d(color_materials.add(ColorMaterial::from_color(RED))),
+            Transform::from_translation(Vec3::new(0.0, 0.0, 1.0)),
+            FirstPassCube,
+            first_pass_layer.clone(),
+    ));
+
+    // Light
+    commands.spawn((
+            PointLight::default(),
+            Transform::from_translation(Vec3::new(0.0, 0.0, 10.0)),
+            RenderLayers::layer(0).with(1),
+    ));
+
+    // Camera
+    commands.spawn((
+            Camera2d::default(),
+            Camera {
+                target: image_handle.clone().into(),
+                clear_color: Color::WHITE.into(),
+                ..default()
+            },
+            Transform::from_translation(Vec3::new(0.0, 0.0, 15.0)).looking_at(Vec3::ZERO, Vec3::Y),
+            first_pass_layer,
+    ));
+
+    let cube_size = 4.0;
+    let cube_handle = meshes.add(Cuboid::new(cube_size, cube_size, cube_size));
+
+    // This material has the texture that has been rendered.
+    let material_handle = materials.add(StandardMaterial {
+        base_color_texture: Some(image_handle),
+        reflectance: 0.02,
+        unlit: false,
+        ..default()
+    });
+
+    // Main pass cube, with material containing the rendered first pass texture.
+    commands.spawn((
+            Mesh3d(cube_handle),
+            MeshMaterial3d(material_handle),
+            Transform::from_xyz(0.0, 5.0, 5.5).with_rotation(Quat::from_rotation_x(-PI / 5.0)),
+            MainPassCube,
+    ));
+}
+
+// Bevy 0.16 only
+/*fn _spawn_projection_ui(
+    mut commands: Commands,
+    mut meshes: ResMut<Assets<Mesh>>,
+    mut materials: ResMut<Assets<StandardMaterial>>,
+    mut color_materials: ResMut<Assets<ColorMaterial>>,
+    asset_server: Res<AssetServer>,
+    mut window: Query<&mut Window>,
+    mut images: ResMut<Assets<Image>>,
+) {
+    // Render to Texture test
+
+    let size = Extent3d {
+        width: 512,
+        height: 512,
+        ..default()
+    };
+
+    // This is the texture to be rendered to.
+    let mut image = Image::new_fill(
+        size,
+        bevy::render::render_resource::TextureDimension::D2,
+        &[0, 0, 0, 0],
+        TextureFormat::Bgra8UnormSrgb,
+        RenderAssetUsages::default(),
+    );
+    // You need to set these texture usage flags in order to use the image as a render target
+    image.texture_descriptor.usage =
+        TextureUsages::TEXTURE_BINDING | TextureUsages::COPY_DST | TextureUsages::RENDER_ATTACHMENT;
+
+    let image_handle = images.add(image);
+    let texture_camera = commands.spawn((
+            Camera2d::default(),
+            Camera {
+                target: image_handle.clone().into(),
+                ..default()
+            },
+    ))
+    .id();
+
+    commands.spawn(
+        Node {
+            // Cover the whole image
+            width: Val::Percent(100.),
+            height: Val::Percent(100.),
+            flex_direction: FlexDirection::Column,
+            justify_content: JustifyContent::Center,
+            align_items: AlignItems::Center,
+            ..default()
+        },
+        BackgroundColor(GOLD.into()),
+    )
+} */
+
 fn player_forward(
-    //cam_transform: Query<&Transform, (With<Camera>, Without<Player>)>,
     cam_transform: Query<&Transform, (With<PlayerCamera>, Without<Player>)>,
     mut player_transform: Query<&mut Transform, With<Player>>,
 ) {
@@ -415,7 +514,7 @@ fn rotator_system(
 ) {
     for mut transform in &mut query {
         transform.rotate_x(1.5 * time.delta_secs());
-        //transform.rotate_z(1.3 * time.delta_secs());
+        transform.rotate_z(1.5 * time.delta_secs());
     }
 }
 
