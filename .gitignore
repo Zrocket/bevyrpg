@@ -1,2 +1,4 @@
 /target
 tags
+Cargo.lock
+/assets/registry.json
