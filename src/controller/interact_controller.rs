@@ -1,6 +1,6 @@
 use crate::interact::Interaction;
 use crate::player::Player;
-use crate::{HEIGHT, WIDTH};
+use crate::{RESOLUTION_HEIGHT, RESOLUTION_WIDTH};
 use avian3d::prelude::*;
 use avian_pickup::input::AvianPickupInput;
 use avian_pickup::prop::HeldProp;
@@ -25,7 +25,7 @@ pub fn manage_interact(
                 return
             }
             for (camera, global_transform) in camera_query.iter() {
-                let center_window = camera.viewport_to_world(global_transform, Vec2 { y: HEIGHT / 2., x: WIDTH / 2. }).unwrap();
+                let center_window = camera.viewport_to_world(global_transform, Vec2 { y: RESOLUTION_HEIGHT / 2., x: RESOLUTION_WIDTH / 2. }).unwrap();
                 let camera_position = global_transform.translation();
                 let camera_direction = global_transform.forward();
                 if let Some(ray_data) = ray_caster.cast_ray(
