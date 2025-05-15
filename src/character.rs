@@ -1,46 +1,45 @@
 use bevy::prelude::*;
-use standard_dist::StandardDist;
 
 use crate::*;
 
-#[derive(Default, Clone, Component, Reflect, StandardDist)]
+#[derive(Default, Clone, Component, Reflect)]
 #[reflect(Component)]
 pub struct Health(pub i32);
-#[derive(Default, Clone, Component, Reflect, StandardDist)]
+#[derive(Default, Clone, Component, Reflect)]
 #[reflect(Component)]
 pub struct Level(pub i32);
-#[derive(Default, Clone, Component, Reflect, StandardDist)]
+#[derive(Default, Clone, Component, Reflect)]
 #[reflect(Component)]
 pub struct Mana(pub i32);
-#[derive(Default, Clone, Component, Reflect, StandardDist)]
+#[derive(Default, Clone, Component, Reflect)]
 #[reflect(Component)]
 pub struct Experience(pub i32);
-#[derive(Default, Clone, Component, Reflect, StandardDist)]
+#[derive(Default, Clone, Component, Reflect)]
 #[reflect(Component)]
 pub struct Speed(pub i32);
-#[derive(Default, Clone, Component, Reflect, StandardDist)]
+#[derive(Default, Clone, Component, Reflect)]
 #[reflect(Component)]
 pub struct Corruption(pub i32);
-#[derive(Default, Clone, Component, Reflect, StandardDist)]
+#[derive(Default, Clone, Component, Reflect)]
 #[reflect(Component)]
 pub struct Matter(pub i32);
-#[derive(Default, Clone, Component, Reflect, StandardDist)]
+#[derive(Default, Clone, Component, Reflect)]
 #[reflect(Component)]
 pub struct Mind(pub i32);
-#[derive(Default, Clone, Component, Reflect, StandardDist)]
+#[derive(Default, Clone, Component, Reflect)]
 #[reflect(Component)]
 pub struct Luck(pub i32);
-#[derive(Default, Clone, Component, Reflect, StandardDist)]
+#[derive(Default, Clone, Component, Reflect)]
 #[reflect(Component)]
 pub struct Maneuver(pub i32);
-#[derive(Default, Clone, Component, Reflect, StandardDist)]
+#[derive(Default, Clone, Component, Reflect)]
 #[reflect(Component)]
 pub struct MaxMana(pub i32);
-#[derive(Default, Clone, Component, Reflect, StandardDist)]
+#[derive(Default, Clone, Component, Reflect)]
 #[reflect(Component)]
 pub struct MaxHealth(pub i32);
 
-#[derive(Bundle, StandardDist)]
+#[derive(Bundle)]
 pub struct CharacterBundle {
     pub corruption: Corruption,
     pub experience: Experience,
@@ -101,7 +100,7 @@ pub struct AttackEvent {
     pub defender: Entity,
 }
 
-#[derive(Component, Reflect, Default, StandardDist)]
+#[derive(Component, Reflect, Default)]
 #[reflect(Component)]
 pub enum Profession {
     #[default]
@@ -110,7 +109,7 @@ pub enum Profession {
     TreasureHunter,
 }
 
-#[derive(Component, Reflect, Default, StandardDist)]
+#[derive(Component, Reflect, Default)]
 #[reflect(Component)]
 pub struct Skills {
     pub guns: i32,
