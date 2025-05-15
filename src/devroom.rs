@@ -214,7 +214,7 @@ fn spawn_walking_cube(
 ) {
     // Cube
     info!("Creating Cube");
-    let rand_character: CharacterBundle = rand::random();
+    //let rand_character: CharacterBundle = rand::random();
     commands
         .spawn((
             Mesh3d(meshes.add(Cuboid::new(1.0, 1.0, 1.0))),
@@ -229,7 +229,7 @@ fn spawn_walking_cube(
                 weight: Weight(0),
             },
         ))
-        .insert(rand_character)
+        //.insert(rand_character)
         .insert(TnuaController::default())
         .insert(TnuaAvian3dSensorShape(Collider::cuboid(0.5, 0.5, 0.5)))
         .insert(FloatHeight(0.5))
