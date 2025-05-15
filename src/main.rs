@@ -26,6 +26,7 @@ mod computer;
 mod console;
 mod controller;
 mod devroom;
+mod fpsdevroom;
 //mod dialog;
 mod enemy;
 mod hunger;
