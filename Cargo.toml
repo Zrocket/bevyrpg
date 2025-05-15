@@ -11,10 +11,10 @@ bevy = { version = "0.15.0", features = ["jpeg"] }
 #bevy = { version = "0.16.0", features = ["jpeg"] }
 clap = { version = "*", features = ["derive"] }
 lazy_static = "*"
-rand = "0.8.5"
+rand = "*"
 serde = "*"
 standard-dist = "*"
-nom = "8.0.0"
+nom = "*"
 
 
 #
@@ -53,7 +53,8 @@ bevy_simple_text_input = "0.10"
 bevy_asset_loader = {version = "0.22", features = ["2d"]}
 oxidized_navigation = { version = "0.12.0", default-features = false, features = ["debug_draw", "avian"] }
 blenvy = { git = "https://github.com/ptsd/Blenvy.git", branch = "blenvy-bevy-0.15" } #awaiting pull
-bevy_yarnspinner = { git = "https://github.com/wiggleforlife/YarnSpinner-Rust.git" } #waiting for update
+bevy_yarnspinner = "0.4"
+#bevy_yarnspinner = { git = "https://github.com/wiggleforlife/YarnSpinner-Rust.git" } #waiting for update
 #bevy_yarnspinner = "0.4"
 avian3d = "0.2"
 bevy_atmosphere = "0.12"
