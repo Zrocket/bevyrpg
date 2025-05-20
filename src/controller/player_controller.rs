@@ -115,53 +115,57 @@ pub fn tnua_player_input(
     mut tnua_query: Query<(&mut TnuaController, &mut TnuaSimpleAirActionsCounter), With<Player>>,
     player_input_query: Query<&PlayerControllerInput>,
 ) {
-    let action_state = action_state_query.single();
 
     // Get player's tnua controller, otherwise return
     let Ok((mut tnua_controller, mut air_actions_counter)) = tnua_query.get_single_mut() else {
         return;
     };
 
-    // Get player controller input
-    let player_controller_input = player_input_query.get_single().unwrap();
+    if let Ok(action_state) = action_state_query.single() {
+        // Get player controller input
+        if let Ok(player_controller_input) = player_input_query.single() {
 
-    // Creates a 3D rotation matrix from a normalized rotation axis and angle (in radians).
-    // returns a 3x3 column major matrix.
-    let mut move_to_world = Mat3::from_axis_angle(Vec3::Y, player_controller_input.yaw);
-    move_to_world.z_axis *= -1.0; // Forward is -Z
-    move_to_world.y_axis = Vec3::Y; // Vertical movement aligned with world up
-    let movement_direction = move_to_world * player_controller_input.movement;
+            // Creates a 3D rotation matrix from a normalized rotation axis and angle (in radians).
+            // returns a 3x3 column major matrix.
+            let mut move_to_world = Mat3::from_axis_angle(Vec3::Y, player_controller_input.yaw);
+            move_to_world.z_axis *= -1.0; // Forward is -Z
+            move_to_world.y_axis = Vec3::Y; // Vertical movement aligned with world up
+            let movement_direction = move_to_world * player_controller_input.movement;
 
-    air_actions_counter.update(tnua_controller.as_mut());
-    // Each action has a button-like state of its own that you can check
-    //println!(
-    //    "Air Actions Counter: {}",
-    //    air_actions_counter.air_count_for(TnuaBuiltinJump::NAME)
-    //);
-    //println!("Action State: {}", action_state.just_pressed(&Action::Jump));
-    //if action_state.just_pressed(&Action::Jump) && air_actions_counter.air_count_for(TnuaBuiltinJump::NAME) == 0 {
-    if action_state.pressed(&Action::Jump) {
-        tnua_controller.action(TnuaBuiltinJump {
-            allow_in_air: false,
-            // The height is the only mandatory field of the jump button.
-            height: 1.5,
-            // `TnuaBuiltinJump` also has customization fields with sensible defaults.
-            ..Default::default()
-        });
+            air_actions_counter.update(tnua_controller.as_mut());
+            // Each action has a button-like state of its own that you can check
+            //println!(
+            //    "Air Actions Counter: {}",
+            //    air_actions_counter.air_count_for(TnuaBuiltinJump::NAME)
+            //);
+            //println!("Action State: {}", action_state.just_pressed(&Action::Jump));
+            //if action_state.just_pressed(&Action::Jump) && air_actions_counter.air_count_for(TnuaBuiltinJump::NAME) == 0 {
+            if action_state.pressed(&Action::Jump) {
+                tnua_controller.action(TnuaBuiltinJump {
+                    allow_in_air: false,
+                    // The height is the only mandatory field of the jump button.
+                    height: 1.5,
+                    // `TnuaBuiltinJump` also has customization fields with sensible defaults.
+                    ..Default::default()
+                });
+            }
+            //air_actions_counter.update(tnua_controller.as_mut());
+
+            // Feed the basis every frame. Even if the player doesn't move - just use `desired_velocity:
+            // Vec3::ZERO`. `TnuaController` starts without a basis, which will make the character collider
+            // just fall.
+            tnua_controller.basis(TnuaBuiltinWalk {
+                // The `desired_velocity` determines how the character will move.
+                desired_velocity: movement_direction.normalize_or_zero() * 10.0,
+                // The `float_height` must be greater (even if by little) from the distance between the
+                // character's center and the lowest point of its collider.
+                float_height: 1.5,
+                // `TnuaBuiltinWalk` has many other fields for customizing the movement - but they have
+                // sensible defaults. Refer to the `TnuaBuiltinWalk`'s documentation to learn what they do.
+                ..Default::default()
+            });
+        }
     }
-    //air_actions_counter.update(tnua_controller.as_mut());
 
-    // Feed the basis every frame. Even if the player doesn't move - just use `desired_velocity:
-    // Vec3::ZERO`. `TnuaController` starts without a basis, which will make the character collider
-    // just fall.
-    tnua_controller.basis(TnuaBuiltinWalk {
-        // The `desired_velocity` determines how the character will move.
-        desired_velocity: movement_direction.normalize_or_zero() * 10.0,
-        // The `float_height` must be greater (even if by little) from the distance between the
-        // character's center and the lowest point of its collider.
-        float_height: 1.5,
-        // `TnuaBuiltinWalk` has many other fields for customizing the movement - but they have
-        // sensible defaults. Refer to the `TnuaBuiltinWalk`'s documentation to learn what they do.
-        ..Default::default()
-    });
+
 }

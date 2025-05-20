@@ -26,11 +26,11 @@ pub fn draw_inventory_ui(
             UiInventory,
         ))
         .with_children(|inventory_window| {
-            let inventory_handle = inventory.single();
-
-            for item in inventory_handle.items.iter() {
-                if let Ok((_id, item_name, _)) = items.get(*item) {
-                    inventory_window.spawn((Text(item_name.to_string()),));
+            if let Ok(inventory_handle) = inventory.single() {
+                for item in inventory_handle.items.iter() {
+                    if let Ok((_id, item_name, _)) = items.get(*item) {
+                        inventory_window.spawn((Text(item_name.to_string()),));
+                    }
                 }
             }
         })

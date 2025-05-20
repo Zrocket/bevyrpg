@@ -64,7 +64,7 @@ impl MeshExt for Mesh {
         if let Ok(children_result) = children.get(parent) {
             let mut result: Vec<_> = children_result
                 .iter()
-                .filter_map(|entity| mesh_handles.get(*entity).ok().map(|mesh| (*entity, mesh)))
+                .filter_map(|entity| mesh_handles.get(entity).ok().map(|mesh| (entity, mesh)))
                 .map(|(entity, mesh_handle)| {
                     (
                         entity,
@@ -81,7 +81,7 @@ impl MeshExt for Mesh {
             let mut inner_result = children_result
                 .iter()
                 .flat_map(|entity| {
-                    Self::search_in_children(*entity, children, meshes, mesh_handles)
+                    Self::search_in_children(entity, children, meshes, mesh_handles)
                 })
                 .collect();
             result.append(&mut inner_result);

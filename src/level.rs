@@ -1,8 +1,9 @@
 use super::GameState;
 use super::utils::{F32Ext, Vec3Ext};
 use crate::{error_pipe, CollisionLayer, Player};
-use avian3d::collision::Collider;
-use avian3d::prelude::{CollisionLayers, LayerMask};
+use avian3d::collision::collider::Collider;
+use avian3d::prelude::{ColliderConstructor, CollisionLayers, LayerMask};
+use bevy::ecs::error::panic;
 use bevy::{gltf::Gltf, prelude::*};
 use bevy_tnua::prelude::*;
 use bevy_tnua_avian3d::TnuaAvian3dPlugin;
@@ -26,6 +27,10 @@ pub struct BlenderProp;
 pub struct BlenderBoxCollider {
     pub size: i32,
 }
+
+#[derive(Debug, Default, Clone, Component, Reflect)]
+#[reflect(Component)]
+pub struct BlenderColliderConstructor;
 
 #[derive(Debug, Default, Component, Reflect)]
 #[reflect(Component)]
@@ -75,6 +80,7 @@ impl Plugin for BlenderTranslationPlugin {
     fn build(&self, app: &mut App) {
         app.register_type::<BlenderCollider>()
             .register_type::<BlenderBoxCollider>()
+            .register_type::<BlenderColliderConstructor>()
             .register_type::<BlenderProp>()
             .register_type::<BlenderNavmesh>()
             .register_type::<Walk>()
@@ -82,33 +88,40 @@ impl Plugin for BlenderTranslationPlugin {
             .register_type::<DesiredPosition>()
             .add_systems(OnEnter(GameState::Gameplay), translate_components);
 
-        app.add_plugins(OxidizedNavigationPlugin::<Collider>::new(
+        /*app.add_plugins(OxidizedNavigationPlugin::<Collider>::new(
             NavMeshSettings::from_agent_and_bounds(0.5, 1.9, 250.0, -1.0),
-        ));
+        ));*/
 
-        app.add_plugins(OxidizedNavigationDebugDrawPlugin);
+        //app.add_plugins(OxidizedNavigationDebugDrawPlugin);
         app.add_plugins(TnuaAvian3dPlugin::new(Update));
         app.add_plugins(TnuaControllerPlugin::default());
-        app.add_systems(
-            Update,
-            (
-                toggle_nav_mesh_system,
-                navmesh_pathfinding.pipe(error_pipe),
-                apply_walking,
-            ),
-        );
+       // app.add_systems(
+            //Update,
+           // (
+                //toggle_nav_mesh_system,
+                //navmesh_pathfinding.pipe(error_pipe),
+                //apply_walking,
+            //),
+        //);
     }
 }
 
 fn translate_components(
     mut commands: Commands,
     prop_query: Query<Entity, With<BlenderProp>>,
+    collider_query: Query<Entity, With<BlenderColliderConstructor>>,
 ) {
+    println!("AAAAAAAAAAa");
     trace!("Translate Blender Components");
     for entity in prop_query.iter() {
         commands
             .entity(entity)
             .insert(CollisionLayers::new(CollisionLayer::Prop, LayerMask::ALL));
+    }
+    for entity in collider_query.iter() {
+        println!("BBBBBBBBBBBBBBBBBBBBBBBBBBBBB");
+        commands.entity(entity)
+            .insert(ColliderConstructor::ConvexHullFromMesh);
     }
 }
 
