@@ -35,5 +35,5 @@ fn book_observer_handler(
     trigger: Trigger<InteractEvent, Book>
 ) {
     let _player = trigger.event().actor;
-    let _book = trigger.entity();
+    let _book = trigger.target();
 }

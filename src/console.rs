@@ -141,7 +141,7 @@ impl Plugin for MyConsolePlugin {
                 // override config here
                 ..Default::default()
             })
-            .add_console_command::<ExampleCommand, _>(example_command)
+            //.add_console_command::<ExampleCommand, _>(example_command)
             .add_console_command::<LogCommand, _>(log_command);
             //.add_systems(Update, write_to_console.after(ConsoleSet::ConsoleUI));
     }

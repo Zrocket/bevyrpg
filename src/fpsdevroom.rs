@@ -1,4 +1,4 @@
-use avian3d::collision::Collider;
+use avian3d::collision::collider::Collider;
 use bevy::asset::RenderAssetUsages;
 use bevy::color::palettes::css::{RED};
 use bevy::render::render_resource::{Extent3d, TextureFormat, TextureUsages};
@@ -260,8 +260,10 @@ fn player_forward(
     mut player_transform: Query<&mut Transform, With<Player>>,
 ) {
     trace!("System: player_forward");
-    let cam_transform = cam_transform.single();
-    let forward = cam_transform.forward();
-    let mut player_transform = player_transform.single_mut();
-    player_transform.look_to(*forward, Vec3::Y);
+    if let Ok(cam_transform) = cam_transform.single() {
+        if let Ok(mut player_transform) = player_transform.single_mut() {
+            let forward = cam_transform.forward();
+            player_transform.look_to(*forward, Vec3::Y);
+        }
+    }
 }

@@ -35,5 +35,5 @@ fn consume_observer_handler(
     trigger: Trigger<InteractEvent, Consume>
 ) {
     let _actor = trigger.event().actor;
-    let _consumeable = trigger.entity();
+    let _consumeable = trigger.target();
 }

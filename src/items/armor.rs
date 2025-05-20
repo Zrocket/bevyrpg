@@ -50,5 +50,5 @@ fn armor_observer_handler(
         trigger: Trigger<InteractEvent, Armor>
 ) {
     let _player = trigger.event().actor;
-    let _armor = trigger.entity();
+    let _armor = trigger.target();
 }

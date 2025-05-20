@@ -1,4 +1,4 @@
-use avian3d::collision::Collider;
+use avian3d::collision::collider::Collider;
 use bevy::asset::RenderAssetUsages;
 use bevy::color::palettes::css::{RED};
 use bevy::render::render_resource::{Extent3d, TextureFormat, TextureUsages};
@@ -92,7 +92,8 @@ fn spawn_basic_scene(
 
     info!("Loading DevRoom");
     commands.spawn(SceneRoot(
-        asset_server.load("levels/devroom.glb#Scene0"),
+        //asset_server.load("levels/devroom.glb#Scene0"),
+        asset_server.load("levels/room.glb#Scene0"),
     ));
     //commands.spawn(SceneBundle { scene: asset_server.load("levels/__temp_scene.glb#Scene0"), ..default() });
     info!("DevRoom Loaded");
@@ -501,10 +502,12 @@ fn player_forward(
     mut player_transform: Query<&mut Transform, With<Player>>,
 ) {
     trace!("System: player_forward");
-    let cam_transform = cam_transform.single();
-    let forward = cam_transform.forward();
-    let mut player_transform = player_transform.single_mut();
-    player_transform.look_to(*forward, Vec3::Y);
+    if let Ok(cam_transform) = cam_transform.single() {
+        let forward = cam_transform.forward();
+        if let Ok(mut player_transform) = player_transform.single_mut() {
+            player_transform.look_to(*forward, Vec3::Y);
+        }
+    }
 }
 
 // Rotates the inner cube (first pass)

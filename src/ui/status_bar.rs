@@ -63,14 +63,16 @@ pub fn draw_status_ui(
                 ))
                 .id();
 
-            commands.queue(AddChild {
+            commands.entity(status_bar_node).add_child(player_health_node);
+            /*commands.queue(AddChild {
                 parent: status_bar_node,
                 child: player_health_node,
-            });
-            commands.queue(AddChild {
+            });*/
+            commands.entity(status_bar_node).add_child(player_mana_node);
+            /*commands.queue(AddChild {
                 parent: status_bar_node,
                 child: player_mana_node,
-            });
+            });*/
         }
     }
 }
