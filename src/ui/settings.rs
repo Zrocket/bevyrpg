@@ -81,7 +81,12 @@ pub fn draw_menu_ui(
             ))
             .id();
 
-        commands.queue(AddChild {
+        commands.entity(menu_parent)
+            .add_child(item_settings)
+            .add_child(item_save)
+            .add_child(item_load)
+            .add_child(item_quit);
+        /*commands.queue(AddChild {
             parent: menu_parent,
             child: item_settings,
         });
@@ -96,7 +101,7 @@ pub fn draw_menu_ui(
         commands.queue(AddChild {
             parent: menu_parent,
             child: item_quit,
-        });
+        });*/
     }
 }
 
@@ -179,7 +184,12 @@ pub fn _draw_settings_ui(
             ))
             .id();
 
-        commands.queue(AddChild {
+        commands.entity(menu_parent)
+            .add_child(item_video)
+            .add_child(item_controller)
+            .add_child(item_sound)
+            .add_child(item_gameplay);
+        /*commands.queue(AddChild {
             parent: menu_parent,
             child: item_video,
         });
@@ -194,7 +204,7 @@ pub fn _draw_settings_ui(
         commands.queue(AddChild {
             parent: menu_parent,
             child: item_gameplay,
-        });
+        });*/
     }
 }
 
@@ -253,14 +263,17 @@ pub fn _draw_controller_settings_ui(
             ))
             .id();
 
-        commands.queue(AddChild {
+        commands.entity(menu_parent)
+            .add_child(item_mouse_sensetivity)
+            .add_child(item_key_bindings);
+        /*commands.queue(AddChild {
             parent: menu_parent,
             child: item_mouse_sensetivity,
         });
         commands.queue(AddChild {
             parent: menu_parent,
             child: item_key_bindings,
-        });
+        });*/
     }
 }
 
@@ -317,14 +330,17 @@ pub fn _draw_sound_settings_ui(
             ))
             .id();
 
-        commands.queue(AddChild {
+        commands.entity(menu_parent)
+            .add_child(item_music_volume)
+            .add_child(item_sound_volume);
+        /*commands.queue(AddChild {
             parent: menu_parent,
             child: item_music_volume,
         });
         commands.queue(AddChild {
             parent: menu_parent,
             child: item_sound_volume,
-        });
+        });*/
     }
 }
 

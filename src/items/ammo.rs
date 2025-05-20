@@ -40,5 +40,5 @@ fn ammo_observer_handler(
         trigger: Trigger<InteractEvent, Ammo>
 ) {
     let _player = trigger.event().actor;
-    let _ammo = trigger.entity();
+    let _ammo = trigger.target();
 }
