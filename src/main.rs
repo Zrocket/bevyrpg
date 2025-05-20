@@ -14,7 +14,6 @@ use bevy::{
 };
 use bevy_asset_loader::prelude::*;
 use bevy_inspector_egui::quick::WorldInspectorPlugin;
-//use bevy_registry_export::*;
 //use bevy_sprite3d::*;
 use bevy_yoleck::prelude::*;
 use blenvy::BlenvyPlugin;
@@ -119,6 +118,7 @@ fn main() {
     .insert_resource(AmbientLight {
         color: Color::WHITE,
         brightness: 0.5,
+        ..default()
     })
     .add_plugins((
         //Sprite3dPlugin,
@@ -140,10 +140,8 @@ fn main() {
         BlenvyPlugin::default(),
     ))
     .add_plugins(ItemPlugin);
-    //.add_plugins(BlenvyPlugin::default());
     //app.add_plugins(WorldInspectorPlugin::new());
     if args.editor {
-        println!("!AAAAAAAAAAAAAAAAAAAAAAA");
         app.add_plugins((
             YoleckPluginForEditor,
             WorldInspectorPlugin::new(),
@@ -152,20 +150,20 @@ fn main() {
         app.add_plugins(YoleckPluginForGame);
     }
 
-    app.add_systems(Update, health_test.run_if(in_state(GameState::Gameplay)))
-        /*.add_systems(Update, inventory_test.run_if(in_state(GameState::Gameplay)))
-        .add_systems(
-            Update,
-            inventory_remove_test.run_if(in_state(GameState::Gameplay)),
-        )*/
-        //.register_type::<RigidBody>()
+    //app.add_systems(Update, health_test.run_if(in_state(GameState::Gameplay)))
+    //    .add_systems(Update, inventory_test.run_if(in_state(GameState::Gameplay)))
+    //    .add_systems(
+    //        Update,
+    //        inventory_remove_test.run_if(in_state(GameState::Gameplay)),
+    //    );
+    app.register_type::<RigidBody>()
         .init_state::<GameState>()
         .add_loading_state(
             LoadingState::new(GameState::Loading)
                 .continue_to_state(GameState::Gameplay)
                 .on_failure_continue_to_state(GameState::Gameplay), //.load_collection::<ImageAssets>(),
-        )
-        .run();
+        );
+        app.run();
 }
 
 fn health_test(

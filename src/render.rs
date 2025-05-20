@@ -1,6 +1,6 @@
 use bevy::prelude::*;
 //use bevy_rapier3d::prelude::Collider;
-use avian3d::collision::Collider;
+use avian3d::collision::collider::Collider;
 
 use crate::{GameState, PlayerController};
 

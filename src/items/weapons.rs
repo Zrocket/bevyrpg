@@ -42,5 +42,5 @@ fn interact_observer_handler(
     trigger: Trigger<InteractEvent, Weapon>
 ) {
     let _actor = trigger.event().actor;
-    let _weapon = trigger.entity();
+    let _weapon = trigger.target();
 }

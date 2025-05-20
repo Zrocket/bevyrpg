@@ -7,8 +7,8 @@ edition = "2024"
 
 [dependencies]
 anyhow = "1.0.98"
-bevy = { version = "0.15.0", features = ["jpeg"] }
-#bevy = { version = "0.16.0", features = ["jpeg"] }
+#bevy = { version = "0.15.0", features = ["jpeg"] }
+bevy = { version = "0.16.0", features = ["jpeg"] }
 clap = { version = "*", features = ["derive"] }
 lazy_static = "*"
 rand = "*"
@@ -23,41 +23,52 @@ nom = "*"
 #bevy_mod_picking = "*"
 #bevy_mod_ui_texture_atlas_image = "0.4.1"
 # bevy 0.16 ready
-#avian3d = { git = "https://github.com/Jondolf/avian.git" } # bevy 0.16
-#bevy-inspector-egui = "0.31" # bevy 0.16
-#bevy-yoleck = "0.26" # bevy 0.16
-#bevy_sprite3d = "5.0" # bevy 0.16
-#bevy_egui = "0.34" # bevy 0.16
-#big-brain = "0.22.0" # bevy 0.16 
-#moonshine-kind = "0.2.3" # bevy 0.16
-#avian_pickup = { git = "https://github.com/janhohenheim/avian_pickup.git" } # bevy 0.16
-#bevy-trait-query = "0.16" # bevy 0.16
-#bevy_simple_text_input = "0.11" # bevy 0.16
-#blenvy = { git = "https://github.com/n1ght-hunter/Blenvy.git", branch = "de/blenvy-bevy-0.16" } #awaiting pull
-#bevy_yarnspinner = "0.5" # bevy 0.16
+bevy-inspector-egui = "0.31" # bevy 0.16
+bevy-yoleck = "0.26" # bevy 0.16
+bevy_sprite3d = "5.0" # bevy 0.16
+bevy_egui = "0.34" # bevy 0.16
+big-brain = "0.22.0" # bevy 0.16 
+moonshine-kind = "0.2.3" # bevy 0.16
+avian_pickup = "0.2"
+bevy-trait-query = "0.16" # bevy 0.16
+bevy_simple_text_input = "0.11" # bevy 0.16
+blenvy = { git = "https://github.com/n1ght-hunter/Blenvy.git", branch = "dev/blenvy-bevy-0.16" } #awaiting pull
+bevy_yarnspinner = "0.5" # bevy 0.16
+bevy-tnua = "0.24"
+bevy-tnua-physics-integration-layer = "0.8"
+leafwing-input-manager = "0.17"
+oxidized_navigation = { git = "https://github.com/janhohenheim/oxidized_navigation.git", branch = "bevy-0.16", default-features = false, features = ["debug_draw", "avian"] }
+bevy_atmosphere = "0.13"
+soft_ratatui = "0.0.8"
+bevy_console = { git = "https://github.com/Katsutoshii/bevy-console.git", branch = "bevy-0.16.0" }
+bevy-tnua-avian3d = "0.5.0"
+bevy_asset_loader = {version = "0.23", features = ["2d"]}
+avian3d = { version = "0.3.0", features = ["collider-from-mesh"] }
 
 # bevy 0.15
-bevy-inspector-egui = "0.30" # bevy 0.15
-bevy_flycam = "0.15.0" # bevy 0.15
-bevy-tnua = "0.21"
-bevy-tnua-avian3d = "0.2.0"
-bevy-tnua-physics-integration-layer = "0.5.0"
-bevy_egui = "0.33"
-bevy_sprite3d = "4.0"
-bevy-yoleck = "0.25"
-bevy_console = "0.13.1"
-avian_pickup = "0.1.6"
-bevy-trait-query = "0.7.0"
-leafwing-input-manager = "0.16"
-bevy_simple_text_input = "0.10"
-bevy_asset_loader = {version = "0.22", features = ["2d"]}
-oxidized_navigation = { version = "0.12.0", default-features = false, features = ["debug_draw", "avian"] }
-blenvy = { git = "https://github.com/ptsd/Blenvy.git", branch = "blenvy-bevy-0.15" } #awaiting pull
-bevy_yarnspinner = "0.4"
+#bevy-inspector-egui = "0.30" # bevy 0.15
+#bevy-tnua = "0.21"
+#bevy-tnua-avian3d = "0.2.0"
+#bevy-tnua-physics-integration-layer = "0.5.0"
+#bevy_egui = "0.33"
+#bevy_sprite3d = "4.0"
+#bevy-yoleck = "0.25"
+#bevy_console = "0.13.1"
+#avian_pickup = "0.1.6"
+#bevy-trait-query = "0.7.0"
+#leafwing-input-manager = "0.16"
+#bevy_simple_text_input = "0.10"
+#bevy_asset_loader = {version = "0.22", features = ["2d"]}
+#oxidized_navigation = { version = "0.12.0", default-features = false, features = ["debug_draw", "avian"] }
+#blenvy = { git = "https://github.com/ptsd/Blenvy.git", branch = "blenvy-bevy-0.15" } #awaiting pull
+#bevy_yarnspinner = "0.4"
 #bevy_yarnspinner = { git = "https://github.com/wiggleforlife/YarnSpinner-Rust.git" } #waiting for update
 #bevy_yarnspinner = "0.4"
-avian3d = "0.2"
-bevy_atmosphere = "0.12"
+#avian3d = "0.2"
+#bevy_atmosphere = "0.12"
+
+# Uneeded?
+#bevy_flycam = "0.15.0" # bevy 0.15
 
 [profile.dev]
 opt-level=3
