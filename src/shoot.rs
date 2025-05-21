@@ -145,13 +145,17 @@ pub fn shoot_rocket(
                         ..default()
                     },
                     LinearVelocity(linear_velocity),
-            ));
+                    CollisionEventsEnabled,
+            ))
+                .observe(explode_rocket);
         }
     }
 }
 
 pub fn explode_rocket(
+    trigger: Trigger<OnCollisionStart>,
     mut commands: Commands,
-    mut rocket_query: Query<Entity, With<Rocket>>,
 ) {
+    println!("AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA");
+    commands.entity(trigger.observer()).despawn();
 }
