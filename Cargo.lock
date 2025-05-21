@@ -2210,6 +2210,7 @@ dependencies = [
  "nom 8.0.0",
  "oxidized_navigation",
  "rand 0.9.1",
+ "ratatui",
  "serde",
  "soft_ratatui",
  "standard-dist",
