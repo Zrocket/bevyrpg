@@ -32,7 +32,7 @@ moonshine-kind = "0.2.3" # bevy 0.16
 avian_pickup = "0.2"
 bevy-trait-query = "0.16" # bevy 0.16
 bevy_simple_text_input = "0.11" # bevy 0.16
-blenvy = { git = "https://github.com/n1ght-hunter/Blenvy.git", branch = "dev/blenvy-bevy-0.16" } #awaiting pull
+blenvy = { git = "https://github.com/Zrocket/Blenvy.git", branch = "dev/blenvy-bevy-0.16" } #awaiting pull
 bevy_yarnspinner = "0.5" # bevy 0.16
 bevy-tnua = "0.24"
 bevy-tnua-physics-integration-layer = "0.8"
