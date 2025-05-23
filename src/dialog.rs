@@ -41,7 +41,7 @@ fn spawn_dialog_runner(
     project: Res<YarnProject>
     ) {
     trace!("System: spawn_dialog_runner");
-    let dialog_runner = project.create_dialogue_runner();
+    let dialog_runner = project.create_dialogue_runner(&mut commands);
     commands.spawn(dialog_runner);
 }
 
@@ -50,13 +50,15 @@ fn read_dialog(
     mut dialog_runner: Query<&mut DialogueRunner>,
     dialog_caller_query: Query<(Entity, &YarnNode)>,
 ) {
-    trace!("Event Handler: read_dialog");
+    trace!("SYSTEM: read_dialog");
+
     for event in dialog_events.read() {
         info!("Dialog Event");
         if let Ok((_caller, caller_node)) = dialog_caller_query.get(event.actor) {
-            let mut dialog_runner = dialog_runner.single_mut();
-            dialog_runner.stop();
-            dialog_runner.start_node(&caller_node.0);
+            if let Ok(mut dialog_runner) = dialog_runner.single_mut() {
+                dialog_runner.stop();
+                dialog_runner.start_node(&caller_node.0);
+            }
         }
     }
 }

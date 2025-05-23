@@ -1,7 +1,6 @@
 use avian_pickup::input::AvianPickupInput;
 use bevy::prelude::*;
 
-//use crate::{interact::Interaction, InteractEvent, Interactable};
 use crate::{interact::Interaction, InteractEvent};
 
 #[derive(Component, Debug, Clone, Reflect, Default)]

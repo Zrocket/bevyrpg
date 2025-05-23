@@ -1,9 +1,7 @@
 use super::GameState;
 use super::utils::{F32Ext, Vec3Ext};
 use crate::{error_pipe, CollisionLayer, Player};
-use avian3d::collision::collider::Collider;
 use avian3d::prelude::{ColliderConstructor, CollisionLayers, LayerMask};
-use bevy::ecs::error::panic;
 use bevy::{gltf::Gltf, prelude::*};
 use bevy_tnua::prelude::*;
 use bevy_tnua_avian3d::TnuaAvian3dPlugin;
@@ -111,8 +109,8 @@ fn translate_components(
     prop_query: Query<Entity, With<BlenderProp>>,
     collider_query: Query<Entity, With<BlenderColliderConstructor>>,
 ) {
-    println!("AAAAAAAAAAa");
-    trace!("Translate Blender Components");
+    trace!("SYSTEM: translate_blender_components");
+
     for entity in prop_query.iter() {
         commands
             .entity(entity)
@@ -130,6 +128,8 @@ fn translate_components(
 //  Press M to toggle drawing the navmesh.
 //
 fn toggle_nav_mesh_system(keys: Res<ButtonInput<KeyCode>>, mut show_navmesh: ResMut<DrawNavMesh>) {
+    trace!("SYSTEM: toggle_nav_mesh");
+
     if keys.just_pressed(KeyCode::KeyM) {
         show_navmesh.0 = !show_navmesh.0;
     }
@@ -140,6 +140,8 @@ fn navmesh_pathfinding(
     nav_mesh: Res<NavMesh>,
     mut query: Query<(&Transform, &DesiredPosition, &mut Walk)>,
 ) -> anyhow::Result<()> {
+    trace!("SYSTEM: navmesh_pathfinding");
+
     for (transform, desired_position, mut walk) in &mut query {
         if let Ok(nav_mesh) = nav_mesh.get().read() {
             if let Ok(path) = find_polygon_path(
@@ -179,6 +181,8 @@ fn navmesh_pathfinding(
 fn apply_walking(
     mut character_query: Query<(&mut TnuaController, &mut Walk, &FloatHeight), Without<Player>>,
 ) {
+    trace!("SYSTEM: apply_walking");
+
     for (mut controller, mut walking, float_height) in &mut character_query {
         if let Some(direction) = walking.direction {
             let speed = walking.speed;

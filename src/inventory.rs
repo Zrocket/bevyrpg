@@ -83,7 +83,8 @@ fn add_to_inventory(
     mut item: Query<Entity>, //With<ItemType>>,
     mut actor: Query<(Entity, &mut Inventory)>,
 ) {
-    trace!("add_to_inventory");
+    trace!("SYSTEM: add_to_inventory");
+
     for event in pick_up_events.read() {
         info!("Event Handler: add_to_inventory");
         if item.get_mut(event.target).is_ok() {
@@ -106,7 +107,8 @@ fn remove_from_inventory(
     item_query: Query<Entity, With<ItemType>>,
     mut actor: Query<(Entity, &mut Inventory)>,
 ) {
-    trace!("remove_from_inventory Event Handler");
+    trace!("SYSTEM: remove_from_inventory");
+
     for event in remove_events.read() {
         if let Ok((_, mut inventory)) = actor.get_mut(event.actor) {
             inventory.items.retain(|item| *item != event.target);
