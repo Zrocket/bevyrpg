@@ -247,12 +247,12 @@ dependencies = [
 
 [[package]]
 name = "anstyle-wincon"
-version = "3.0.7"
+version = "3.0.8"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "ca3534e77181a9cc07539ad51f2141fe32f6c3ffd4df76db8ad92346b003ae4e"
+checksum = "6680de5231bd6ee4c6191b8a1325daa282b415391ec9d3a37bd34f2060dc73fa"
 dependencies = [
  "anstyle",
- "once_cell",
+ "once_cell_polyfill",
  "windows-sys 0.59.0",
 ]
 
@@ -459,9 +459,9 @@ checksum = "ace50bade8e6234aa140d9a2f552bbee1db4d353f69b8217bc503490fc1a9f26"
 
 [[package]]
 name = "av1-grain"
-version = "0.2.3"
+version = "0.2.4"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "6678909d8c5d46a42abcf571271e15fdbc0a225e3646cf23762cd415046c78bf"
+checksum = "4f3efb2ca85bc610acfa917b5aaa36f3fcbebed5b3182d7f877b02531c4b80c8"
 dependencies = [
  "anyhow",
  "arrayvec",
@@ -613,7 +613,7 @@ dependencies = [
  "fuzzy-matcher",
  "image",
  "smallvec",
- "uuid 1.16.0",
+ "uuid 1.17.0",
  "winit",
 ]
 
@@ -695,7 +695,7 @@ dependencies = [
  "serde",
  "serde_json",
  "thiserror 2.0.12",
- "uuid 1.16.0",
+ "uuid 1.17.0",
 ]
 
 [[package]]
@@ -754,7 +754,7 @@ dependencies = [
  "thiserror 2.0.12",
  "thread_local",
  "tracing",
- "uuid 1.16.0",
+ "uuid 1.17.0",
 ]
 
 [[package]]
@@ -833,7 +833,7 @@ dependencies = [
  "stackfuture",
  "thiserror 2.0.12",
  "tracing",
- "uuid 1.16.0",
+ "uuid 1.17.0",
  "wasm-bindgen",
  "wasm-bindgen-futures",
  "web-sys",
@@ -982,7 +982,7 @@ dependencies = [
  "bevy_reflect 0.15.1",
  "bevy_tasks 0.15.3",
  "bevy_utils 0.15.3",
- "uuid 1.16.0",
+ "uuid 1.17.0",
 ]
 
 [[package]]
@@ -1634,7 +1634,7 @@ dependencies = [
  "bevy_window",
  "crossbeam-channel",
  "tracing",
- "uuid 1.16.0",
+ "uuid 1.17.0",
 ]
 
 [[package]]
@@ -1709,7 +1709,7 @@ dependencies = [
  "smallvec",
  "smol_str",
  "thiserror 2.0.12",
- "uuid 1.16.0",
+ "uuid 1.17.0",
  "variadics_please",
  "wgpu-types",
 ]
@@ -1724,7 +1724,7 @@ dependencies = [
  "proc-macro2",
  "quote",
  "syn 2.0.101",
- "uuid 1.16.0",
+ "uuid 1.17.0",
 ]
 
 [[package]]
@@ -1737,7 +1737,7 @@ dependencies = [
  "proc-macro2",
  "quote",
  "syn 2.0.101",
- "uuid 1.16.0",
+ "uuid 1.17.0",
 ]
 
 [[package]]
@@ -1822,7 +1822,7 @@ dependencies = [
  "derive_more",
  "serde",
  "thiserror 2.0.12",
- "uuid 1.16.0",
+ "uuid 1.17.0",
 ]
 
 [[package]]
@@ -2181,6 +2181,17 @@ dependencies = [
 ]
 
 [[package]]
+name = "bevy_yarnspinner_example_dialogue_view"
+version = "0.5.0"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "d9c54f74acc169468a5fac4d1259c6709c4daf69a6fbc2f706eab6398dd24740"
+dependencies = [
+ "bevy 0.16.0",
+ "bevy_yarnspinner",
+ "unicode-segmentation",
+]
+
+[[package]]
 name = "bevyrpg"
 version = "0.1.0"
 dependencies = [
@@ -2201,6 +2212,7 @@ dependencies = [
  "bevy_simple_text_input",
  "bevy_sprite3d",
  "bevy_yarnspinner",
+ "bevy_yarnspinner_example_dialogue_view",
  "big-brain",
  "blenvy",
  "clap",
@@ -2330,7 +2342,7 @@ dependencies = [
 [[package]]
 name = "blenvy"
 version = "0.1.0-alpha.2"
-source = "git+https://github.com/n1ght-hunter/Blenvy.git?branch=dev%2Fblenvy-bevy-0.16#5756e759ae3673bcd76ddd5a5c6d999993ea020d"
+source = "git+https://github.com/Zrocket/Blenvy.git?branch=dev%2Fblenvy-bevy-0.16#09a5d52c028d313cebed32daff08f1bcd4f43fc9"
 dependencies = [
  "bevy 0.16.0",
  "bevy_common_assets",
@@ -2470,9 +2482,9 @@ dependencies = [
 
 [[package]]
 name = "cc"
-version = "1.2.23"
+version = "1.2.24"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "5f4ac86a9e5bc1e2b3449ab9d7d3a6a405e3d1bb28d7b9be8614f55846ae3766"
+checksum = "16595d3be041c03b09d08d0858631facccee9221e579704070e6e9e4915d3bc7"
 dependencies = [
  "jobserver",
  "libc",
@@ -3546,7 +3558,7 @@ dependencies = [
  "fnv",
  "gilrs-core",
  "log",
- "uuid 1.16.0",
+ "uuid 1.17.0",
  "vec_map",
 ]
 
@@ -3564,7 +3576,7 @@ dependencies = [
  "libudev-sys",
  "log",
  "nix 0.29.0",
- "uuid 1.16.0",
+ "uuid 1.17.0",
  "vec_map",
  "wasm-bindgen",
  "web-sys",
@@ -3690,9 +3702,9 @@ dependencies = [
 
 [[package]]
 name = "gpu-descriptor"
-version = "0.3.1"
+version = "0.3.2"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "dcf29e94d6d243368b7a56caa16bc213e4f9f8ed38c4d9557069527b5d5281ca"
+checksum = "b89c83349105e3732062a895becfc71a8f921bb71ecbbdd8ff99263e3b53a0ca"
 dependencies = [
  "bitflags 2.9.1",
  "gpu-descriptor-types",
@@ -5170,6 +5182,12 @@ source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "42f5e15c9953c5e4ccceeb2e7382a716482c34515315f7b03532b8b4e8393d2d"
 
 [[package]]
+name = "once_cell_polyfill"
+version = "1.70.1"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "a4895175b425cb1f87721b59f0f286c2092bd4af812243672510e1ac53e2e0ad"
+
+[[package]]
 name = "orbclient"
 version = "0.3.48"
 source = "registry+https://github.com/rust-lang/crates.io-index"
@@ -5828,9 +5846,9 @@ dependencies = [
 
 [[package]]
 name = "read-fonts"
-version = "0.29.0"
+version = "0.29.1"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "5ce8e2ca6b24313587a03ca61bb74c384e2a815bd90cf2866cfc9f5fb7a11fa0"
+checksum = "4e85935612710191461ec9df47b4b5880dd6359d4fad3b2f2ed696215f6f3146"
 dependencies = [
  "bytemuck",
  "font-types",
@@ -6010,9 +6028,9 @@ dependencies = [
 
 [[package]]
 name = "rustversion"
-version = "1.0.20"
+version = "1.0.21"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "eded382c5f5f786b989652c49544c4877d9f015cc22e145a5ea8ea66c2921cd2"
+checksum = "8a0d197bd2c9dc6e53b84da9556a69ba4cdfab8619eb41a8bd1cc2027a0f6b1d"
 
 [[package]]
 name = "rustybuzz"
@@ -6208,9 +6226,9 @@ dependencies = [
 
 [[package]]
 name = "skrifa"
-version = "0.31.0"
+version = "0.31.1"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "bbe6666ab11018ab91ff7b03f1a3b9fdbecfb610848436fefa5ce50343d3d913"
+checksum = "b9c3bb8cab5196b98d70c866ce1ea81ab516104d5b396f84ae80f8766b5d5b4e"
 dependencies = [
  "bytemuck",
  "read-fonts",
@@ -6913,9 +6931,9 @@ checksum = "bc5cf98d8186244414c848017f0e2676b3fcb46807f6668a97dfe67359a3c4b7"
 
 [[package]]
 name = "uuid"
-version = "1.16.0"
+version = "1.17.0"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "458f7a779bf54acc9f347480ac654f68407d3aab21269a6e3c9f922acd9e2da9"
+checksum = "3cf4199d1e5d15ddd86a694e4d0dffa9c323ce759fea589f00fef9d81cc1931d"
 dependencies = [
  "getrandom 0.3.3",
  "js-sys",
@@ -7222,9 +7240,9 @@ dependencies = [
 
 [[package]]
 name = "weezl"
-version = "0.1.8"
+version = "0.1.10"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "53a85b86a771b1c87058196170769dd264f66c0782acf1ae6cc51bfd64b39082"
+checksum = "a751b3277700db47d3e574514de2eced5e54dc8a5436a3bf7a0b248b2cee16f3"
 
 [[package]]
 name = "wgpu"
@@ -7896,9 +7914,9 @@ checksum = "271414315aff87387382ec3d271b52d7ae78726f5d44ac98b4f4030c91880486"
 
 [[package]]
 name = "winit"
-version = "0.30.10"
+version = "0.30.11"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "b0d05bd8908e14618c9609471db04007e644fd9cce6529756046cfc577f9155e"
+checksum = "a4409c10174df8779dc29a4788cac85ed84024ccbc1743b776b21a520ee1aaf4"
 dependencies = [
  "ahash",
  "android-activity",
