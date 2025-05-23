@@ -1,5 +1,4 @@
 use bevy::prelude::*;
-//use bevy_rapier3d::prelude::Collider;
 use avian3d::collision::collider::Collider;
 
 use crate::{GameState, PlayerController};
@@ -33,7 +32,7 @@ pub fn player_controller_render(
         Without<RenderPlayer>,
     >,
 ) {
-    trace!("player_controller_render");
+    trace!("SYSTEM: player_controller_render");
     for (mut render_transform, render_player) in render_query.iter_mut() {
         if let Ok((logical_transform, collider, controller, camera_config)) =
             logical_query.get(render_player.logical_entity)
@@ -51,7 +50,7 @@ pub fn player_controller_render(
 /// Returns the offset that puts a point at the center of the player transform to the bottom of the collider.
 /// Needed for when we want to originate something at the foot of the player.
 fn collider_y_offset(collider: &Collider) -> Vec3 {
-    trace!("collider_y_offset");
+    trace!("SYSTEM: collider_y_offset");
     let collider = collider.shape();
     Vec3::Y
         * if let Some(cylinder) = collider.as_cylinder() {

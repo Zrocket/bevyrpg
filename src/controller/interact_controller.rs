@@ -2,8 +2,10 @@ use crate::interact::Interaction;
 use crate::player::Player;
 use crate::{RESOLUTION_HEIGHT, RESOLUTION_WIDTH};
 use avian3d::prelude::*;
-use avian_pickup::input::AvianPickupInput;
-use avian_pickup::prop::HeldProp;
+use avian_pickup::{
+    input::AvianPickupInput,
+    prop::HeldProp,
+};
 use bevy::prelude::*;
 
 pub fn manage_interact(
@@ -17,9 +19,9 @@ pub fn manage_interact(
     held_prop_query: Query<&HeldProp>,
 ) {
     if key.just_pressed(KeyCode::KeyE) {
-        if let Ok(player) = player.get_single() {
-            if let Ok(_held_prop) = held_prop_query.get_single() {
-                avian_pickup_input_writer.send(
+        if let Ok(player) = player.single() {
+            if let Ok(_held_prop) = held_prop_query.single() {
+                avian_pickup_input_writer.write(
                     AvianPickupInput { actor: player, action: avian_pickup::input::AvianPickupAction::Drop }
                 );
                 return
@@ -44,7 +46,7 @@ pub fn manage_interact(
                     if let Ok(interaction) = interact_query.get(ray_data.entity) {
                         for act in interaction.iter() {
                             if let Some(temp) = act.interact(&mut commands, &player, &ray_data.entity) {
-                                avian_pickup_input_writer.send(temp);
+                                avian_pickup_input_writer.write(temp);
                             }
                         }
                     }

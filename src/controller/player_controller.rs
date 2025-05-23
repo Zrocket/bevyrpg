@@ -1,9 +1,11 @@
 use std::f32::consts::*;
 
 use bevy::{input::mouse, prelude::*};
-use bevy_tnua::builtins::{TnuaBuiltinJump, TnuaBuiltinWalk};
-use bevy_tnua::control_helpers::TnuaSimpleAirActionsCounter;
-use bevy_tnua::controller::TnuaController;
+use bevy_tnua::{
+    builtins::{TnuaBuiltinJump, TnuaBuiltinWalk},
+    control_helpers::TnuaSimpleAirActionsCounter,
+    controller::TnuaController,
+};
 use leafwing_input_manager::prelude::*;
 
 use crate::Player;
@@ -84,7 +86,7 @@ pub fn player_controller_input(
             player_input.yaw = player_input.yaw.rem_euclid(TAU);
         }
 
-        if let Ok(key_input) = key_input_query.get_single() {
+        if let Ok(key_input) = key_input_query.single() {
             player_input.movement = Vec3::new(
                 get_axis(key_input, &Action::Right, &Action::Left),
                 get_axis(key_input, &Action::Up, &Action::Down),
@@ -117,7 +119,7 @@ pub fn tnua_player_input(
 ) {
 
     // Get player's tnua controller, otherwise return
-    let Ok((mut tnua_controller, mut air_actions_counter)) = tnua_query.get_single_mut() else {
+    let Ok((mut tnua_controller, mut air_actions_counter)) = tnua_query.single_mut() else {
         return;
     };
 

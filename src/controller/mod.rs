@@ -67,7 +67,7 @@ fn manage_cursor(
     mut controllers: Query<&mut PlayerController>,
     mut shoot_event_writer: EventWriter<shoot::ShootEvent>,
 ) {
-    if let Ok(mut window) = windows.get_single_mut() {
+    if let Ok(mut window) = windows.single_mut() {
         if window.cursor_options.grab_mode != CursorGrabMode::Locked {
             if btn.just_pressed(MouseButton::Left) {
                 window.cursor_options.grab_mode = CursorGrabMode::Locked;
@@ -77,7 +77,7 @@ fn manage_cursor(
                 }
             }
         } else if btn.just_pressed(MouseButton::Left) {
-            shoot_event_writer.send(shoot::ShootEvent);
+            shoot_event_writer.write(shoot::ShootEvent);
         }
 
         if key.just_pressed(KeyCode::Escape) {
