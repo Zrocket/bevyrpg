@@ -1,9 +1,4 @@
 use avian3d::collision::collider::Collider;
-use bevy::asset::RenderAssetUsages;
-use bevy::color::palettes::css::{RED};
-use bevy::render::render_resource::{Extent3d, TextureFormat, TextureUsages};
-use bevy::render::view::RenderLayers;
-use bevy::sprite::Material2d;
 use bevy::{
     core_pipeline::core_3d::Camera3d, math::vec3, prelude::*, render::camera::ClearColorConfig,
 };
@@ -11,7 +6,7 @@ use bevy_atmosphere::plugin::AtmospherePlugin;
 use bevy_tnua::control_helpers::TnuaSimpleAirActionsCounter;
 use bevy_tnua::prelude::*;
 use bevy_tnua_avian3d::*;
-use leafwing_input_manager::{InputManagerBundle, input_map::InputMap};
+use leafwing_input_manager::input_map::InputMap;
 
 use std::f32::consts::PI;
 
@@ -67,7 +62,7 @@ fn spawn_basic_scene(
 ) {
     trace!("Spawn basic scene");
 
-    if let Ok(mut window) = window.get_single_mut() {
+    if let Ok(mut window) = window.single_mut() {
         window.cursor_options.grab_mode = bevy::window::CursorGrabMode::Locked;
     }
 
@@ -163,7 +158,8 @@ fn spawn_player(
             ),
             (CollisionLayers::new(CollisionLayer::Player, LayerMask::ALL),),
         ))
-        .insert((Walk::default(), InputManagerBundle::with_map(input_map)))
+        //.insert((Walk::default(), InputManagerBundle::with_map(input_map)))
+        .insert((Walk::default(), input_map))
         .insert(TnuaSimpleAirActionsCounter::default())
         .insert(AvianPickupActor {
             prop_filter: SpatialQueryFilter::from_mask(CollisionLayer::Prop),

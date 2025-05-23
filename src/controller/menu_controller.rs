@@ -8,7 +8,7 @@ pub fn manage_menu(
 ) {
     if key.just_pressed(KeyCode::Semicolon) {
         info!("ESC pressed");
-        if let Ok((player, active)) = player.get_single_mut() {
+        if let Ok((player, active)) = player.single_mut() {
             if active.is_none() {
                 info!("adding ActiveUi");
                 info!("adding ActiveMenuUi");

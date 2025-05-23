@@ -11,40 +11,16 @@ pub fn manage_inventory(
     //mut player: Query<(Entity, Option<&ActiveInventoryUi>), With<Player>>,
     mut inventory_node_query: Query<&mut Node, With<UiInventory>>
 ) {
-    if let Ok(key) = key.get_single() {
+    if let Ok(key) = key.single() {
         if key.just_pressed(&Action::OpenInventory) {
             info!("Inventory key pressed");
-            if let Ok(mut inventory_node) = inventory_node_query.get_single_mut() {
+            if let Ok(mut inventory_node) = inventory_node_query.single_mut() {
             info!("AAAAAAAAAAAAAa");
                 match inventory_node.display {
                     Display::None => inventory_node.display = Display::Flex,
                     _ => inventory_node.display = Display::None,
                 }
             }
-
-
-
-
-
-            /*if let Ok((player, active)) = player.get_single_mut() {
-                if active.is_none() {
-                    info!("adding ActiveUi");
-                    commands.entity(player).insert(ActiveUi);
-                    commands.entity(player).insert(ActiveInventoryUi);
-                    if let Ok(mut window) = window.get_single_mut() {
-                        window.cursor_options.grab_mode = CursorGrabMode::None;
-                        window.cursor_options.visible = true;
-                    }
-                } else {
-                    info!("removing ActiveUi");
-                    commands.entity(player).remove::<ActiveUi>();
-                    commands.entity(player).remove::<ActiveInventoryUi>();
-                    if let Ok(mut window) = window.get_single_mut() {
-                        window.cursor_options.grab_mode = CursorGrabMode::Locked;
-                        window.cursor_options.visible = false;
-                    }
-                }
-            }*/
         }
     }
 }

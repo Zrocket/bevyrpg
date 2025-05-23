@@ -1,3 +1,5 @@
+use std::time::Duration;
+
 use bevy::prelude::*;
 use bevy_sprite3d::*;
 
@@ -93,7 +95,7 @@ fn sprite_handler(
     mut sprite_params: Sprite3dParams,
 ) {
     trace!("Event Handler: sprite_handler");
-    let mut rng = rand::thread_rng();
+    let mut rng = rand::rng();
 
     for event in sprite_events.read() {
         info!("event {} {}", event.tile_x, event.tile_y);
@@ -105,7 +107,7 @@ fn sprite_handler(
 
         let mut timer = Timer::from_seconds(0.4, TimerMode::Repeating);
         info!("Timer declared");
-        timer.set_elapsed(Duration::from_secs_f32(rng.gen_range(0.0..0.4)));
+        timer.set_elapsed(Duration::from_secs_f32(rng.random_range(0.0..0.4)));
         atlas.layout = images.character_layout.clone();
         info!("atlas layout decalred");
 
@@ -133,7 +135,6 @@ fn sprite_handler(
                     FaceCamera {},
                     CharacterBundle::default(),
                     Collider::cuboid(0.5, 1., 0.5),
-                    Interactable::Talk,
                     //YarnNode::default(),
                     //KinematicCharacterController::default(),
                     RigidBody::Kinematic,
@@ -208,11 +209,12 @@ fn face_camera(
     mut query: Query<&mut Transform, (With<FaceCamera>, Without<Camera>)>,
 ) {
     trace!("System: face_camera");
-    let cam_transform = cam_query.single();
-    for mut transform in query.iter_mut() {
-        let mut delta = cam_transform.translation - transform.translation;
-        delta.y = 0.0;
-        delta += transform.translation;
-        transform.look_at(delta, Vec3::Y);
+    if let Ok(cam_transform) = cam_query.single() {
+        for mut transform in query.iter_mut() {
+            let mut delta = cam_transform.translation - transform.translation;
+            delta.y = 0.0;
+            delta += transform.translation;
+            transform.look_at(delta, Vec3::Y);
+        }
     }
 }

@@ -1,12 +1,6 @@
 use bevy::prelude::*;
 use bevy_console::{ConsolePlugin, ConsoleConfiguration, reply, AddConsoleCommand, ConsoleCommand, PrintConsoleLine};
-//use bevy_simple_text_input::{TextInputSubmitEvent, TextInputSystem};
 use clap::Parser;
-
-/*#[derive(Component, Default)]
-pub struct Console {
-    pub history: Vec<String>,
-}*/
 
 /// Prints given arguments to the console
 #[derive(Parser, ConsoleCommand)]
@@ -140,9 +134,9 @@ impl Plugin for MyConsolePlugin {
             .insert_resource(ConsoleConfiguration {
                 // override config here
                 ..Default::default()
-            })
+            });
             //.add_console_command::<ExampleCommand, _>(example_command)
-            .add_console_command::<LogCommand, _>(log_command);
+            //.add_console_command::<LogCommand, _>(log_command);
             //.add_systems(Update, write_to_console.after(ConsoleSet::ConsoleUI));
     }
 }
@@ -170,5 +164,5 @@ fn log_command(mut log: ConsoleCommand<LogCommand>) {
 }
 
 fn _write_to_console(mut console_line: EventWriter<PrintConsoleLine>) {
-    console_line.send(PrintConsoleLine::new("Hello".into()));
+    console_line.write(PrintConsoleLine::new("Hello".into()));
 }
