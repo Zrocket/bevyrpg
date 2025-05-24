@@ -9,6 +9,7 @@ use bevy::{
     }
 };
 use bevy_asset_loader::prelude::*;
+use bevy_console::ConsoleOpen;
 use bevy_inspector_egui::quick::WorldInspectorPlugin;
 use bevy_sprite3d::Sprite3dPlugin;
 use bevy_yoleck::prelude::*;
@@ -74,18 +75,25 @@ struct Args {
     level: Option<String>,
 }
 
+#[derive(Clone, Hash, Debug, Eq, PartialEq, Default, SubStates)]
+#[source(GameState = GameState::Paused)]
+pub enum PauseMenuState {
+    #[default]
+    MainMenu,
+    Settings,
+    ControllerSettings,
+    GameplaySettings,
+    VideoSettings,
+    SoundSettings,
+}
+
 #[derive(Clone, Hash, Debug, Eq, PartialEq, Default, States)]
 pub enum GameState {
     MainMenu,
-    UiMenu,
     Inventory,
-    Settings,
     Console,
-    VideoSettings,
-    SoundSettings,
-    ControllerSettings,
-    GameplaySettings,
     Gameplay,
+    Paused,
     #[default]
     Loading,
 }
@@ -137,11 +145,18 @@ fn main() {
         ChairPlugin,
         BlenvyPlugin::default(),
     ))
-    .add_plugins(TestsPlugin)
-    .add_plugins(Sprite3dPlugin)
-    .add_plugins(DialogPlugin)
-    .add_plugins(ComputerPlugin)
-    .add_plugins(ItemPlugin);
+    .add_plugins((
+            TestsPlugin,
+            Sprite3dPlugin,
+            DialogPlugin,
+            ComputerPlugin,
+            ItemPlugin,
+    ));
+    //.add_plugins(TestsPlugin)
+    //.add_plugins(Sprite3dPlugin)
+    //.add_plugins(DialogPlugin)
+    //.add_plugins(ComputerPlugin)
+    //.add_plugins(ItemPlugin);
     //.add_plugins(WorldInspectorPlugin::new());
 
     if args.editor {
@@ -154,10 +169,22 @@ fn main() {
     }
     app.register_type::<RigidBody>()
         .init_state::<GameState>()
+        .add_sub_state::<PauseMenuState>()
         .add_loading_state(
             LoadingState::new(GameState::Loading)
                 .continue_to_state(GameState::Gameplay)
                 .on_failure_continue_to_state(GameState::Gameplay), //.load_collection::<ImageAssets>(),
         );
         app.run();
+}
+
+fn pause_game(
+    key: Res<ButtonInput<KeyCode>>,
+    console_open: Res<ConsoleOpen>,
+    mut game_state: ResMut<State<GameState>>,
+    mut pause_menu_state: ResMut<State<PauseMenuState>>,
+) {
+    trace!("SYSTEM: pause_game");
+    if console_open.open {
+    }
 }
