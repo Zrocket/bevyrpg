@@ -39,7 +39,7 @@ bevy-tnua-physics-integration-layer = "0.8"
 leafwing-input-manager = "0.17"
 oxidized_navigation = { git = "https://github.com/janhohenheim/oxidized_navigation.git", branch = "bevy-0.16", default-features = false, features = ["debug_draw", "avian"] }
 bevy_atmosphere = "0.13"
-soft_ratatui = "0.0.8"
+soft_ratatui = { git = "https://github.com/gold-silver-copper/soft_ratatui.git" }
 bevy_console = { git = "https://github.com/Katsutoshii/bevy-console.git", branch = "bevy-0.16.0" }
 bevy-tnua-avian3d = "0.5.0"
 bevy_asset_loader = {version = "0.23", features = ["2d"]}
