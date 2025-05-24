@@ -38,7 +38,7 @@ pub struct TerminalCube;
 pub struct ComputerTextureCam;
 
 #[derive(Resource)]
-pub struct MyProcGenImage(pub Handle<Image>);
+pub struct MyProcGenMaterial(pub Handle<StandardMaterial>);
 
 // Create resource to hold the ratatui terminal
 #[derive(Resource, Deref, DerefMut)]
@@ -82,7 +82,6 @@ fn spawn_terminal(
         TextureUsages::TEXTURE_BINDING | TextureUsages::COPY_DST | TextureUsages::RENDER_ATTACHMENT;
 
     let image_handle = images.add(image);
-    commands.insert_resource(MyProcGenImage(image_handle.clone()));
 
     // Light
     commands.spawn(DirectionalLight::default());
@@ -123,12 +122,14 @@ fn spawn_terminal(
 
     // This material has the texture that has been rendered.
     let material_handle = materials.add(StandardMaterial {
-        base_color_texture: Some(image_handle),
+        base_color_texture: Some(image_handle.clone()),
         reflectance: 0.02,
         unlit: false,
 
         ..default()
     });
+    
+    commands.insert_resource(MyProcGenMaterial(material_handle.clone()));
 
     // Cube with material containing the rendered UI texture.
     commands.spawn((
