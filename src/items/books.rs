@@ -1,4 +1,3 @@
-use avian_pickup::input::AvianPickupInput;
 use bevy::prelude::*;
 
 use crate::{interact::Interaction, InteractEvent};
@@ -14,11 +13,9 @@ impl Interaction for Book {
     fn interact(
         &self,
         _commands: &mut Commands,
-        _actor: &Entity,
-        _prop: &Entity,
-    ) -> Option<AvianPickupInput>
-    {
-        None
+        _actor: Entity,
+        _prop: Entity,
+    ) {
     }
 }
 
