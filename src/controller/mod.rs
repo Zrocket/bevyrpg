@@ -3,10 +3,12 @@ mod inventory_controller;
 mod menu_controller;
 mod player_controller;
 
+use bevy::input::common_conditions::input_pressed;
 use bevy::prelude::*;
 use bevy_tnua::TnuaUserControlsSystemSet;
 use interact_controller::*;
 use inventory_controller::*;
+use leafwing_input_manager::common_conditions::action_pressed;
 use menu_controller::*;
 pub use player_controller::*;
 
@@ -28,13 +30,13 @@ pub struct ControllerPlugin;
 impl Plugin for ControllerPlugin {
     fn build(&self, app: &mut App) {
         app.add_event::<InteractEvent>()
-            .add_plugins(InputManagerPlugin::<Action>::default())
+            .add_plugins(InputManagerPlugin::<Action>::default());
             //.add_systems(Update, manage_cursor) //.run_if(in_state(GameState::Gameplay)))
-            .add_systems(
+            app.add_systems(
                 Update,
                 (
                     manage_cursor,
-                    manage_interact.run_if(in_state(GameState::Gameplay)),
+                    manage_interact.run_if(in_state(GameState::Gameplay)).run_if(input_pressed(KeyCode::KeyE)),
                     manage_inventory.run_if(in_state(GameState::Gameplay)),
                     inventory_navigation.in_set(TnuaUserControlsSystemSet),
                     manage_menu.run_if(in_state(GameState::Gameplay)),

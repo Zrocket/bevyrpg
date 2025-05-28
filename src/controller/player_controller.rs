@@ -117,7 +117,6 @@ pub fn tnua_player_input(
     mut tnua_query: Query<(&mut TnuaController, &mut TnuaSimpleAirActionsCounter), With<Player>>,
     player_input_query: Query<&PlayerControllerInput>,
 ) {
-
     // Get player's tnua controller, otherwise return
     let Ok((mut tnua_controller, mut air_actions_counter)) = tnua_query.single_mut() else {
         return;
