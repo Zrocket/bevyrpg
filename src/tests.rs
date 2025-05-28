@@ -1,23 +1,25 @@
 use bevy::{asset::RenderAssetUsages, prelude::*, render::{camera::RenderTarget, render_resource::{Extent3d, TextureFormat, TextureUsages}}};
+use ratatui::Frame;
 use soft_ratatui::SoftBackend;
 
-use crate::{new_computer_screen, ComputerTextureCam, DamageEvent, Description, Health, Inventory, Item, ItemType, MyProcGenMaterial, PickUpEvent, Player, RemoveEvent, SoftTerminal};
+use crate::{new_computer_screen, ChangeScreenEvent, ComputerTextureCam, DamageEvent, Description, Health, Inventory, Item, ItemType, MyProcGenMaterial, PickUpEvent, Player, RemoveEvent, SoftTerminal};
 use super::Weight;
 
 pub struct TestsPlugin;
 impl Plugin for TestsPlugin {
     fn build(&self, app: &mut App) {
-        app
-            .add_systems(Update, (
-                    computer_test,
+        //app
+           // .add_systems(Update, (
+                    //computer_test,
                     //health_test,
                     //inventory_add_test,
                     //inventory_remove_test,
-            ));
+            //));
     }
 }
 
-fn computer_test(
+//BACKUP
+/*fn computer_test(
     key: Res<ButtonInput<KeyCode>>,
     mut softatui: ResMut<SoftTerminal>,
     proc_material: Res<MyProcGenMaterial>,
@@ -27,7 +29,6 @@ fn computer_test(
     trace!("SYSTEM: computer_test");
 
     if key.just_pressed(KeyCode::KeyK) {
-        println!("LMAO");
         softatui.draw(new_computer_screen).expect("oops");
 
         let width = softatui.backend().get_pixmap_width() as u32;
@@ -57,9 +58,20 @@ fn computer_test(
             | TextureUsages::RENDER_ATTACHMENT;
         *image = temp;
     }
+}*/
+
+fn _computer_test (
+    key: Res<ButtonInput<KeyCode>>,
+    mut event_writer: EventWriter<ChangeScreenEvent>
+) {
+    trace!("SYSTEM: computer_test");
+
+    if key.just_pressed(KeyCode::KeyK) {
+        event_writer.write(ChangeScreenEvent { frame_closure: new_computer_screen });
+    }
 }
 
-fn health_test(
+fn _health_test(
     key: Res<ButtonInput<KeyCode>>,
     mut player: Query<(Entity, &Health), With<Player>>,
     mut damage_event_writer: EventWriter<DamageEvent>,
@@ -74,13 +86,13 @@ fn health_test(
     }
 }
 
-fn inventory_add_test(
+fn _inventory_add_test(
     mut commands: Commands,
     key: Res<ButtonInput<KeyCode>>,
     mut player: Query<Entity, With<Player>>,
     mut event_writer: EventWriter<PickUpEvent>,
 ) {
-    trace!("SYSTEM: inventory_test");
+    trace!("SYSTEM: inventory_add_test");
     let player = player.single_mut().unwrap();
     if key.just_pressed(KeyCode::KeyJ) {
         let item = commands
@@ -98,7 +110,7 @@ fn inventory_add_test(
     }
 }
 
-fn inventory_remove_test(
+fn _inventory_remove_test(
     key: Res<ButtonInput<KeyCode>>,
     mut player: Query<Entity, With<Player>>,
     mut inventory_query: Query<&Inventory, With<Player>>,
