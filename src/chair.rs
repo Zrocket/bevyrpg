@@ -1,6 +1,7 @@
 use bevy::prelude::*;
+use bevy_trait_query::RegisterExt;
 
-use crate::Player;
+use crate::{interact::Interaction, Player};
 
 #[derive(Event)]
 pub struct SitEvent {
@@ -8,51 +9,44 @@ pub struct SitEvent {
     pub target: Entity,
 }
 
-#[derive(Event)]
-pub struct StandEvent {
-    pub actor: Entity,
-    pub target: Entity,
-}
-
-#[derive(Debug, Component, Reflect)]
+#[derive(Debug, Default, Component, Reflect)]
 #[reflect(Component)]
 pub struct Chair;
+
+impl Interaction for Chair {
+    fn interact(
+        &self,
+        commands: &mut Commands,
+        entity: Entity,
+        prop: Entity,
+        ) {
+        commands.trigger_targets(SitEvent {actor: entity, target: prop}, prop);
+    }
+}
 
 pub struct ChairPlugin;
 
 impl Plugin for ChairPlugin {
     fn build(&self, app: &mut App) {
         app.register_type::<Chair>()
-            .add_event::<SitEvent>();
+            .register_component_as::<dyn Interaction, Chair>()
+            .add_event::<SitEvent>()
+            .add_observer(sit_event_handler);
     }
 }
 
-fn _sit_event_handler(
+fn sit_event_handler(
+    trigger: Trigger<SitEvent>,
     mut commands: Commands,
-    mut player_query: Query<&Transform, With<Player>>,
-    transform_query: Query<&Transform>,
-    mut events: EventReader<SitEvent>,
-    mut actors: Query<Entity, With<Player>>,
+    mut player_query: Query<&mut Transform, With<Player>>,
+    transform_query: Query<&Transform, Without<Player>>,
 ) {
-    for event in events.read() {
-        if let Ok(mut _player_transform) = player_query.get_single_mut() {
-            if let Ok(chair_transform) = transform_query.get(event.target) {
-                _player_transform = chair_transform;
-            }
-        }
+    if let Ok(mut player_transform) = player_query.single_mut() &&
+        let Ok(chair_transform) = transform_query.get(trigger.target) {
+            *player_transform = Transform {
+                translation: Vec3 { x: chair_transform.translation.x, y: chair_transform.translation.y + 1.0, z: chair_transform.translation.z },
+                rotation: chair_transform.rotation,
+                ..default()
+            };
     }
-
-
-    if let Ok(player) = actors.get_single_mut() {
-        commands.entity(player);
-        // .remove::<>()
-    }
-}
-
-fn _stand_event_handler(
-    mut _commands: Commands,
-    mut events: EventReader<StandEvent>,
-    mut _actors: Query<Entity, With<Player>>,
-) {
-    for _event in events.read() {}
 }
