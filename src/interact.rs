@@ -1,13 +1,13 @@
-use bevy::prelude::*;
+use bevy::{ecs::system::SystemId, prelude::*};
 use avian_pickup::prelude::*;
 
 #[bevy_trait_query::queryable]
 pub trait Interaction {
     fn interact( &self,
         commands: &mut Commands,
-        entity: &Entity,
-        prop: &Entity,
-        ) -> Option<AvianPickupInput>;
+        entity: Entity,
+        prop: Entity,
+        );
 }
 
 #[derive(Event)]

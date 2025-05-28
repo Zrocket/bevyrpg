@@ -1,4 +1,3 @@
-use avian_pickup::input::AvianPickupInput;
 use bevy::prelude::*;
 
 use crate::{interact::Interaction, InteractEvent};
@@ -20,12 +19,10 @@ impl Interaction for Weapon {
     fn interact(
         &self,
         commands: &mut Commands,
-        _actor: &Entity,
-        prop: &Entity,
-    ) -> Option<AvianPickupInput>
-    {
-        commands.entity(*prop).despawn();
-        None
+        _actor: Entity,
+        prop: Entity,
+    ) {
+        commands.entity(prop).despawn();
     }
 }
 
