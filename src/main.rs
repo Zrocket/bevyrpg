@@ -25,7 +25,6 @@ mod devroom;
 mod fpsdevroom;
 mod dialog;
 mod enemy;
-mod hunger;
 mod interact;
 mod inventory;
 mod items;
@@ -36,9 +35,7 @@ mod render;
 mod rover;
 mod shoot;
 mod sprites;
-mod stealth;
 mod tests;
-mod trade;
 mod ui;
 mod utils;
 
@@ -59,8 +56,6 @@ pub use rover::*;
 pub use shoot::*;
 pub use sprites::*;
 use tests::TestsPlugin;
-use trade::*;
-use trade::TradePlugin;
 pub use ui::*;
 pub use utils::*;
 
@@ -71,6 +66,8 @@ pub const RESOLUTION_WIDTH: f32 = 1280.0;
 struct Args {
     #[clap(long)]
     editor: bool,
+    #[clap(long)]
+    inspector: bool,
     #[clap(long)]
     level: Option<String>,
 }
@@ -101,7 +98,6 @@ pub enum GameState {
 fn main() {
     trace!("MAIN");
     let args = Args::parse();
-
     let mut app = App::new();
     app.add_plugins(
         DefaultPlugins .set(WindowPlugin {
@@ -139,10 +135,10 @@ fn main() {
         InventoryPlugin,
         InteractPlugin,
         MyConsolePlugin,
-        TradePlugin,
         BlenderTranslationPlugin,
         GameRenderPlugin,
         ChairPlugin,
+        ItemPlugin,
         BlenvyPlugin::default(),
     ))
     .add_plugins((
@@ -150,14 +146,7 @@ fn main() {
             Sprite3dPlugin,
             DialogPlugin,
             ComputerPlugin,
-            ItemPlugin,
     ));
-    //.add_plugins(TestsPlugin)
-    //.add_plugins(Sprite3dPlugin)
-    //.add_plugins(DialogPlugin)
-    //.add_plugins(ComputerPlugin)
-    //.add_plugins(ItemPlugin);
-    //.add_plugins(WorldInspectorPlugin::new());
 
     if args.editor {
         app.add_plugins((
@@ -166,6 +155,9 @@ fn main() {
         ));
     } else {
         app.add_plugins(YoleckPluginForGame);
+    }
+    if args.inspector {
+        app.add_plugins(WorldInspectorPlugin::new());
     }
     app.register_type::<RigidBody>()
         .init_state::<GameState>()
