@@ -52,6 +52,7 @@ impl Plugin for DevRoomPlugin {
                     spawn_player,
                     spawn_walking_cube,
                     spawn_sphere,
+                    spawn_chair_cube,
                 ).chain()
             )
             .register_type::<CollisionLayer>()
@@ -211,6 +212,28 @@ fn spawn_player(
         .add_child(gun);
 }
 
+fn spawn_chair_cube(
+    mut commands: Commands,
+    mut meshes: ResMut<Assets<Mesh>>,
+    mut materials: ResMut<Assets<StandardMaterial>>,
+) {
+    trace!("SYSTEM: spawn_walking_cube");
+
+    // Cube
+    debug!("Creating Cube");
+    commands
+        .spawn((
+            Mesh3d(meshes.add(Cuboid::new(1.0, 1.0, 1.0))),
+            MeshMaterial3d(materials.add(Color::WHITE)),
+            Transform::from_xyz(10., 1.5, -3.2),
+            RigidBody::Dynamic,
+            Collider::cuboid(1.0, 1.0, 1.0),
+            CollisionLayers::new(CollisionLayer::Prop, LayerMask::ALL),
+            Chair,
+        ))
+        .insert(Name::new("Cube Chair"));
+}
+
 fn spawn_walking_cube(
     mut commands: Commands,
     mut meshes: ResMut<Assets<Mesh>>,
@@ -220,7 +243,6 @@ fn spawn_walking_cube(
 
     // Cube
     debug!("Creating Cube");
-    //let rand_character: CharacterBundle = rand::random();
     commands
         .spawn((
             Mesh3d(meshes.add(Cuboid::new(1.0, 1.0, 1.0))),
@@ -235,7 +257,6 @@ fn spawn_walking_cube(
                 weight: Weight(0),
             },
         ))
-        //.insert(rand_character)
         .insert(TnuaController::default())
         .insert(TnuaAvian3dSensorShape(Collider::cuboid(0.5, 0.5, 0.5)))
         .insert(FloatHeight(0.5))
