@@ -38,6 +38,9 @@ pub struct MaxMana(pub i32);
 #[derive(Default, Clone, Component, Reflect)]
 #[reflect(Component)]
 pub struct MaxHealth(pub i32);
+#[derive(Default, Clone, Component, Reflect)]
+#[reflect(Component)]
+pub struct Hunger;
 
 #[derive(Bundle)]
 pub struct CharacterBundle {
