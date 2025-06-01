@@ -11,9 +11,9 @@ use bevy::{
 use bevy_asset_loader::prelude::*;
 use bevy_console::ConsoleOpen;
 use bevy_inspector_egui::quick::WorldInspectorPlugin;
+use bevy_skein::SkeinPlugin;
 use bevy_sprite3d::Sprite3dPlugin;
 use bevy_yoleck::prelude::*;
-use blenvy::BlenvyPlugin;
 use clap::Parser;
 
 mod chair;
@@ -139,7 +139,8 @@ fn main() {
         GameRenderPlugin,
         ChairPlugin,
         ItemPlugin,
-        BlenvyPlugin::default(),
+        //BlenvyPlugin::default(),
+        SkeinPlugin::default(),
     ))
     .add_plugins((
             TestsPlugin,

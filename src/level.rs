@@ -9,7 +9,6 @@ use avian3d::prelude::{ColliderConstructor, CollisionLayers, LayerMask};
 use bevy::{gltf::Gltf, prelude::*};
 use bevy_tnua::prelude::*;
 use bevy_tnua_avian3d::TnuaAvian3dPlugin;
-use blenvy::{BlueprintAnimationPlayerLink, BlueprintAnimations};
 use oxidized_navigation::{
     self, NavMesh, NavMeshSettings,
     debug_draw::{DrawNavMesh, OxidizedNavigationDebugDrawPlugin},
@@ -26,7 +25,7 @@ pub struct DoorEvent {
 #[derive(Debug, Default, Component, Reflect)]
 #[reflect(Component)]
 pub struct DoorComponent;
-impl Interaction for DoorComponent {
+/*impl Interaction for DoorComponent {
     fn interact(&self,commands: &mut Commands,entity:Entity,prop:Entity,) {
         println!("Door Interaction");
         commands.trigger_targets(DoorEvent {actor: entity, target: prop}, entity);
@@ -36,7 +35,6 @@ impl Interaction for DoorComponent {
 fn door_event_handler(
     trigger: Trigger<DoorEvent>,
     mut commands: Commands,
-    door_animation: Query<(&BlueprintAnimationPlayerLink, &BlueprintAnimations)>,
     mut animatiion_player: Query<(&mut AnimationPlayer, &mut AnimationTransitions)>,
 ) {
     println!("Door Event Handler");
@@ -51,7 +49,7 @@ fn door_event_handler(
                     );
         }
     }
-}
+}*/
 
 #[derive(Debug, Default, Component, Reflect)]
 #[reflect(Component)]
@@ -126,8 +124,8 @@ impl Plugin for BlenderTranslationPlugin {
             .register_type::<DesiredPosition>()
             .register_type::<DoorComponent>()
             .add_event::<DoorEvent>()
-            .register_component_as::<dyn Interaction, DoorComponent>()
-            .add_observer(door_event_handler)
+            //.register_component_as::<dyn Interaction, DoorComponent>()
+            //.add_observer(door_event_handler)
             .add_systems(OnEnter(GameState::Gameplay), translate_components);
 
         /*app.add_plugins(OxidizedNavigationPlugin::<Collider>::new(
