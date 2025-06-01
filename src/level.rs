@@ -1,16 +1,57 @@
+use std::time::Duration;
+use bevy_trait_query::RegisterExt;
+
 use super::GameState;
 use super::utils::{F32Ext, Vec3Ext};
+use crate::interact::Interaction;
 use crate::{error_pipe, CollisionLayer, Player};
 use avian3d::prelude::{ColliderConstructor, CollisionLayers, LayerMask};
 use bevy::{gltf::Gltf, prelude::*};
 use bevy_tnua::prelude::*;
 use bevy_tnua_avian3d::TnuaAvian3dPlugin;
+use blenvy::{BlueprintAnimationPlayerLink, BlueprintAnimations};
 use oxidized_navigation::{
     self, NavMesh, NavMeshSettings,
     debug_draw::{DrawNavMesh, OxidizedNavigationDebugDrawPlugin},
     query::{find_polygon_path, perform_string_pulling_on_path},
 };
 use oxidized_navigation::OxidizedNavigationPlugin;
+
+#[derive(Event)]
+pub struct DoorEvent {
+    actor: Entity,
+    target: Entity,
+}
+
+#[derive(Debug, Default, Component, Reflect)]
+#[reflect(Component)]
+pub struct DoorComponent;
+impl Interaction for DoorComponent {
+    fn interact(&self,commands: &mut Commands,entity:Entity,prop:Entity,) {
+        println!("Door Interaction");
+        commands.trigger_targets(DoorEvent {actor: entity, target: prop}, entity);
+    }
+}
+
+fn door_event_handler(
+    trigger: Trigger<DoorEvent>,
+    mut commands: Commands,
+    door_animation: Query<(&BlueprintAnimationPlayerLink, &BlueprintAnimations)>,
+    mut animatiion_player: Query<(&mut AnimationPlayer, &mut AnimationTransitions)>,
+) {
+    println!("Door Event Handler");
+    if let Ok((link, animations)) = door_animation.get(trigger.target) {
+        println!("link: {:?}, animations: {:?}", link, animations);
+        if let Ok((mut animation_player, mut animation_transition)) = animatiion_player.get_mut(link.0) {
+            animation_transition
+                .play(
+                    &mut animation_player,
+                *animations.named_indices.get("opendoor").expect("animation name should be in the list"),
+                    Duration::from_secs(5),
+                    );
+        }
+    }
+}
 
 #[derive(Debug, Default, Component, Reflect)]
 #[reflect(Component)]
@@ -49,14 +90,6 @@ pub struct Walk {
     /// Direction in which we want to walk and turn this tick.
     pub direction: Option<Dir3>,
 }
-
-#[derive(Bundle)]
-pub struct MovementBundle {
-    walk: Walk,
-    tnua_conroller: TnuaController,
-    float_height: FloatHeight,
-}
-
 impl Default for Walk {
     fn default() -> Self {
         Self {
@@ -66,6 +99,14 @@ impl Default for Walk {
     }
 }
 
+#[derive(Bundle)]
+pub struct MovementBundle {
+    walk: Walk,
+    tnua_conroller: TnuaController,
+    float_height: FloatHeight,
+}
+
+
 #[derive(Debug, Default, Clone, PartialEq, Component, Reflect)]
 #[reflect(Component)]
 /// Must be larger than the height of the entity's center from the bottom of its
@@ -73,7 +114,6 @@ impl Default for Walk {
 pub struct FloatHeight(pub f32);
 
 pub struct BlenderTranslationPlugin;
-
 impl Plugin for BlenderTranslationPlugin {
     fn build(&self, app: &mut App) {
         app.register_type::<BlenderCollider>()
@@ -84,6 +124,10 @@ impl Plugin for BlenderTranslationPlugin {
             .register_type::<Walk>()
             .register_type::<FloatHeight>()
             .register_type::<DesiredPosition>()
+            .register_type::<DoorComponent>()
+            .add_event::<DoorEvent>()
+            .register_component_as::<dyn Interaction, DoorComponent>()
+            .add_observer(door_event_handler)
             .add_systems(OnEnter(GameState::Gameplay), translate_components);
 
         /*app.add_plugins(OxidizedNavigationPlugin::<Collider>::new(

@@ -14,6 +14,7 @@ use bevy_sprite3d::{Sprite3dBuilder, Sprite3dParams};
 use bevy_tnua::control_helpers::TnuaSimpleAirActionsCounter;
 use bevy_tnua::prelude::*;
 use bevy_tnua_avian3d::*;
+use blenvy::{BlueprintInfo, GameWorldTag, HideUntilReady, SpawnBlueprint};
 use leafwing_input_manager::input_map::InputMap;
 
 
@@ -93,9 +94,14 @@ fn spawn_basic_scene(
     info!("Loading DevRoom");
     commands.spawn(SceneRoot(
         //asset_server.load("levels/devroom.glb#Scene0"),
-        asset_server.load("levels/room.glb#Scene0"),
+        asset_server.load("levels/World.glb#Scene3"),
     ));
-    //commands.spawn(SceneBundle { scene: asset_server.load("levels/__temp_scene.glb#Scene0"), ..default() });
+    //commands.spawn((
+    //        BlueprintInfo::from_path("levels/World.glb"),
+    //        SpawnBlueprint,
+    //        HideUntilReady,
+    //        GameWorldTag,
+    //));
     info!("DevRoom Loaded");
 }
 
