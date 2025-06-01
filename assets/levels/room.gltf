@@ -38,7 +38,8 @@
 		{
 			"extras":{
 				"blenvy_scene_type":1,
-				"BlueprintAssets":"(assets: [])"
+				"BlueprintAssets":"(assets: [])",
+				"skein_extension_properties":{}
 			},
 			"name":"World",
 			"nodes":[
@@ -710,7 +711,19 @@
 						}
 					]
 				},
-				"bevy_components":"{\"avian3d::dynamics::rigid_body::RigidBody\": \"Static\", \"bevyrpg::level::BlenderColliderConstructor\": \"()\"}"
+				"bevy_components":"{\"avian3d::dynamics::rigid_body::RigidBody\": \"Static\", \"bevyrpg::level::BlenderColliderConstructor\": \"()\"}",
+				"skein_two":[
+					{
+						"name":"BlenderColliderConstructor",
+						"selected_type_path":"bevyrpg::level::BlenderColliderConstructor"
+					}
+				],
+				"active_component_index":0,
+				"skein":[
+					{
+						"bevyrpg::level::BlenderColliderConstructor":{}
+					}
+				]
 			},
 			"name":"Floor.001",
 			"primitives":[
@@ -822,7 +835,26 @@
 						}
 					]
 				},
-				"bevy_components":"{\"bevyrpg::level::BlenderProp\": \"()\", \"avian3d::dynamics::rigid_body::RigidBody\": \"Dynamic\", \"bevyrpg::items::misc::MiscItem\": \"()\", \"bevyrpg::level::BlenderColliderConstructor\": \"()\", \"bevyrpg::level::Door\": \"()\"}"
+				"bevy_components":"{\"bevyrpg::level::BlenderProp\": \"()\", \"avian3d::dynamics::rigid_body::RigidBody\": \"Dynamic\", \"bevyrpg::items::misc::MiscItem\": \"()\", \"bevyrpg::level::BlenderColliderConstructor\": \"()\", \"bevyrpg::level::Door\": \"()\"}",
+				"skein_two":[
+					{
+						"name":"BlenderProp",
+						"selected_type_path":"bevyrpg::level::BlenderProp"
+					},
+					{
+						"name":"BlenderColliderConstructor",
+						"selected_type_path":"bevyrpg::level::BlenderColliderConstructor"
+					}
+				],
+				"active_component_index":1,
+				"skein":[
+					{
+						"bevyrpg::level::BlenderProp":{}
+					},
+					{
+						"bevyrpg::level::BlenderColliderConstructor":{}
+					}
+				]
 			},
 			"name":"Cube.016",
 			"primitives":[
@@ -863,7 +895,26 @@
 						}
 					]
 				},
-				"bevy_components":"{\"bevyrpg::level::BlenderProp\": \"()\", \"avian3d::dynamics::rigid_body::RigidBody\": \"Dynamic\", \"bevyrpg::items::misc::MiscItem\": \"()\", \"bevyrpg::level::BlenderColliderConstructor\": \"()\"}"
+				"bevy_components":"{\"bevyrpg::level::BlenderProp\": \"()\", \"avian3d::dynamics::rigid_body::RigidBody\": \"Dynamic\", \"bevyrpg::items::misc::MiscItem\": \"()\", \"bevyrpg::level::BlenderColliderConstructor\": \"()\"}",
+				"skein_two":[
+					{
+						"name":"BlenderProp",
+						"selected_type_path":"bevyrpg::level::BlenderProp"
+					},
+					{
+						"name":"BlenderColliderConstructor",
+						"selected_type_path":"bevyrpg::level::BlenderColliderConstructor"
+					}
+				],
+				"active_component_index":1,
+				"skein":[
+					{
+						"bevyrpg::level::BlenderProp":{}
+					},
+					{
+						"bevyrpg::level::BlenderColliderConstructor":{}
+					}
+				]
 			},
 			"name":"Cylinder",
 			"primitives":[
@@ -904,7 +955,26 @@
 						}
 					]
 				},
-				"bevy_components":"{\"bevyrpg::level::BlenderProp\": \"()\", \"avian3d::dynamics::rigid_body::RigidBody\": \"Dynamic\", \"bevyrpg::items::misc::MiscItem\": \"()\", \"bevyrpg::level::BlenderColliderConstructor\": \"()\"}"
+				"bevy_components":"{\"bevyrpg::level::BlenderProp\": \"()\", \"avian3d::dynamics::rigid_body::RigidBody\": \"Dynamic\", \"bevyrpg::items::misc::MiscItem\": \"()\", \"bevyrpg::level::BlenderColliderConstructor\": \"()\"}",
+				"skein_two":[
+					{
+						"name":"BlenderProp",
+						"selected_type_path":"bevyrpg::level::BlenderProp"
+					},
+					{
+						"name":"BlenderColliderConstructor",
+						"selected_type_path":"bevyrpg::level::BlenderColliderConstructor"
+					}
+				],
+				"active_component_index":1,
+				"skein":[
+					{
+						"bevyrpg::level::BlenderProp":{}
+					},
+					{
+						"bevyrpg::level::BlenderColliderConstructor":{}
+					}
+				]
 			},
 			"name":"VHS_cassette",
 			"primitives":[
