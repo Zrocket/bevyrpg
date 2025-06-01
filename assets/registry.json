@@ -23008,6 +23008,17 @@
       "type": "array",
       "typeInfo": "TupleStruct"
     },
+    "bevyrpg::level::DoorComponent": {
+      "additionalProperties": false,
+      "isComponent": true,
+      "isResource": false,
+      "long_name": "bevyrpg::level::DoorComponent",
+      "properties": {},
+      "required": [],
+      "short_name": "DoorComponent",
+      "type": "object",
+      "typeInfo": "Struct"
+    },
     "bevyrpg::level::FloatHeight": {
       "isComponent": true,
       "isResource": false,

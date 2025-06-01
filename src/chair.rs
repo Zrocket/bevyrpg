@@ -12,7 +12,6 @@ pub struct SitEvent {
 #[derive(Debug, Default, Component, Reflect)]
 #[reflect(Component)]
 pub struct Chair;
-
 impl Interaction for Chair {
     fn interact(
         &self,
