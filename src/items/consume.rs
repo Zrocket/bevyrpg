@@ -22,11 +22,11 @@ impl Interaction for Consume {
 impl Plugin for ComsumePlugin {
     fn build(&self, app: &mut App) {
         app.register_type::<Consume>()
-            .add_observer(consume_observer_handler);
+            .add_observer(consume_event_observer);
     }
 }
 
-fn consume_observer_handler(
+fn consume_event_observer(
     trigger: Trigger<InteractEvent, Consume>
 ) {
     let _actor = trigger.event().actor;

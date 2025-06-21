@@ -24,11 +24,11 @@ pub struct BookPlugin;
 impl Plugin for BookPlugin {
     fn build(&self, app: &mut App) {
         app.register_type::<Book>()
-            .add_observer(book_observer_handler);
+            .add_observer(book_event_observer);
     }
 }
 
-fn book_observer_handler(
+fn book_event_observer(
     trigger: Trigger<InteractEvent, Book>
 ) {
     let _player = trigger.event().actor;
