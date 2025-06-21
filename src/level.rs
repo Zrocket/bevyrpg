@@ -4,8 +4,8 @@ use bevy_trait_query::RegisterExt;
 use super::GameState;
 use super::utils::{F32Ext, Vec3Ext};
 use crate::interact::Interaction;
-use crate::{error_pipe, CollisionLayer, Player};
-use avian3d::prelude::{ColliderConstructor, CollisionLayers, LayerMask};
+use crate::{error_pipe, CollisionLayer, MiscItem, Player};
+use avian3d::prelude::{ColliderConstructor, CollisionLayers, LayerMask, RigidBody};
 use bevy::{gltf::Gltf, prelude::*};
 use bevy_tnua::prelude::*;
 use bevy_tnua_avian3d::TnuaAvian3dPlugin;
@@ -16,40 +16,12 @@ use oxidized_navigation::{
 };
 use oxidized_navigation::OxidizedNavigationPlugin;
 
-#[derive(Event)]
-pub struct DoorEvent {
-    actor: Entity,
-    target: Entity,
-}
+#[derive(Resource)]
+pub struct LevelGltf(pub Handle<Gltf>);
 
 #[derive(Debug, Default, Component, Reflect)]
 #[reflect(Component)]
-pub struct DoorComponent;
-/*impl Interaction for DoorComponent {
-    fn interact(&self,commands: &mut Commands,entity:Entity,prop:Entity,) {
-        println!("Door Interaction");
-        commands.trigger_targets(DoorEvent {actor: entity, target: prop}, entity);
-    }
-}
-
-fn door_event_handler(
-    trigger: Trigger<DoorEvent>,
-    mut commands: Commands,
-    mut animatiion_player: Query<(&mut AnimationPlayer, &mut AnimationTransitions)>,
-) {
-    println!("Door Event Handler");
-    if let Ok((link, animations)) = door_animation.get(trigger.target) {
-        println!("link: {:?}, animations: {:?}", link, animations);
-        if let Ok((mut animation_player, mut animation_transition)) = animatiion_player.get_mut(link.0) {
-            animation_transition
-                .play(
-                    &mut animation_player,
-                *animations.named_indices.get("opendoor").expect("animation name should be in the list"),
-                    Duration::from_secs(5),
-                    );
-        }
-    }
-}*/
+pub struct BlenderAnimationName(pub String);
 
 #[derive(Debug, Default, Component, Reflect)]
 #[reflect(Component)]
@@ -116,17 +88,16 @@ impl Plugin for BlenderTranslationPlugin {
     fn build(&self, app: &mut App) {
         app.register_type::<BlenderCollider>()
             .register_type::<BlenderBoxCollider>()
+            .register_type::<BlenderAnimationName>()
             .register_type::<BlenderColliderConstructor>()
             .register_type::<BlenderProp>()
             .register_type::<BlenderNavmesh>()
             .register_type::<Walk>()
             .register_type::<FloatHeight>()
             .register_type::<DesiredPosition>()
-            .register_type::<DoorComponent>()
-            .add_event::<DoorEvent>()
-            //.register_component_as::<dyn Interaction, DoorComponent>()
-            //.add_observer(door_event_handler)
-            .add_systems(OnEnter(GameState::Gameplay), translate_components);
+            .add_systems(OnEnter(GameState::Gameplay), translate_components)
+            .add_systems(OnEnter(GameState::Loading),gltf_preload)
+            .add_systems(OnExit(GameState::Loading), animation_preload);
 
         /*app.add_plugins(OxidizedNavigationPlugin::<Collider>::new(
             NavMeshSettings::from_agent_and_bounds(0.5, 1.9, 250.0, -1.0),
@@ -149,18 +120,22 @@ impl Plugin for BlenderTranslationPlugin {
 fn translate_components(
     mut commands: Commands,
     prop_query: Query<Entity, With<BlenderProp>>,
-    collider_query: Query<Entity, With<BlenderColliderConstructor>>,
+    collider_query: Query<Entity, (With<BlenderColliderConstructor>, Without<BlenderProp>)>,
+    animation_name_query: Query<Entity, With<BlenderAnimationName>>,
 ) {
     trace!("SYSTEM: translate_blender_components");
 
     for entity in prop_query.iter() {
         commands
             .entity(entity)
-            .insert(CollisionLayers::new(CollisionLayer::Prop, LayerMask::ALL));
+            .insert(CollisionLayers::new(CollisionLayer::Prop, LayerMask::ALL))
+            .insert(RigidBody::Dynamic)
+            .insert(MiscItem)
+            .insert(ColliderConstructor::ConvexHullFromMesh);
     }
     for entity in collider_query.iter() {
-        println!("BBBBBBBBBBBBBBBBBBBBBBBBBBBBB");
         commands.entity(entity)
+            .insert(RigidBody::Static)
             .insert(ColliderConstructor::ConvexHullFromMesh);
     }
 }
@@ -236,6 +211,33 @@ fn apply_walking(
                 ..Default::default()
             });
             walking.direction = None;
+        }
+    }
+}
+
+fn gltf_preload(
+    mut commands: Commands,
+    asset_server: Res<AssetServer>,
+) {
+    trace!("SYSTEM: animation_preload");
+    let level_gltf = asset_server.load("levels/World.glb");
+    commands.insert_resource(LevelGltf(level_gltf));
+}
+
+fn animation_preload(
+    mut commands: Commands,
+    level_gltf: Res<LevelGltf>,
+    gltf_assets: Res<Assets<Gltf>>,
+    blender_animation_query: Query<(Entity, &BlenderAnimationName), Without<AnimationGraphHandle>>,
+    mut animation_graphs: ResMut<Assets<AnimationGraph>>,
+){
+    trace!("SYSTEM: animation_preload");
+    if let Some(gltf) = gltf_assets.get(&level_gltf.0) {
+        for (entity, animation_name) in blender_animation_query.iter() {
+            let animation_clip_handle = gltf.named_animations[animation_name.0.as_str()].clone();
+            let animation_clip = animation_clip_handle.clone_weak();
+            let (animation_graph, _index) = AnimationGraph::from_clip(animation_clip);
+            commands.entity(entity).insert(AnimationGraphHandle(animation_graphs.add(animation_graph)));
         }
     }
 }
