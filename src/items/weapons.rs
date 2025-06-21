@@ -31,11 +31,11 @@ pub struct WeaponPlugin;
 impl Plugin for WeaponPlugin {
     fn build(&self, app: &mut App) {
         app.register_type::<Weapon>()
-            .add_observer(interact_observer_handler);
+            .add_observer(weapon_event_observer);
     }
 }
 
-fn interact_observer_handler(
+fn weapon_event_observer(
     trigger: Trigger<InteractEvent, Weapon>
 ) {
     let _actor = trigger.event().actor;
