@@ -39,11 +39,11 @@ pub struct ArmorPlugin;
 impl Plugin for ArmorPlugin {
     fn build(&self, app: &mut App) {
         app.register_type::<Armor>()
-            .add_observer(armor_observer_handler);
+            .add_observer(armor_event_observer);
     }
 }
 
-fn armor_observer_handler(
+fn armor_event_observer(
         trigger: Trigger<InteractEvent, Armor>
 ) {
     let _player = trigger.event().actor;

@@ -33,11 +33,11 @@ impl Plugin for MiscItemPlugin {
         app.register_type::<MiscItem>()
             .register_component_as::<dyn Interaction, MiscItem>()
             .add_event::<MiscInteractEvent>()
-            .add_observer(misc_observer_handler);
+            .add_observer(misc_event_observer);
     }
 }
 
-fn misc_observer_handler(
+fn misc_event_observer(
     trigger: Trigger<MiscInteractEvent>,
     mut avian_pickup_input_writer: EventWriter<AvianPickupInput>,
     _held_prop_query: Query<&HeldProp>,
