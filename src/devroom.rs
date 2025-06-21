@@ -41,14 +41,12 @@ struct FirstPassCube;
 struct MainPassCube;
 
 pub struct DevRoomPlugin;
-
 impl Plugin for DevRoomPlugin {
     fn build(&self, app: &mut App) {
         app
             .add_systems(
                 OnEnter(GameState::Loading),
                 (
-                    spawn_basic_scene,
                     spawn_player,
                     spawn_walking_cube,
                     spawn_sphere,
@@ -59,27 +57,40 @@ impl Plugin for DevRoomPlugin {
             .register_type::<FirstPassCube>()
             .register_type::<MainPassCube>()
             .add_plugins(AtmospherePlugin)
-            .add_systems(Update, player_forward.run_if(in_state(GameState::Gameplay)));
+            .add_systems(Update, player_forward.run_if(in_state(GameState::Gameplay)))
+            .add_systems(Update, devroom_setup.run_if(in_state(GameState::Loading)));
             //.add_systems(OnEnter(GameState::Gameplay), spawn_sprites)
             //.add_plugins(SpritesPlugin);
     }
 }
 
-fn spawn_basic_scene(
+fn devroom_setup(
     mut commands: Commands,
-    asset_server: Res<AssetServer>,
     mut window: Query<&mut Window>,
+    level_gltf: Res<LevelGltf>,
+    gltf_assets: Res<Assets<Gltf>>,
+    mut loaded: Local<bool>,
 ) {
     trace!("SYSTEM: spawn_basic_scene");
+    if *loaded {
+        return;
+    }
+    let Some(gltf) = gltf_assets.get(&level_gltf.0) else {
+        return;
+    };
+
+    info!("Loading DevRoom");
+    commands.spawn(SceneRoot(
+            gltf.named_scenes["World"].clone()
+    ));
 
     if let Ok(mut window) = window.single_mut() {
         window.cursor_options.grab_mode = bevy::window::CursorGrabMode::Locked;
     }
-
     info!("Creating DirectionalLightBundle");
     commands.spawn((
         DirectionalLight {
-            illuminance: light_consts::lux::OFFICE,
+            illuminance: light_consts::lux::OVERCAST_DAY,
             shadows_enabled: true,
             ..default()
         },
@@ -90,10 +101,7 @@ fn spawn_basic_scene(
         },
     ));
 
-    info!("Loading DevRoom");
-    commands.spawn(SceneRoot(
-        asset_server.load("levels/World.glb#Scene0"),
-    ));
+    *loaded = true;
     info!("DevRoom Loaded");
 }
 
