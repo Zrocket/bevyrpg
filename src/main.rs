@@ -16,15 +16,14 @@ use bevy_sprite3d::Sprite3dPlugin;
 use bevy_yoleck::prelude::*;
 use clap::Parser;
 
-mod chair;
 mod character;
-mod computer;
 mod console;
 mod controller;
 mod devroom;
 mod fpsdevroom;
 mod dialog;
 mod enemy;
+mod furniture;
 mod interact;
 mod inventory;
 mod items;
@@ -39,13 +38,12 @@ mod tests;
 mod ui;
 mod utils;
 
-pub use chair::*;
 pub use character::*;
-pub use computer::*;
 pub use console::*;
 pub use controller::*;
 pub use devroom::*;
 pub use dialog::*;
+pub use furniture::*;
 pub use interact::*;
 pub use inventory::*;
 pub use items::*;
@@ -137,16 +135,14 @@ fn main() {
         MyConsolePlugin,
         BlenderTranslationPlugin,
         GameRenderPlugin,
-        ChairPlugin,
+        FurniturePlugin,
         ItemPlugin,
-        //BlenvyPlugin::default(),
         SkeinPlugin::default(),
     ))
     .add_plugins((
             TestsPlugin,
             Sprite3dPlugin,
             DialogPlugin,
-            ComputerPlugin,
     ));
 
     if args.editor {
