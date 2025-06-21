@@ -28,12 +28,12 @@ pub struct AmmoPlugin;
 impl Plugin for AmmoPlugin {
     fn build(&self, app: &mut App) {
         app.register_type::<Ammo>()
-            .add_observer(ammo_observer_handler);
+            .add_observer(ammo_event_observer);
     }
 }
 
 
-fn ammo_observer_handler(
+fn ammo_event_observer(
         trigger: Trigger<InteractEvent, Ammo>
 ) {
     let _player = trigger.event().actor;
