@@ -2,7 +2,7 @@ use avian_pickup::{input::{AvianPickupAction, AvianPickupInput}, prop::HeldProp}
 use bevy::prelude::*;
 use bevy_trait_query::RegisterExt;
 
-use crate::{interact::Interaction, InteractEvent};
+use crate::{interact::Interaction, Inspectable, InteractEvent};
 
 #[derive(Component, Reflect, Default)]
 #[reflect(Component)]
@@ -28,10 +28,23 @@ impl Interaction for MiscItem {
     }
 }
 
+impl Inspectable for MiscItem {
+    fn inspect(
+        &self,
+        commands: &mut Commands,
+        actor: Entity,
+        prop: Entity,
+    ) {
+        println!("Misc Inspectable Impl");
+        //commands.trigger_targets(MiscInteractEvent {actor, prop}, prop);
+    }
+}
+
 impl Plugin for MiscItemPlugin {
     fn build(&self, app: &mut App) {
         app.register_type::<MiscItem>()
             .register_component_as::<dyn Interaction, MiscItem>()
+            .register_component_as::<dyn Inspectable, MiscItem>()
             .add_event::<MiscInteractEvent>()
             .add_observer(misc_event_observer);
     }

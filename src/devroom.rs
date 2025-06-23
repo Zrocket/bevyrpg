@@ -191,6 +191,7 @@ fn spawn_player(
             },
             ..default()
         })
+        .insert(RayHit(Entity::PLACEHOLDER))
         .id();
 
     // Camera
