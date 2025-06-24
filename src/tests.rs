@@ -2,7 +2,7 @@ use bevy::{asset::RenderAssetUsages, prelude::*, render::{camera::RenderTarget, 
 use ratatui::Frame;
 use soft_ratatui::SoftBackend;
 
-use crate::{new_computer_screen, ChangeScreenEvent, ComputerTextureCam, DamageEvent, Description, Health, Inventory, Item, ItemType, MyProcGenMaterial, PickUpEvent, Player, RemoveEvent, SoftTerminal};
+use crate::{new_computer_screen, ChangeScreenEvent, ComputerTextureCam, DamageEvent, Description, Health, Inventory, Item,  MyProcGenMaterial, PickUpEvent, Player, RemoveEvent, SoftTerminal};
 use super::Weight;
 
 pub struct TestsPlugin;
@@ -97,7 +97,6 @@ fn _inventory_add_test(
     if key.just_pressed(KeyCode::KeyJ) {
         let item = commands
             .spawn((Item {
-                item_type: ItemType::None,
                 name: Name::new(format!("Test {}", rand::random::<u8>() as char)),
                 description: Description("Test".to_string()),
                 weight: Weight(0),

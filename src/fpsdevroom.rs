@@ -101,7 +101,6 @@ fn spawn_player(
             Item {
                 name: Name::new("gun"),
                 description: Description("gun".to_string()),
-                item_type: ItemType::Weapon(Weapon::default()),
                 weight: Weight(0),
             },
         ))
@@ -215,7 +214,6 @@ fn spawn_walking_cube(
             Item {
                 name: Name::new("Cube"),
                 description: Description("Cube".to_string()),
-                item_type: ItemType::Misc,
                 weight: Weight(0),
             },
         ))
