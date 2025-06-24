@@ -1,4 +1,4 @@
-use crate::{ActiveMenuUi, ActiveUi, Player, UiIndex, UiMenu};
+use crate::{ActiveUi, Player, UiIndex, UiMenu};
 use bevy::prelude::*;
 
 pub fn manage_menu(
@@ -7,20 +7,6 @@ pub fn manage_menu(
     mut player: Query<(Entity, Option<&ActiveUi>), With<Player>>,
 ) {
     if key.just_pressed(KeyCode::Semicolon) {
-        info!("ESC pressed");
-        if let Ok((player, active)) = player.single_mut() {
-            if active.is_none() {
-                info!("adding ActiveUi");
-                info!("adding ActiveMenuUi");
-                commands.entity(player).insert(ActiveUi);
-                commands.entity(player).insert(ActiveMenuUi);
-            } else {
-                info!("removing ActiveUi");
-                info!("removing ActiveMenuUi");
-                commands.entity(player).remove::<ActiveUi>();
-                commands.entity(player).remove::<ActiveMenuUi>();
-            }
-        }
     }
 }
 
