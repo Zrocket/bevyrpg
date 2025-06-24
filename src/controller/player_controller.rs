@@ -122,9 +122,9 @@ pub fn tnua_player_input(
         return;
     };
 
-    if let Ok(action_state) = action_state_query.single() {
+    if let Ok(action_state) = action_state_query.single()
         // Get player controller input
-        if let Ok(player_controller_input) = player_input_query.single() {
+        && let Ok(player_controller_input) = player_input_query.single() {
 
             // Creates a 3D rotation matrix from a normalized rotation axis and angle (in radians).
             // returns a 3x3 column major matrix.
@@ -165,7 +165,6 @@ pub fn tnua_player_input(
                 // sensible defaults. Refer to the `TnuaBuiltinWalk`'s documentation to learn what they do.
                 ..Default::default()
             });
-        }
     }
 
 

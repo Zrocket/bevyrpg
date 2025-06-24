@@ -168,19 +168,15 @@ fn attack_event_handler(
 ) {
     trace!("attack_event_handler");
     for event in attack_events.read() {
-        if let Ok(attacker) = actors.get(event.attacker) {
-            if let Ok(defender) = actors.get(event.defender) {
-                if let Some(matter) = attacker.0 {
-                    if let Some(maneuver) = defender.1 {
-                        if matter.0 > maneuver.0 {
-                            damage_event_writer.send(DamageEvent {
-                                target: event.defender,
-                                ammount: matter.0,
-                            });
-                        }
-                    }
-                }
-            }
+        if let Ok(attacker) = actors.get(event.attacker) &&
+            let Ok(defender) = actors.get(event.defender) &&
+            let Some(matter) = attacker.0 &&
+            let Some(maneuver) = defender.1 &&
+            matter.0 > maneuver.0 {
+                damage_event_writer.write(DamageEvent {
+                    target: event.defender,
+                    ammount: matter.0,
+                });
         }
     }
 }
@@ -195,7 +191,7 @@ fn damage_event_handler(
             if event.ammount > health.0 {
                 health.0 = 0;
                 info!("TARGET IS DEAD!!!");
-                commands.entity(event.target).despawn_recursive();
+                commands.entity(event.target).despawn();
             } else {
                 health.0 -= event.ammount;
             }
@@ -213,7 +209,7 @@ fn experience_event_handler(
             info!("Giving {} experience to {:?}", event.ammount, event.target);
             experience.0 += event.ammount;
             if experience.0 >= 100 {
-                level_up_writer.send(LevelUpEvent(event.target));
+                level_up_writer.write(LevelUpEvent(event.target));
             }
         }
     }

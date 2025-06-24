@@ -256,10 +256,9 @@ fn player_forward(
     mut player_transform: Query<&mut Transform, With<Player>>,
 ) {
     trace!("System: player_forward");
-    if let Ok(cam_transform) = cam_transform.single() {
-        if let Ok(mut player_transform) = player_transform.single_mut() {
+    if let Ok(cam_transform) = cam_transform.single()
+        && let Ok(mut player_transform) = player_transform.single_mut() {
             let forward = cam_transform.forward();
             player_transform.look_to(*forward, Vec3::Y);
-        }
     }
 }

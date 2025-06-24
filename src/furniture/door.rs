@@ -45,7 +45,7 @@ fn door_event_observer(
     trigger: Trigger<DoorEvent>,
     mut door: Query<(Entity, &mut AnimationPlayer)>,
 ) {
-    trace!("Door Event Handler");
+    trace!("OBSERVER: door_event_observer");
     if let Ok((door_entity, mut door_animation_player)) = door.single_mut() {
         door_animation_player.play(1.into());
     }
