@@ -4,7 +4,7 @@ use super::*;
 
 pub fn draw_menu_ui(
     mut commands: Commands,
-    active_menu_query: Query<Entity, With<ActiveMenuUi>>,
+    active_menu_query: Query<Entity, With<ActiveUi>>,
     asset_server: Res<AssetServer>,
 ) {
     trace!("draw_menu_ui");
@@ -91,7 +91,7 @@ pub fn draw_menu_ui(
 
 pub fn _draw_settings_ui(
     mut commands: Commands,
-    target: Query<Entity, With<ActiveMenuUi>>,
+    target: Query<Entity, With<ActiveUi>>,
     asset_server: Res<AssetServer>,
 ) {
     trace!("draw_settings_ui");
@@ -178,7 +178,7 @@ pub fn _draw_settings_ui(
 
 pub fn _draw_controller_settings_ui(
     mut commands: Commands,
-    target: Query<Entity, With<ActiveMenuUi>>,
+    target: Query<Entity, With<ActiveUi>>,
     asset_server: Res<AssetServer>,
 ) {
     trace!("draw_controller_settings_ui");
@@ -239,7 +239,7 @@ pub fn _draw_controller_settings_ui(
 
 pub fn _draw_sound_settings_ui(
     mut commands: Commands,
-    target: Query<Entity, With<ActiveMenuUi>>,
+    target: Query<Entity, With<ActiveUi>>,
     asset_server: Res<AssetServer>,
 ) {
     trace!("draw_sound_settings_ui");
@@ -298,7 +298,7 @@ pub fn _draw_sound_settings_ui(
 
 pub fn _draw_video_settings_ui(
     mut commands: Commands,
-    target: Query<Entity, With<ActiveMenuUi>>,
+    target: Query<Entity, With<ActiveUi>>,
     _projection: Query<&Projection>,
     _asset_server: Res<AssetServer>,
 ) {
