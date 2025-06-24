@@ -16,41 +16,22 @@ use bevy::prelude::*;
 
 use crate::Name;
 
-#[derive(Component, Reflect, Clone)]
-pub enum ItemType {
-    None,
-    Weapon(Weapon),
-    Armor(Armor),
-    Consume(Consume),
-    Book(Book),
-    Ammo(Ammo),
-    Misc,
-}
-
-impl Default for ItemType {
-    fn default() -> Self {
-        Self::None
-    }
-}
-
 #[derive(Component, Reflect, Clone, Default)]
 pub struct Weight(pub i32);
 #[derive(Component, Reflect, Clone, Default)]
 pub struct Description(pub String);
 
-#[derive(Bundle, Clone, Default)]
+#[derive(Component, Clone, Default)]
 pub struct Item {
     pub name: Name,
     pub description: Description,
-    pub item_type: ItemType,
     pub weight: Weight,
 }
 
 pub struct ItemPlugin;
-
 impl Plugin for ItemPlugin {
     fn build(&self, app: &mut App) {
-        app.register_type::<ItemType>()
+        app
             .add_plugins((
    //                 AmmoPlugin,
   //                  ArmorPlugin,

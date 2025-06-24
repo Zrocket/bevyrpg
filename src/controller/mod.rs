@@ -19,14 +19,13 @@ use leafwing_input_manager::prelude::*;
 use crate::interact::InteractEvent;
 use crate::shoot;
 
-#[derive(Actionlike, Clone, Debug, Copy, PartialEq, Eq, Hash, Reflect)]
-#[actionlike(DualAxis)]
-pub enum CameraMovement {
-    Pan,
-}
+//#[derive(Actionlike, Clone, Debug, Copy, PartialEq, Eq, Hash, Reflect)]
+//#[actionlike(DualAxis)]
+//pub enum CameraMovement {
+//    Pan,
+//}
 
 pub struct ControllerPlugin;
-
 impl Plugin for ControllerPlugin {
     fn build(&self, app: &mut App) {
         app.add_event::<InteractEvent>()
