@@ -1,12 +1,11 @@
 use avian_pickup::prelude::*;
 use avian3d::prelude::*;
 use bevy::{
-    asset::RenderAssetUsages, log::LogPlugin, prelude::*, render::render_resource::{Extent3d, TextureFormat, TextureUsages}, window::{
-        //Cursor,
-        CursorGrabMode,
-        CursorOptions,
-        WindowResolution,
-    }
+    asset::RenderAssetUsages,
+    log::LogPlugin,
+    prelude::*,
+    render::render_resource::{Extent3d, TextureFormat, TextureUsages},
+    window::{ /*Cursor,*/ CursorGrabMode, CursorOptions, WindowResolution,},
 };
 use bevy_asset_loader::prelude::*;
 use bevy_console::ConsoleOpen;
@@ -105,7 +104,7 @@ fn main() {
                         ..default()
                     },
                     resolution: WindowResolution::new(RESOLUTION_WIDTH, RESOLUTION_HEIGHT),
-                    title: "Wizard RPG".to_string(),
+                    title: "Bevy RPG".to_string(),
                     resizable: false,
                     focused: true,
                     ..default()
@@ -144,6 +143,7 @@ fn main() {
             Sprite3dPlugin,
             DialogPlugin,
     ));
+    app.add_systems(Update, pause_game);
 
     if args.editor {
         app.add_plugins((
@@ -169,11 +169,20 @@ fn main() {
 
 fn pause_game(
     key: Res<ButtonInput<KeyCode>>,
-    console_open: Res<ConsoleOpen>,
-    mut game_state: ResMut<State<GameState>>,
-    mut pause_menu_state: ResMut<State<PauseMenuState>>,
+    game_state: ResMut<State<GameState>>,
+    mut  game_state_setter: ResMut<NextState<GameState>>,
+    //pause_menu_state: ResMut<State<PauseMenuState>>,
+    //mut pause_menu_state_setter: ResMut<NextState<PauseMenuState>>,
 ) {
     trace!("SYSTEM: pause_game");
-    if console_open.open {
+    if key.just_pressed(KeyCode::Comma) {
+        match game_state.get() {
+            GameState::Gameplay => {
+                game_state_setter.set(GameState::Paused);
+                //pause_menu_state_setter.set(PauseMenuState::MainMenu);
+            },
+            GameState::Paused   => game_state_setter.set(GameState::Gameplay),
+            _                   => {}
+        }
     }
 }

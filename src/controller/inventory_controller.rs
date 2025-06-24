@@ -5,10 +5,7 @@ use leafwing_input_manager::prelude::ActionState;
 use super::Action;
 
 pub fn manage_inventory(
-    //mut commands: Commands,
     key: Query<&ActionState<Action>, With<Player>>,
-    //mut window: Query<&mut Window>,
-    //mut player: Query<(Entity, Option<&ActiveInventoryUi>), With<Player>>,
     mut inventory_node_query: Query<&mut Node, With<UiInventory>>
 ) {
     if let Ok(key) = key.single()
