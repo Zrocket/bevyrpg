@@ -1,5 +1,5 @@
 use bevy::prelude::*;
-use bevy_console::{ConsolePlugin, ConsoleConfiguration, reply, AddConsoleCommand, ConsoleCommand, PrintConsoleLine};
+use bevy_console::{ConsolePlugin, ConsoleConfiguration, reply, ConsoleCommand, PrintConsoleLine};
 use clap::Parser;
 
 /// Prints given arguments to the console
