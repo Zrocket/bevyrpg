@@ -10,6 +10,14 @@ use leafwing_input_manager::prelude::*;
 
 use crate::Player;
 
+// Used as padding by camera pitching (up/down) to avoid spooky math problems
+const ANGLE_EPSILON: f32 = 0.001953125;
+
+// If the distance to the ground is less than this value, the player is considered grounded
+const _GROUNDED_DISTANCE: f32 = 0.125;
+
+const _SLIGHT_SCALE_DOWN: f32 = 0.9375;
+
 #[derive(Component)]
 pub struct PlayerController {
     pub pitch: f32,
@@ -56,13 +64,6 @@ pub struct PlayerControllerInput {
     pub yaw: f32,
     pub movement: Vec3,
 }
-// Used as padding by camera pitching (up/down) to avoid spooky math problems
-const ANGLE_EPSILON: f32 = 0.001953125;
-
-// If the distance to the ground is less than this value, the player is considered grounded
-const _GROUNDED_DISTANCE: f32 = 0.125;
-
-const _SLIGHT_SCALE_DOWN: f32 = 0.9375;
 
 pub fn player_controller_input(
     key_input_query: Query<&ActionState<Action>, With<Player>>,

@@ -80,7 +80,7 @@ impl Plugin for InventoryPlugin {
 fn add_to_inventory(
     mut commands: Commands,
     mut pick_up_events: EventReader<PickUpEvent>,
-    mut item: Query<Entity>, //With<ItemType>>,
+    mut item: Query<Entity>,
     mut actor: Query<(Entity, &mut Inventory)>,
 ) {
     trace!("SYSTEM: add_to_inventory");
@@ -104,7 +104,7 @@ fn add_to_inventory(
 fn remove_from_inventory(
     mut commands: Commands,
     mut remove_events: EventReader<RemoveEvent>,
-    item_query: Query<Entity, With<ItemType>>,
+    item_query: Query<Entity, With<Item>>,
     mut actor: Query<(Entity, &mut Inventory)>,
 ) {
     trace!("SYSTEM: remove_from_inventory");
