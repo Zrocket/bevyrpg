@@ -1,5 +1,13 @@
 use bevy::prelude::*;
 
+#[derive(Clone, Hash, Debug, Eq, PartialEq, Default, States)]
+pub enum PlayerState {
+    #[default]
+    Grounded,
+    Ladder,
+    UnGrounded,
+}
+
 #[derive(Component, Reflect, Default)]
 #[reflect(Component)]
 pub struct Player;
