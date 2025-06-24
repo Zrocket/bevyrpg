@@ -186,7 +186,7 @@ fn spawn_player(
             obstacle_filter: SpatialQueryFilter::from_mask(CollisionLayer::Default),
             hold: AvianPickupActorHoldConfig {
                 pitch_range: -40.0_f32.to_radians()..=75.0_f32.to_radians(),
-                distance_to_allow_holding: 100.0.into(),
+                distance_to_allow_holding: 100.0,
                 ..default()
             },
             ..default()
@@ -358,7 +358,7 @@ fn _spawn_projection_cat(
 
     // Camera
     commands.spawn((
-            Camera2d::default(),
+            Camera2d,
             Camera {
                 target: image_handle.clone().into(),
                 clear_color: Color::WHITE.into(),
@@ -394,12 +394,19 @@ fn player_forward(
     mut player_transform: Query<&mut Transform, With<Player>>,
 ) {
     trace!("SYSTEM: player_forward");
-    if let Ok(cam_transform) = cam_transform.single() {
+    if let Ok(cam_transform) = cam_transform.single() &&
+        let Ok(mut player_transform) = player_transform.single_mut() {
+            let forward = cam_transform.forward();
+            player_transform.look_to(*forward, Vec3::Y);
+    }
+
+
+    /*if let Ok(cam_transform) = cam_transform.single() {
         let forward = cam_transform.forward();
         if let Ok(mut player_transform) = player_transform.single_mut() {
             player_transform.look_to(*forward, Vec3::Y);
         }
-    }
+    }*/
 }
 
 fn _spawn_sprites(

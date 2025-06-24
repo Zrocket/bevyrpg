@@ -54,11 +54,10 @@ fn read_dialog(
 
     for event in dialog_events.read() {
         info!("Dialog Event");
-        if let Ok((_caller, caller_node)) = dialog_caller_query.get(event.actor) {
-            if let Ok(mut dialog_runner) = dialog_runner.single_mut() {
+        if let Ok((_caller, caller_node)) = dialog_caller_query.get(event.actor)
+            && let Ok(mut dialog_runner) = dialog_runner.single_mut() {
                 dialog_runner.stop();
                 dialog_runner.start_node(&caller_node.0);
-            }
         }
     }
 }

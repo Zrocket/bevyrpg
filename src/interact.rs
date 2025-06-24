@@ -1,4 +1,4 @@
-use bevy::{ecs::system::SystemId, prelude::*};
+use bevy::prelude::*;
 use avian_pickup::prelude::*;
 
 #[bevy_trait_query::queryable]

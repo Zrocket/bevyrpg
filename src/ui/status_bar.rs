@@ -14,8 +14,8 @@ pub fn draw_status_ui(
         asset_server.load("HP/Style_2.png"),
         asset_server.load("HP/Style_3.png"),
     ];
-    if let Ok((_mana, _max_mana)) = mana_query.single() {
-        if let Ok((_health, _max_health)) = health_query.single() {
+    if let Ok((_mana, _max_mana)) = mana_query.single()
+        && let Ok((_health, _max_health)) = health_query.single() {
             let status_bar_node = commands
                 .spawn((
                     Node {
@@ -66,6 +66,5 @@ pub fn draw_status_ui(
 
             commands.entity(status_bar_node).add_child(player_health_node);
             commands.entity(status_bar_node).add_child(player_mana_node);
-        }
     }
 }

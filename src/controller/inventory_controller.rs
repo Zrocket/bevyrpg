@@ -11,17 +11,14 @@ pub fn manage_inventory(
     //mut player: Query<(Entity, Option<&ActiveInventoryUi>), With<Player>>,
     mut inventory_node_query: Query<&mut Node, With<UiInventory>>
 ) {
-    if let Ok(key) = key.single() {
-        if key.just_pressed(&Action::OpenInventory) {
+    if let Ok(key) = key.single()
+        && key.just_pressed(&Action::OpenInventory)
+        && let Ok(mut inventory_node) = inventory_node_query.single_mut() {
             info!("Inventory key pressed");
-            if let Ok(mut inventory_node) = inventory_node_query.single_mut() {
-            info!("AAAAAAAAAAAAAa");
-                match inventory_node.display {
-                    Display::None => inventory_node.display = Display::Flex,
-                    _ => inventory_node.display = Display::None,
-                }
+            match inventory_node.display {
+                Display::None => inventory_node.display = Display::Flex,
+                _ => inventory_node.display = Display::None,
             }
-        }
     }
 }
 
