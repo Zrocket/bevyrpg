@@ -73,7 +73,6 @@ pub struct Animation {
 pub struct FaceCamera;
 
 pub struct SpritesPlugin;
-
 impl Plugin for SpritesPlugin {
     fn build(&self, app: &mut App) {
         trace!("SpritesPlugin build");

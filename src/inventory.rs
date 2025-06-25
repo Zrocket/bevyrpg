@@ -60,7 +60,6 @@ impl Deref for InInventory {
 }
 
 pub struct InventoryPlugin;
-
 impl Plugin for InventoryPlugin {
     fn build(&self, app: &mut App) {
         app.add_event::<PickUpEvent>()
