@@ -73,14 +73,12 @@ struct TimeCommand {
     value: String,
 }
 
-
 /// Set the weather
 #[derive(Parser, ConsoleCommand)]
 #[command(name = "weather")]
 struct WeatherCommand {
     value: String,
 }
-
 
 /// Saves the game
 #[derive(Parser, ConsoleCommand)]
@@ -126,7 +124,6 @@ struct EventCommand {
 }
 
 pub struct MyConsolePlugin;
-
 impl Plugin for MyConsolePlugin {
     fn build(&self, app: &mut App) {
         app
@@ -141,14 +138,12 @@ impl Plugin for MyConsolePlugin {
     }
 }
 
-
 fn example_command(mut log: ConsoleCommand<ExampleCommand>) {
     info!("Example command");
     if let Some(Ok(ExampleCommand { msg: _ })) = log.take() {
         // handle command
     }
 }
-
 
 fn log_command(mut log: ConsoleCommand<LogCommand>) {
     info!("Log command");

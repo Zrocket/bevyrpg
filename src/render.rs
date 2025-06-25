@@ -14,7 +14,6 @@ pub struct RenderPlayer {
 }
 
 pub struct GameRenderPlugin;
-
 impl Plugin for GameRenderPlugin {
     fn build(&self, app: &mut App) {
         info!("GameRenderPlugin build");

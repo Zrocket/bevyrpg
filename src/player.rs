@@ -17,7 +17,6 @@ pub struct Player;
 pub struct PlayerCamera;
 
 pub struct GamePlayerPlugin;
-
 impl Plugin for GamePlayerPlugin {
     fn build(&self, app: &mut App) {
         info!("GamePlayerPlugin build");

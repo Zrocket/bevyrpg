@@ -21,7 +21,6 @@ pub struct DialogEvent {
 }
 
 pub struct DialogPlugin;
-
 impl Plugin for DialogPlugin {
     fn build(&self, app: &mut App) {
         app
