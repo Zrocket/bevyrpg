@@ -36,7 +36,6 @@ pub struct TargetBundle {
 }
 
 pub struct FpsDevRoomPlugin;
-
 impl Plugin for FpsDevRoomPlugin {
     fn build(&self, app: &mut App) {
         app

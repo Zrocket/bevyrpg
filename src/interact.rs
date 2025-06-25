@@ -32,7 +32,6 @@ pub struct InspectEvent {
 }
 
 pub struct InteractPlugin;
-
 impl Plugin for InteractPlugin {
     fn build(&self, app: &mut App) {
         trace!("InteractPlugin build");

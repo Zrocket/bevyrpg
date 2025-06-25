@@ -3,9 +3,11 @@ use bevy::prelude::*;
 #[derive(Component, Clone, Reflect)]
 #[reflect(Component)]
 pub struct BaseDmg(i32);
+
 #[derive(Component, Clone, Reflect)]
 #[reflect(Component)]
 pub struct ManaCost(i32);
+
 #[derive(Component, Clone, Reflect)]
 #[reflect(Component)]
 pub struct CastTime(i32);
@@ -32,7 +34,6 @@ pub struct Spell {
 }
 
 pub struct MagicPlugin;
-
 impl Plugin for MagicPlugin {
     fn build(&self, app: &mut App) {
         info!("MagicPlugin build");

@@ -23,7 +23,6 @@ pub struct Rocket; /*{
 }*/
 
 pub struct ShootPlugin;
-
 impl Plugin for ShootPlugin {
     fn build(&self, app: &mut App) {
         app.add_event::<ShootEvent>()

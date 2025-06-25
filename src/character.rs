@@ -5,39 +5,51 @@ use crate::*;
 #[derive(Default, Clone, Component, Reflect)]
 #[reflect(Component)]
 pub struct Health(pub i32);
+
 #[derive(Default, Clone, Component, Reflect)]
 #[reflect(Component)]
 pub struct Level(pub i32);
+
 #[derive(Default, Clone, Component, Reflect)]
 #[reflect(Component)]
 pub struct Mana(pub i32);
+
 #[derive(Default, Clone, Component, Reflect)]
 #[reflect(Component)]
 pub struct Experience(pub i32);
+
 #[derive(Default, Clone, Component, Reflect)]
 #[reflect(Component)]
 pub struct Speed(pub i32);
+
 #[derive(Default, Clone, Component, Reflect)]
 #[reflect(Component)]
 pub struct Corruption(pub i32);
+
 #[derive(Default, Clone, Component, Reflect)]
 #[reflect(Component)]
 pub struct Matter(pub i32);
+
 #[derive(Default, Clone, Component, Reflect)]
 #[reflect(Component)]
 pub struct Mind(pub i32);
+
 #[derive(Default, Clone, Component, Reflect)]
 #[reflect(Component)]
 pub struct Luck(pub i32);
+
 #[derive(Default, Clone, Component, Reflect)]
 #[reflect(Component)]
 pub struct Maneuver(pub i32);
+
 #[derive(Default, Clone, Component, Reflect)]
 #[reflect(Component)]
 pub struct MaxMana(pub i32);
+
 #[derive(Default, Clone, Component, Reflect)]
 #[reflect(Component)]
 pub struct MaxHealth(pub i32);
+
 #[derive(Default, Clone, Component, Reflect)]
 #[reflect(Component)]
 pub struct Hunger;
@@ -125,7 +137,6 @@ pub struct Skills {
 }
 
 pub struct CharacterPlugin;
-
 impl Plugin for CharacterPlugin {
     fn build(&self, app: &mut App) {
         app.add_event::<DamageEvent>()
