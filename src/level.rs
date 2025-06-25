@@ -1,5 +1,6 @@
 use std::time::Duration;
 use bevy_trait_query::RegisterExt;
+use oxidized_navigation::colliders::avian::AvianCollider;
 
 use super::GameState;
 use super::utils::{F32Ext, Vec3Ext};
@@ -18,6 +19,10 @@ use oxidized_navigation::OxidizedNavigationPlugin;
 
 #[derive(Resource)]
 pub struct LevelGltf(pub Handle<Gltf>);
+
+#[derive(Debug, Default, Component, Reflect)]
+#[reflect(Component)]
+pub struct BlenderAnimations(pub Vec<String>);
 
 #[derive(Debug, Default, Component, Reflect)]
 #[reflect(Component)]
@@ -89,6 +94,7 @@ impl Plugin for BlenderTranslationPlugin {
         app.register_type::<BlenderCollider>()
             .register_type::<BlenderBoxCollider>()
             .register_type::<BlenderAnimationName>()
+            .register_type::<BlenderAnimations>()
             .register_type::<BlenderColliderConstructor>()
             .register_type::<BlenderProp>()
             .register_type::<BlenderNavmesh>()
@@ -99,21 +105,21 @@ impl Plugin for BlenderTranslationPlugin {
             .add_systems(OnEnter(GameState::Loading),gltf_preload)
             .add_systems(OnExit(GameState::Loading), animation_preload);
 
-        /*app.add_plugins(OxidizedNavigationPlugin::<Collider>::new(
+        app.add_plugins(OxidizedNavigationPlugin::<AvianCollider>::new(
             NavMeshSettings::from_agent_and_bounds(0.5, 1.9, 250.0, -1.0),
-        ));*/
+        ));
 
-        //app.add_plugins(OxidizedNavigationDebugDrawPlugin);
+        app.add_plugins(OxidizedNavigationDebugDrawPlugin);
         app.add_plugins(TnuaAvian3dPlugin::new(Update));
         app.add_plugins(TnuaControllerPlugin::default());
-       // app.add_systems(
-            //Update,
-           // (
-                //toggle_nav_mesh_system,
-                //navmesh_pathfinding.pipe(error_pipe),
-                //apply_walking,
-            //),
-        //);
+        app.add_systems(
+            Update,
+            (
+                toggle_nav_mesh_system,
+                navmesh_pathfinding.pipe(error_pipe),
+                apply_walking,
+            ),
+        );
     }
 }
 
@@ -121,7 +127,6 @@ fn translate_components(
     mut commands: Commands,
     prop_query: Query<Entity, With<BlenderProp>>,
     collider_query: Query<Entity, (With<BlenderColliderConstructor>, Without<BlenderProp>)>,
-    animation_name_query: Query<Entity, With<BlenderAnimationName>>,
 ) {
     trace!("SYSTEM: translate_blender_components");
 
@@ -148,6 +153,7 @@ fn toggle_nav_mesh_system(keys: Res<ButtonInput<KeyCode>>, mut show_navmesh: Res
     trace!("SYSTEM: toggle_nav_mesh");
 
     if keys.just_pressed(KeyCode::KeyM) {
+        println!("AAAAAAAAAAAAAAAAa");
         show_navmesh.0 = !show_navmesh.0;
     }
 }
