@@ -1,5 +1,6 @@
 use super::*;
 use bevy::color::palettes::css::CRIMSON;
+use jonmo::prelude::*;
 
 pub fn draw_inventory_ui(
     mut commands: Commands,
@@ -35,4 +36,39 @@ pub fn draw_inventory_ui(
             }
         })
         .id();
+}
+
+pub fn jonmo_draw_inventory_ui(
+    world: &mut World,
+    items: &mut QueryState<(Entity, &Name, &InInventory)>,
+    inventory: &mut QueryState<&Inventory, With<Player>>,
+) {
+    trace!("draw_inventory_ui");
+    let asset_server = world.resource::<AssetServer>();
+    let mut inventory_items: Vec<JonmoBuilder> = Vec::new();
+    if let Ok(inventory_handle) = inventory.single(world) {
+        for item in inventory_handle.items.iter() {
+            if let Ok((_id, item_name, _)) = items.get(world, *item) {
+                inventory_items.push(JonmoBuilder::from(Text(item_name.to_string())));
+            }
+        }
+    }
+    let _inventory_root = JonmoBuilder::from((
+            Node {
+                position_type: PositionType::Absolute,
+                width: Val::Percent(80.),
+                height: Val::Percent(80.),
+                left: Val::Percent(10.),
+                flex_direction: FlexDirection::Column,
+                justify_content: JustifyContent::Center,
+                align_self: AlignSelf::Center,
+                flex_wrap: FlexWrap::Wrap,
+                display:  Display::None,
+                ..default()
+            },
+            BackgroundColor(CRIMSON.into()),
+            UiInventory,
+    ))
+    .children(inventory_items)
+    .spawn(world);
 }
