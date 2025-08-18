@@ -7,11 +7,23 @@ mod status_bar;
 mod settings;
 
 use bevy_simple_text_input::TextInputPlugin;
+use jonmo::prelude::*;
 use crosshair::*;
 use inventory_ui::*;
 use status_bar::*;
 //use dialog_ui::*;
 use settings::*;
+
+#[derive(AssetCollection, Resource, Reflect, Debug)]
+#[reflect(Resource)]
+pub struct DA_UiAssets {
+    #[asset(key = "health_1")]
+    health_1: Handle<Image>,
+    #[asset(key = "health_2")]
+    health_2: Handle<Image>,
+    #[asset(key = "health_3")]
+    health_3: Handle<Image>,
+}
 
 #[derive(Component, Reflect, Default)]
 pub struct UiIndex(pub i32);
@@ -48,11 +60,23 @@ impl Plugin for UiPlugin {
     fn build(&self, app: &mut App) {
         app
             .add_plugins(TextInputPlugin)
-            .add_systems(Startup, (
-                    draw_inventory_ui,
-                    draw_status_ui,
-                    draw_crosshair,
-                    draw_menu_ui,
-            ));
+            .add_plugins(MenuUiPlugin)
+            .add_plugins(JonmoPlugin)
+            .register_type::<DA_UiAssets>()
+            .add_systems(OnEnter(GameState::Gameplay), (
+                    //draw_inventory_ui,
+                    jonmo_draw_inventory_ui,
+                    //draw_status_ui,
+                    jonmo_draw_status_ui,
+                    //draw_crosshair,
+                    jonmo_draw_crosshair,
+                    //draw_menu_ui,
+                    jonmo_draw_menu_ui,
+            ))
+            .add_loading_state(
+                LoadingState::new(GameState::Preload)
+                    .with_dynamic_assets_file::<StandardDynamicAssetCollection>("uiassets.ron")
+                    .load_collection::<DA_UiAssets>()
+            );
     }
 }
