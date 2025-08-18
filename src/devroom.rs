@@ -58,9 +58,9 @@ impl Plugin for DevRoomPlugin {
             .register_type::<MainPassCube>()
             .add_plugins(AtmospherePlugin)
             .add_systems(Update, player_forward.run_if(in_state(GameState::Gameplay)))
-            .add_systems(Update, devroom_setup.run_if(in_state(GameState::Loading)));
-            //.add_systems(OnEnter(GameState::Gameplay), spawn_sprites)
-            //.add_plugins(SpritesPlugin);
+            .add_systems(Update, devroom_setup.run_if(in_state(GameState::Loading)))
+            .add_systems(OnEnter(GameState::Gameplay), spawn_sprites)
+            .add_plugins(SpritesPlugin);
     }
 }
 
@@ -80,9 +80,12 @@ fn devroom_setup(
     };
 
     info!("Loading DevRoom");
-    commands.spawn(SceneRoot(
-            gltf.named_scenes["World"].clone()
-    ));
+    commands.spawn(
+(
+            CurrentLevel,
+            SceneRoot(gltf.named_scenes["World"].clone())
+        )
+    );
 
     if let Ok(mut window) = window.single_mut() {
         window.cursor_options.grab_mode = bevy::window::CursorGrabMode::Locked;
@@ -108,15 +111,21 @@ fn devroom_setup(
 fn spawn_player(
     mut commands: Commands,
     asset_server: Res<AssetServer>,
+    gun_assets: Res<DA_GunAssets>,
+    gltf_assets: Res<Assets<Gltf>>,
 ) {
     trace!("SYSTEM: spawn_player");
 
     // Gun
     debug!("Creating Gun");
+    //let temp = gun_assets.uzi.clone_weak();
+    let uzi = gltf_assets.get(&gun_assets.uzi).unwrap().scenes[0].path().unwrap();
+    //let temp = uzi.scenes[0].path().unwrap();
     let gun = commands
         .spawn((
             Transform::from_translation(vec3(0.1, -0.2, -0.5)),
-            SceneRoot(asset_server.load("guns/uzi.glb#Scene0")),
+           // SceneRoot(asset_server.load("guns/uzi.glb#Scene0")),
+            SceneRoot(asset_server.load(uzi)),
             Item {
                 name: Name::new("gun"),
                 description: Description("gun".to_string()),
@@ -407,7 +416,7 @@ fn player_forward(
     }*/
 }
 
-fn _spawn_sprites(
+fn spawn_sprites(
     mut commands: Commands,
     images: Res<ImageAssets>,
     mut sprite_params: Sprite3dParams,

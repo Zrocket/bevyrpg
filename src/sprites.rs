@@ -3,6 +3,7 @@ use std::time::Duration;
 use bevy::prelude::*;
 use bevy_sprite3d::*;
 
+use bevy_trait_query::RegisterExt;
 use rand::Rng;
 
 use crate::*;
@@ -12,6 +13,25 @@ pub struct SpriteBundle {
     face_camera: FaceCamera,
     sprite_type: SpriteType,
     animation: Animation,
+}
+
+#[derive(Component)]
+pub struct Talkable;
+impl interact::Interaction for Talkable {
+    fn interact(&self,commands: &mut Commands,entity:Entity,prop:Entity,) {
+        println!("Talkable Interaction Impl");
+        commands.trigger_targets(DialogEvent {actor:prop}, prop);
+    }
+}
+impl Inspectable for Talkable {
+    fn inspect(
+        &self,
+        commands: &mut Commands,
+        actor: Entity,
+        prop: Entity,
+    ) {
+        println!("Talkable Inspectable Impl");
+    }
 }
 
 #[derive(Component, Clone, Hash, Debug, Eq, PartialEq, Default)]
@@ -76,7 +96,12 @@ pub struct SpritesPlugin;
 impl Plugin for SpritesPlugin {
     fn build(&self, app: &mut App) {
         trace!("SpritesPlugin build");
-        //app.add_collection_to_loading_state::<_, ImageAssets>(GameState::Loading)
+        app.add_loading_state(
+            LoadingState::new(GameState::Preload)
+                .load_collection::<ImageAssets>(),
+        )
+        .register_component_as::<dyn interact::Interaction, Talkable>()
+        .register_component_as::<dyn interact::Inspectable, Talkable>();
         app.add_event::<SpriteEvent>()
             .add_systems(Update, sprite_handler.run_if(in_state(GameState::Gameplay)))
             .add_systems(Update, face_camera.run_if(in_state(GameState::Gameplay)))
@@ -119,11 +144,6 @@ fn sprite_handler(
 
                 info!("Character Sprite");
                 let mut c = commands.spawn((
-                    //Sprite3d {
-                    //    texture_atlas: Some(atlas),
-                    //    texture_atlas_keys: Some(()),
-                    //    ..default()
-                    //}
                     Sprite3dBuilder {
                         image: images.character_tileset.clone(),
                         pixels_per_metre: 16.,
@@ -134,9 +154,11 @@ fn sprite_handler(
                     FaceCamera {},
                     CharacterBundle::default(),
                     Collider::cuboid(0.5, 1., 0.5),
-                    //YarnNode::default(),
+                    YarnNode::default(),
                     //KinematicCharacterController::default(),
                     RigidBody::Kinematic,
+                    Transform::from_xyz(event.x, 1., event.y),
+                    Talkable,
                 ));
                 info!("Character Spawned");
                 info!("Character frames: {}", event.frames);
@@ -150,7 +172,6 @@ fn sprite_handler(
                         timer: timer.clone(),
                     });
                 }
-                //c.insert(Interactable::Trade);
             }
             SpriteType::Item => {
                 let atlas = TextureAtlas {
@@ -160,12 +181,6 @@ fn sprite_handler(
 
                 info!("Item Sprite");
                 let mut c = commands.spawn((
-                    //Sprite3d {
-                    //    image: images.character_tileset.clone(),
-                    //    pixels_per_metre: 16.,
-                    //    transform: Transform::from_xyz(event.x, 1.0, event.y),
-                    //    ..default()
-                    //}
                     Sprite3dBuilder {
                         image: images.tileset.clone(),
                         pixels_per_metre: 16.,
@@ -186,7 +201,6 @@ fn sprite_handler(
                 }
             }
         }
-        //info!("Match end");
     }
 }
 

@@ -1,0 +1,11 @@
+({
+    "health_1": File (
+        path: "HP/Style_1.png"
+    ),
+    "health_2": File (
+        path: "HP/Style_2.png"
+    ),
+    "health_3": File (
+        path: "HP/Style_3.png"
+    ),
+ })
