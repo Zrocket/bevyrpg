@@ -17,7 +17,7 @@ use bevy::window::CursorGrabMode;
 use leafwing_input_manager::prelude::*;
 
 use crate::interact::InteractEvent;
-use crate::shoot;
+use crate::{shoot, PauseMenuState};
 
 //#[derive(Actionlike, Clone, Debug, Copy, PartialEq, Eq, Hash, Reflect)]
 //#[actionlike(DualAxis)]
@@ -41,9 +41,11 @@ impl Plugin for ControllerPlugin {
                     player_raycast.run_if(in_state(GameState::Gameplay)),
                     manage_inventory.run_if(in_state(GameState::Gameplay)),
                     inventory_navigation.in_set(TnuaUserControlsSystemSet),
-                    manage_menu.run_if(in_state(GameState::Gameplay)),
+                    //manage_menu.run_if(in_state(GameState::Paused)),
                 )
-            );
+            )
+            .add_systems(OnEnter(PauseMenuState::MainMenu), open_pause_menu)
+            .add_systems(OnExit(PauseMenuState::MainMenu), close_pause_menu);
 
         app.add_systems(
             Update,
