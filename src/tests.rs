@@ -1,21 +1,32 @@
-use bevy::{asset::RenderAssetUsages, prelude::*, render::{camera::RenderTarget, render_resource::{Extent3d, TextureFormat, TextureUsages}}};
+use bevy::{asset::RenderAssetUsages, prelude::*, render::{camera::RenderTarget, render_resource::{Extent3d, TextureFormat, TextureUsages}}, state::state::FreelyMutableState};
+use bevy_asset_loader::dynamic_asset::{DynamicAssetCollections, DynamicAssets};
 use ratatui::Frame;
 use soft_ratatui::SoftBackend;
 
-use crate::{new_computer_screen, ChangeScreenEvent, ComputerTextureCam, DamageEvent, Description, Health, Inventory, Item,  MyProcGenMaterial, PickUpEvent, Player, RemoveEvent, SoftTerminal};
+use crate::{level::DA_LevelAsset, new_computer_screen, ChangeScreenEvent, ComputerTextureCam, DamageEvent, Description, GameState, Health, Inventory, Item, MyProcGenMaterial, PickUpEvent, Player, RemoveEvent, SoftTerminal};
 use super::Weight;
 
 pub struct TestsPlugin;
 impl Plugin for TestsPlugin {
     fn build(&self, app: &mut App) {
-        //app
-           // .add_systems(Update, (
+        app
+            .add_systems(Update, (
+                    dynamic_asset_test
                     //computer_test,
                     //health_test,
                     //inventory_add_test,
                     //inventory_remove_test,
-            //));
+            ));
     }
+}
+
+
+fn dynamic_asset_test(
+    dynamic_assets: Res<DynamicAssetCollections<GameState>>,
+    //level_asset: Res<DA_LevelAsset>,
+) {
+    println!(" DYNAMICASSETS: {:?}", dynamic_assets);
+    //println!("LEVELASSET: {:?}", level_asset);
 }
 
 fn _computer_test (

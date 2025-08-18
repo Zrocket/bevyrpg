@@ -1,14 +1,9 @@
 use avian_pickup::prelude::*;
 use avian3d::prelude::*;
 use bevy::{
-    asset::RenderAssetUsages,
-    log::LogPlugin,
-    prelude::*,
-    render::render_resource::{Extent3d, TextureFormat, TextureUsages},
-    window::{ /*Cursor,*/ CursorGrabMode, CursorOptions, WindowResolution,},
+    log::LogPlugin, platform::collections::HashMap, prelude::*, state::state::FreelyMutableState, window::{ CursorGrabMode, CursorOptions, WindowResolution,}
 };
 use bevy_asset_loader::prelude::*;
-use bevy_console::ConsoleOpen;
 use bevy_inspector_egui::quick::WorldInspectorPlugin;
 use bevy_skein::SkeinPlugin;
 use bevy_sprite3d::Sprite3dPlugin;
@@ -19,15 +14,16 @@ mod character;
 mod console;
 mod controller;
 mod devroom;
-mod fpsdevroom;
 mod dialog;
 mod enemy;
+mod fpsdevroom;
 mod furniture;
 mod interact;
 mod inventory;
 mod items;
 mod level;
 mod magic;
+mod navmesh;
 mod player;
 mod render;
 mod rover;
@@ -46,18 +42,16 @@ pub use furniture::*;
 pub use interact::*;
 pub use inventory::*;
 pub use items::*;
-use level::*;
+pub use navmesh::*;
 pub use player::*;
 pub use render::*;
 pub use rover::*;
 pub use shoot::*;
 pub use sprites::*;
-use tests::TestsPlugin;
 pub use ui::*;
 pub use utils::*;
-
-pub const RESOLUTION_HEIGHT: f32 = 720.0;
-pub const RESOLUTION_WIDTH: f32 = 1280.0;
+use level::*;
+use tests::TestsPlugin;
 
 #[derive(Parser, Debug)]
 struct Args {
@@ -72,24 +66,25 @@ struct Args {
 #[derive(Clone, Hash, Debug, Eq, PartialEq, Default, SubStates)]
 #[source(GameState = GameState::Paused)]
 pub enum PauseMenuState {
+    ControllerSettings,
+    GameplaySettings,
     #[default]
     MainMenu,
     Settings,
-    ControllerSettings,
-    GameplaySettings,
-    VideoSettings,
     SoundSettings,
+    VideoSettings,
 }
 
 #[derive(Clone, Hash, Debug, Eq, PartialEq, Default, States)]
 pub enum GameState {
-    MainMenu,
-    Inventory,
     Console,
     Gameplay,
+    Inventory,
+    Loading,
+    MainMenu,
     Paused,
     #[default]
-    Loading,
+    Preload,
 }
 
 fn main() {
@@ -142,6 +137,7 @@ fn main() {
             TestsPlugin,
             Sprite3dPlugin,
             DialogPlugin,
+            NavMeshPlugin,
     ));
     app.add_systems(Update, pause_game);
 
@@ -160,9 +156,14 @@ fn main() {
         .init_state::<GameState>()
         .add_sub_state::<PauseMenuState>()
         .add_loading_state(
+            LoadingState::new(GameState::Preload)
+                .continue_to_state(GameState::Loading)
+                .on_failure_continue_to_state(GameState::Gameplay)
+        )
+        .add_loading_state(
             LoadingState::new(GameState::Loading)
                 .continue_to_state(GameState::Gameplay)
-                .on_failure_continue_to_state(GameState::Gameplay), //.load_collection::<ImageAssets>(),
+                .on_failure_continue_to_state(GameState::Gameplay)
         );
         app.run();
 }
@@ -171,6 +172,7 @@ fn pause_game(
     key: Res<ButtonInput<KeyCode>>,
     game_state: ResMut<State<GameState>>,
     mut  game_state_setter: ResMut<NextState<GameState>>,
+    mut physics_time: ResMut<Time<Physics>>,
     //pause_menu_state: ResMut<State<PauseMenuState>>,
     //mut pause_menu_state_setter: ResMut<NextState<PauseMenuState>>,
 ) {
@@ -179,9 +181,12 @@ fn pause_game(
         match game_state.get() {
             GameState::Gameplay => {
                 game_state_setter.set(GameState::Paused);
-                //pause_menu_state_setter.set(PauseMenuState::MainMenu);
+                physics_time.pause();
             },
-            GameState::Paused   => game_state_setter.set(GameState::Gameplay),
+            GameState::Paused   => {
+                game_state_setter.set(GameState::Gameplay);
+                physics_time.unpause();
+            },
             _                   => {}
         }
     }
