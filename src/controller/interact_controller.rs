@@ -72,24 +72,18 @@ pub fn manage_interact(
 
 pub fn manage_inspect(
     mut commands: Commands,
-    ray_caster: SpatialQuery,
     player: Query<(Entity, &RayHit), With<Player>>,
-    camera_query: Query<(&Camera, &GlobalTransform), Without<HeldProp>>,
     inspection_query: Query<&dyn Inspectable>,
     held_prop_query: Query<&HeldProp>,
 ) {
     trace!("SYSTEM: manage_inspect");
-    if let Ok((player, ray_hit)) = player.single() {
-        //info!("got player");
-
-        if let Ok(_held_prop) = held_prop_query.single() {
-            return;
-        }
-        if let Ok(inspection) = inspection_query.get(ray_hit.0) {
-            //info!("ray inspection");
-            for act in inspection.iter() {
-                act.inspect(&mut commands, player, ray_hit.0);
-            }
+    if let Ok(_held_prop) = held_prop_query.single() {
+        return;
+    }
+    if let Ok((player, ray_hit)) = player.single()
+    && let Ok(inspection) = inspection_query.get(ray_hit.0) {
+        for act in inspection.iter() {
+            act.inspect(&mut commands, player, ray_hit.0);
         }
     }
 }

@@ -1,0 +1,14 @@
+({
+    "uzi": File (
+        path: "guns/uzi.glb"
+    ),
+    "shotgun": File (
+        path: "guns/shotgun.glb"
+    ),
+    "sniper": File (
+        path: "guns/sniper.glb"
+    ),
+    "mp5": File (
+        path: "guns/smg-mp5.glb"
+    )
+ })

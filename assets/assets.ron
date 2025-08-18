@@ -1,0 +1,35 @@
+({
+    "levels": Files (
+        paths: ["levels/World.glb", "levels/fps.glb"],
+    ),
+    "guns": Files (
+        paths: ["guns/uzi.glb", "guns/shotgun.glb", "guns/sniper.glb", "guns/smg-mp5.glb"]
+    ),
+    "health_1": File (
+        path: "HP/Style_1.png"
+    ),
+    "health_2": File (
+        path: "HP/Style_2.png"
+    ),
+    "health_3": File (
+        path: "HP/Style_3.png"
+    ),
+    "devroom": File (
+        path: "levels/World.glb"
+    ),
+    "fps": File (
+        path: "levels/fps.glb"
+    ),
+    "uzi": File (
+        path: "guns/uzi.glb"
+    ),
+    "shotgun": File (
+        path: "guns/shotgun.glb"
+    ),
+    "sniper": File (
+        path: "guns/sniper.glb"
+    ),
+    "mp5": File (
+        path: "guns/smg-mp5.glb"
+    )
+ })
