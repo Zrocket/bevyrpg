@@ -2,6 +2,14 @@ use super::*;
 use bevy::color::palettes::css::CRIMSON;
 use jonmo::prelude::*;
 
+pub struct InventoryUIPlugin;
+impl Plugin for InventoryUIPlugin {
+    fn build(&self, app: &mut App) {
+       app
+           .add_systems(OnEnter(GameState::Gameplay), jonmo_draw_inventory_ui); 
+    }
+}
+
 pub fn draw_inventory_ui(
     mut commands: Commands,
     items: Query<(Entity, &Name, &InInventory)>,
