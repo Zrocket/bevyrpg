@@ -17,7 +17,7 @@ use bevy::window::CursorGrabMode;
 use leafwing_input_manager::prelude::*;
 
 use crate::interact::InteractEvent;
-use crate::{shoot, PauseMenuState};
+use crate::{shoot, ShootEvent};
 
 //#[derive(Actionlike, Clone, Debug, Copy, PartialEq, Eq, Hash, Reflect)]
 //#[actionlike(DualAxis)]
@@ -30,6 +30,7 @@ impl Plugin for ControllerPlugin {
     fn build(&self, app: &mut App) {
         app.add_event::<InteractEvent>()
             .add_plugins(InputManagerPlugin::<Action>::default())
+            .add_plugins(MenuControllerPlugin)
             .register_type::<RayHit>();
             //.add_systems(Update, manage_cursor) //.run_if(in_state(GameState::Gameplay)))
             app.add_systems(
@@ -41,11 +42,8 @@ impl Plugin for ControllerPlugin {
                     player_raycast.run_if(in_state(GameState::Gameplay)),
                     manage_inventory.run_if(in_state(GameState::Gameplay)),
                     inventory_navigation.in_set(TnuaUserControlsSystemSet),
-                    //manage_menu.run_if(in_state(GameState::Paused)),
                 )
-            )
-            .add_systems(OnEnter(PauseMenuState::MainMenu), open_pause_menu)
-            .add_systems(OnExit(PauseMenuState::MainMenu), close_pause_menu);
+            );
 
         app.add_systems(
             Update,
@@ -68,6 +66,7 @@ impl Plugin for ControllerPlugin {
 
 fn manage_cursor(
     mut windows: Query<&mut Window>,
+    mut commands: Commands,
     btn: Res<ButtonInput<MouseButton>>,
     key: Res<ButtonInput<KeyCode>>,
     mut controllers: Query<&mut PlayerController>,
@@ -84,6 +83,7 @@ fn manage_cursor(
             }
         } else if btn.just_pressed(MouseButton::Left) {
             shoot_event_writer.write(shoot::ShootEvent);
+            commands.trigger(ShootEvent);
         }
 
         if key.just_pressed(KeyCode::Escape) {

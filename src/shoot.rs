@@ -10,13 +10,16 @@ const ROCKET_SIZE: f32 = 0.1;
 #[derive(Event)]
 pub struct ShootEvent;
 
-#[derive(Debug, Component)]
+#[derive(Debug, Component, Reflect)]
+pub struct Cooldown(Timer);
+
+#[derive(Debug, Component, Reflect)]
 pub struct Grenade(Timer); /*{
     damage: i32,
     splash_radius: i32,
 }*/
 
-#[derive(Debug, Component)]
+#[derive(Debug, Component, Reflect)]
 pub struct Rocket; /*{
     damage: i32,
     splash_radius: i32,
@@ -26,6 +29,9 @@ pub struct ShootPlugin;
 impl Plugin for ShootPlugin {
     fn build(&self, app: &mut App) {
         app.add_event::<ShootEvent>()
+            .register_type::<Grenade>()
+            .register_type::<Rocket>()
+            .register_type::<Cooldown>()
             //.add_systems(Update, shoot.run_if(in_state(GameState::Gameplay)));
             .add_systems(Update, (
                 //shoot_grenade.run_if(in_state(GameState::Gameplay)),
