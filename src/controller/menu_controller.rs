@@ -1,47 +1,38 @@
-use crate::{ActiveUi, PauseMenuState, Player, UiIndex, UiMenu};
+use crate::{PauseMenuState, UiControllerSettings, UiIndex, UiMenu, UiSettings, UiSoundSettings};
 use bevy::prelude::*;
 
 pub struct MenuControllerPlugin;
 impl Plugin for MenuControllerPlugin {
     fn build(&self, app: &mut App) {
         app
-            .add_systems(OnEnter(PauseMenuState::MainMenu), open_pause_menu)
-            .add_systems(OnExit(PauseMenuState::MainMenu), close_pause_menu)
-            .add_systems(Update, menu_navigation);
+            .add_systems(OnEnter(PauseMenuState::MainMenu), ui_open::<UiMenu>)
+            .add_systems(OnExit(PauseMenuState::MainMenu), ui_close::<UiMenu>)
+            .add_systems(OnEnter(PauseMenuState::Settings), ui_open::<UiSettings>)
+            .add_systems(OnExit(PauseMenuState::Settings), ui_close::<UiSettings>)
+            .add_systems(OnEnter(PauseMenuState::SoundSettings), ui_open::<UiSoundSettings>)
+            .add_systems(OnExit(PauseMenuState::SoundSettings), ui_close::<UiSoundSettings>)
+            .add_systems(OnEnter(PauseMenuState::ControllerSettings), ui_open::<UiControllerSettings>)
+            .add_systems(OnExit(PauseMenuState::ControllerSettings), ui_close::<UiControllerSettings>);
     }
 }
 
-pub fn _manage_menu(
-    mut commands: Commands,
-    key: Res<ButtonInput<KeyCode>>,
-    mut menu_node_query: Query<&mut Node, With<UiMenu>>,
+pub fn ui_open<T: Component>(
+    mut node_query: Query<&mut Node, With<T>>,
 ) {
-    if key.just_pressed(KeyCode::Semicolon)
-    && let Ok(mut menu_node) = menu_node_query.single_mut() {
-        match menu_node.display {
-            Display::None => menu_node.display = Display::Flex,
-            _ => menu_node.display = Display::None,
-        }
+    for mut node in node_query.iter_mut() {
+        node.display = Display::Flex;
     }
 }
 
-pub fn open_pause_menu(
-    mut menu_node_query: Query<&mut Node, With<UiMenu>>,
+pub fn ui_close<T: Component>(
+    mut node_query: Query<&mut Node, With<T>>,
 ) {
-    if let Ok(mut menu_node) = menu_node_query.single_mut() {
-        menu_node.display = Display::Flex;
+    for mut node in node_query.iter_mut() {
+        node.display = Display::None;
     }
 }
 
-pub fn close_pause_menu(
-    mut menu_node_query: Query<&mut Node, With<UiMenu>>,
-) {
-    if let Ok(mut menu_node) = menu_node_query.single_mut() {
-        menu_node.display = Display::None;
-    }
-}
-
-pub fn menu_navigation(
+pub fn _menu_navigation(
     key: Res<ButtonInput<KeyCode>>,
     mut menu_node_query: Query<&mut Node, With<UiMenu>>,
     mut index_query: Query<&mut UiIndex, With<UiMenu>>,

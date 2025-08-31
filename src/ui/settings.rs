@@ -1,106 +1,53 @@
-use bevy::{color::palettes::css::CRIMSON, window::SystemCursorIcon};
+use bevy::{color::palettes::css::{CORNSILK, CRIMSON}, window::SystemCursorIcon};
 use jonmo::prelude::*;
 
 use super::*;
 
+#[derive(Component, Reflect)]
+pub struct UiMenu;
+
+#[derive(Component, Reflect)]
+pub struct UiSettings;
+
+#[derive(Component, Reflect)]
+pub struct UiVideoSettings;
+
+#[derive(Component, Reflect)]
+pub struct UiControllerSettings;
+
+#[derive(Component, Reflect)]
+pub struct UiSoundSettings;
+
+#[derive(Component, Reflect)]
+pub struct UiGameplaySettings;
+
 pub struct MenuUiPlugin;
 impl Plugin for MenuUiPlugin {
     fn build(&self, app: &mut App) {
-        app;
+        app
+            .register_type::<UiMenu>()
+            .add_systems(OnEnter(GameState::Gameplay), (
+                jonmo_draw_menu_ui,
+                jonmo_draw_settings_ui,
+                jonmo_draw_sound_settings_ui,
+                //jonmo_draw_video_settings_ui,
+                jonmo_draw_controller_settings_ui,
+            ));
     }
-}
-
-pub fn draw_menu_ui(
-    mut commands: Commands,
-    asset_server: Res<AssetServer>,
-) {
-    trace!("draw_menu_ui");
-    let menu_parent = commands
-        .spawn((
-            Node {
-                position_type: PositionType::Absolute,
-                width: Val::Percent(80.),
-                height: Val::Percent(80.),
-                left: Val::Percent(10.),
-                flex_direction: FlexDirection::Column,
-                justify_content: JustifyContent::Center,
-                align_self: AlignSelf::Center,
-                flex_wrap: FlexWrap::Wrap,
-                display:  Display::None,
-                ..default()
-            },
-            BackgroundColor(CRIMSON.into()),
-            UiMenu,
-            UiIndex(0),
-        ))
-        .id();
-
-    let item_settings = commands
-        .spawn((
-            Node { ..default() },
-            Button,
-            Text("Settings".to_string()),
-            TextColor(Color::WHITE),
-            TextFont {
-                font: asset_server.load("FiraSans-Bold.ttf"),
-                font_size: 50.0,
-                ..default()
-            },
-        ))
-        .id();
-    let item_save = commands
-        .spawn((
-            Node { ..default() },
-            Button,
-            Text("Save".to_string()),
-            TextColor(Color::WHITE),
-            TextFont {
-                font: asset_server.load("FiraSans-Bold.ttf"),
-                font_size: 50.0,
-                ..default()
-            },
-        ))
-        .id();
-    let item_load = commands
-        .spawn((
-            Node { ..default() },
-            Button,
-            Text("Load".to_string()),
-            TextColor(Color::WHITE),
-            TextFont {
-                font: asset_server.load("FiraSans-Bold.ttf"),
-                font_size: 50.0,
-                ..default()
-            },
-        ))
-        .id();
-    let item_quit = commands
-        .spawn((
-            Node { ..default() },
-            Button,
-            Text("Quit".to_string()),
-            TextColor(Color::WHITE),
-            TextFont {
-                font: asset_server.load("FiraSans-Bold.ttf"),
-                font_size: 50.0,
-                ..default()
-            },
-        ))
-        .id();
-
-    commands.entity(menu_parent)
-        .add_child(item_settings)
-        .add_child(item_save)
-        .add_child(item_load)
-        .add_child(item_quit);
 }
 
 pub fn jonmo_draw_menu_ui(
     world: &mut World,
 ) {
     trace!("draw_menu_ui");
+
+    let settings_hover = LazyEntity::new();
+    let save_hover = LazyEntity::new();
+    let load_hover = LazyEntity::new();
+    let quit_hover = LazyEntity::new();
+
     let asset_server = world.resource::<AssetServer>();
-    let menu_parent = JonmoBuilder::from((
+    JonmoBuilder::from((
         Node {
             position_type: PositionType::Absolute,
             width: Val::Percent(80.),
@@ -115,58 +62,109 @@ pub fn jonmo_draw_menu_ui(
         },
         BackgroundColor(CRIMSON.into()),
         UiMenu,
-        UiIndex(0),
-    ));
+        Name::new("PauseMenu"),
+        //UiIndex(0),
+    ))
+    .child(jonmo_sub_menu_item(settings_hover.clone(), asset_server, "Settings", PauseMenuState::Settings))
+    .child(jonmo_menu_item(save_hover.clone(), asset_server, "Save"))
+    .child(jonmo_menu_item(load_hover.clone(), asset_server, "Load"))
+    .child(jonmo_menu_item(quit_hover.clone(), asset_server, "Quit"))
+    .spawn(world);
+}
 
-    let item_settings = JonmoBuilder::from((
+fn jonmo_menu_item(
+    holder: LazyEntity,
+    asset_server: &AssetServer,
+    label: &'static str,
+) -> JonmoBuilder {
+    let hover = LazyEntity::new();
+    let hover_observer_1 = hover.clone();
+    let hover_observer_2 = hover.clone();
+    JonmoBuilder::from((
         Node { ..default() },
-        Text("Settings".to_string()),
+        Text(label.to_string()),
         TextColor(Color::WHITE),
         TextFont {
             font: asset_server.load("FiraSans-Bold.ttf"),
             font_size: 50.0,
             ..default()
         }
-    ));
+    ))
+    .insert(Hoverable(false))
+    .entity_sync(hover.clone())
+    .with_entity(move |mut entity| {
+        entity.observe(move |trigger: Trigger<Pointer<Over>>, mut hover_query: Query<&mut Hoverable>| {
+            if let Ok(mut hover) = hover_query.get_mut(hover_observer_1.get()) {
+                hover.0 = true;
+            }
+        });
+        entity.observe(move |trigger: Trigger<Pointer<Out>>, mut hover_query: Query<&mut Hoverable>| {
+            if let Ok(mut hover) = hover_query.get_mut(hover_observer_2.get()) {
+                hover.0 = false;
+            }
+        });
+    })
+    .component_signal(SignalBuilder::from_component_lazy(hover.clone())
+        .map_in(|hover: Hoverable| hover.0)
+        .dedupe()
+        .map_in(move |hover: bool| {
+            if hover {
+                BackgroundColor(CORNSILK.into())
+            } else {
+                BackgroundColor(CRIMSON.into())
+            }
+        })
+        .map_in(Some))
+}
 
-    let item_save = JonmoBuilder::from((
+fn jonmo_sub_menu_item(
+    holder: LazyEntity,
+    asset_server: &AssetServer,
+    label: &'static str,
+    new_state: PauseMenuState,
+) -> JonmoBuilder {
+    let holder = LazyEntity::new();
+    let hover_observer_1 = holder.clone();
+    let hover_observer_2 = holder.clone();
+    JonmoBuilder::from((
         Node { ..default() },
-        Text("Save".to_string()),
+        Text(label.to_string()),
         TextColor(Color::WHITE),
         TextFont {
             font: asset_server.load("FiraSans-Bold.ttf"),
             font_size: 50.0,
             ..default()
         }
-    ));
+    ))
+    .insert(Hoverable(false))
+    .entity_sync(holder.clone())
+    .with_entity(move |mut entity| {
+        entity.observe(move |trigger: Trigger<Pointer<Over>>, mut hover_query: Query<&mut Hoverable>| {
+            if let Ok(mut hover) = hover_query.get_mut(hover_observer_1.get()) {
+                hover.0 = true;
+            }
+        });
+        entity.observe(move |trigger: Trigger<Pointer<Out>>, mut hover_query: Query<&mut Hoverable>| {
+            if let Ok(mut hover) = hover_query.get_mut(hover_observer_2.get()) {
+                hover.0 = false;
+            }
+        });
+        entity.observe(move |trigger: Trigger<Pointer<Click>>, mut pause_state: ResMut<NextState<PauseMenuState>>| {
+            pause_state.set(new_state.clone());
+        });
+    })
+    .component_signal(SignalBuilder::from_component_lazy(holder.clone())
+        .map_in(|hover: Hoverable| hover.0)
+        .dedupe()
+        .map_in(move |hover: bool| {
+            if hover {
+                BackgroundColor(CORNSILK.into())
+            } else {
+                BackgroundColor(CRIMSON.into())
+            }
+        })
+        .map_in(Some))
 
-    let item_load = JonmoBuilder::from((
-        Node { ..default() },
-        Text("Load".to_string()),
-        TextColor(Color::WHITE),
-        TextFont {
-            font: asset_server.load("FiraSans-Bold.ttf"),
-            font_size: 50.0,
-            ..default()
-        }
-    ));
-
-    let item_quit = JonmoBuilder::from((
-        Node { ..default() },
-        Text("Quit".to_string()),
-        TextColor(Color::WHITE),
-        TextFont {
-            font: asset_server.load("FiraSans-Bold.ttf"),
-            font_size: 50.0,
-            ..default()
-        }
-    ));
-
-    menu_parent.child(item_settings)
-        .child(item_save)
-        .child(item_load)
-        .child(item_quit)
-        .spawn(world);
 }
 
 fn jonmo_menu_button(
@@ -188,448 +186,124 @@ fn jonmo_menu_button(
     })
 }
 
-pub fn _draw_settings_ui(
-    mut commands: Commands,
-    target: Query<Entity, With<ActiveUi>>,
-    asset_server: Res<AssetServer>,
-) {
-    trace!("draw_settings_ui");
-    for _target_entity in target.iter() {
-        let menu_parent = commands
-            .spawn((
-                Node {
-                    position_type: PositionType::Absolute,
-                    width: Val::Percent(80.),
-                    height: Val::Percent(80.),
-                    left: Val::Percent(10.),
-                    flex_direction: FlexDirection::Column,
-                    justify_content: JustifyContent::Center,
-                    align_self: AlignSelf::Center,
-                    flex_wrap: FlexWrap::Wrap,
-                    ..default()
-                },
-                BackgroundColor(CRIMSON.into()),
-                UiMenu,
-                UiIndex(0),
-            ))
-            .id();
-
-        let item_video = commands
-            .spawn((
-                Node { ..default() },
-                Button,
-                Text("Video Settings".to_string()),
-                TextColor(Color::WHITE),
-                TextFont {
-                    font: asset_server.load("FiraSans.Bold.ttf"),
-                    font_size: 50.0,
-                    ..default()
-                },
-            ))
-            .id();
-        let item_controller = commands
-            .spawn((
-                Node { ..default() },
-                Button,
-                Text("Controller Settings".to_string()),
-                TextColor(Color::WHITE),
-                TextFont {
-                    font: asset_server.load("FiraSans.Bold.ttf"),
-                    font_size: 50.0,
-                    ..default()
-                },
-            ))
-            .id();
-        let item_sound = commands
-            .spawn((
-                Node { ..default() },
-                Button,
-                Text("Sound Settings".to_string()),
-                TextColor(Color::WHITE),
-                TextFont {
-                    font: asset_server.load("FiraSans.Bold.ttf"),
-                    font_size: 50.0,
-                    ..default()
-                },
-            ))
-            .id();
-        let item_gameplay = commands
-            .spawn((
-                Node { ..default() },
-                Button,
-                Text("Gameplay Settings".to_string()),
-                TextColor(Color::WHITE),
-                TextFont {
-                    font: asset_server.load("FiraSans.Bold.ttf"),
-                    font_size: 50.0,
-                    ..default()
-                },
-            ))
-            .id();
-
-        commands.entity(menu_parent)
-            .add_child(item_video)
-            .add_child(item_controller)
-            .add_child(item_sound)
-            .add_child(item_gameplay);
-    }
-}
-
 pub fn jonmo_draw_settings_ui(
     world: &mut World,
-    target: Query<Entity, With<ActiveUi>>,
 ) {
     trace!("draw_settings_ui");
-    for _target_entity in target.iter() {
-        let asset_server = world.resource::<AssetServer>();
-        let menu_parent = JonmoBuilder::from((
-                Node {
-                    position_type: PositionType::Absolute,
-                    width: Val::Percent(80.),
-                    height: Val::Percent(80.),
-                    left: Val::Percent(10.),
-                    flex_direction: FlexDirection::Column,
-                    justify_content: JustifyContent::Center,
-                    align_self: AlignSelf::Center,
-                    flex_wrap: FlexWrap::Wrap,
-                    ..default()
-                },
-                BackgroundColor(CRIMSON.into()),
-                UiMenu,
-                UiIndex(0),
-        ));
-        let item_video = JonmoBuilder::from((
-                Node { ..default() },
-                Button,
-                Text("Video Settings".to_string()),
-                TextColor(Color::WHITE),
-                TextFont {
-                    font: asset_server.load("FiraSans.Bold.ttf"),
-                    font_size: 50.0,
-                    ..default()
-                },
-        ));
-        let item_controller = JonmoBuilder::from((
-                Node { ..default() },
-                Button,
-                Text("Controller Settings".to_string()),
-                TextColor(Color::WHITE),
-                TextFont {
-                    font: asset_server.load("FiraSans.Bold.ttf"),
-                    font_size: 50.0,
-                    ..default()
-                },
-        ));
-        let item_sound = JonmoBuilder::from((
-                Node { ..default() },
-                Button,
-                Text("Sound Settings".to_string()),
-                TextColor(Color::WHITE),
-                TextFont {
-                    font: asset_server.load("FiraSans.Bold.ttf"),
-                    font_size: 50.0,
-                    ..default()
-                },
-        ));
-        let item_gameplay = JonmoBuilder::from((
-                Node { ..default() },
-                Button,
-                Text("Gameplay Settings".to_string()),
-                TextColor(Color::WHITE),
-                TextFont {
-                    font: asset_server.load("FiraSans.Bold.ttf"),
-                    font_size: 50.0,
-                    ..default()
-                },
-        ));
+    let asset_server = world.resource::<AssetServer>();
 
-        menu_parent.child(item_video)
-            .child(item_controller)
-            .child(item_sound)
-            .child(item_gameplay)
-            .spawn(world);
-    }
-}
+    let video_hover = LazyEntity::new();
+    let controller_hover = LazyEntity::new();
+    let sound_hover = LazyEntity::new();
+    let gameplay_hover = LazyEntity::new();
 
-pub fn _draw_controller_settings_ui(
-    mut commands: Commands,
-    target: Query<Entity, With<ActiveUi>>,
-    asset_server: Res<AssetServer>,
-) {
-    trace!("draw_controller_settings_ui");
-    for _target_entity in target.iter() {
-        info!("Drawing MenuUi");
-
-        let menu_parent = commands
-            .spawn((
-                Node {
-                    position_type: PositionType::Absolute,
-                    width: Val::Percent(80.),
-                    height: Val::Percent(80.),
-                    left: Val::Percent(10.),
-                    flex_direction: FlexDirection::Column,
-                    justify_content: JustifyContent::Center,
-                    align_self: AlignSelf::Center,
-                    flex_wrap: FlexWrap::Wrap,
-                    ..default()
-                },
-                BackgroundColor(CRIMSON.into()),
-                UiMenu,
-                UiIndex(0),
-            ))
-            .id();
-
-        let item_mouse_sensetivity = commands
-            .spawn((
-                Node { ..default() },
-                Button,
-                Text("Mouse Sensetivity".to_string()),
-                TextColor(Color::WHITE),
-                TextFont {
-                    font: asset_server.load("FiraSans.Bold.ttf"),
-                    font_size: 50.0,
-                    ..default()
-                },
-            ))
-            .id();
-        let item_key_bindings = commands
-            .spawn((
-                Node { ..default() },
-                Button,
-                Text("Key Bindings".to_string()),
-                TextColor(Color::WHITE),
-                TextFont {
-                    font: asset_server.load("FiraSans.Bold.ttf"),
-                    font_size: 50.0,
-                    ..default()
-                },
-            ))
-            .id();
-
-        commands.entity(menu_parent)
-            .add_child(item_mouse_sensetivity)
-            .add_child(item_key_bindings);
-    }
+    JonmoBuilder::from((
+        Node {
+            position_type: PositionType::Absolute,
+            width: Val::Percent(80.),
+            height: Val::Percent(80.),
+            left: Val::Percent(10.),
+            flex_direction: FlexDirection::Column,
+            justify_content: JustifyContent::Center,
+            align_self: AlignSelf::Center,
+            flex_wrap: FlexWrap::Wrap,
+            display: Display::None,
+            ..default()
+        },
+        BackgroundColor(CRIMSON.into()),
+        UiSettings,
+        Name::new("SettingsMenu"),
+    ))
+    .child(jonmo_sub_menu_item(video_hover.clone(), asset_server, "Video Settings", PauseMenuState::VideoSettings))
+    .child(jonmo_sub_menu_item(controller_hover.clone(), asset_server, "Controller Settings", PauseMenuState::ControllerSettings))
+    .child(jonmo_sub_menu_item(sound_hover.clone(), asset_server, "Sound Settings", PauseMenuState::SoundSettings))
+    .child(jonmo_sub_menu_item(gameplay_hover.clone(), asset_server, "Gameplay Settings", PauseMenuState::GameplaySettings))
+    .spawn(world);
 }
 
 pub fn jonmo_draw_controller_settings_ui(
     world: &mut World,
-    target: Query<Entity, With<ActiveUi>>,
 ) {
     trace!("draw_controller_settings_ui");
-    for _target_entity in target.iter() {
-        let asset_server = world.resource::<AssetServer>();
-        info!("Drawing MenuUi");
+    let asset_server = world.resource::<AssetServer>();
+    info!("Drawing MenuUi");
 
-        let menu_parent = JonmoBuilder::from((
-                Node {
-                    position_type: PositionType::Absolute,
-                    width: Val::Percent(80.),
-                    height: Val::Percent(80.),
-                    left: Val::Percent(10.),
-                    flex_direction: FlexDirection::Column,
-                    justify_content: JustifyContent::Center,
-                    align_self: AlignSelf::Center,
-                    flex_wrap: FlexWrap::Wrap,
-                    ..default()
-                },
-                BackgroundColor(CRIMSON.into()),
-                UiMenu,
-                UiIndex(0),
-        ));
-        let item_mouse_sensetivity = JonmoBuilder::from((
-                Node { ..default() },
-                Button,
-                Text("Mouse Sensetivity".to_string()),
-                TextColor(Color::WHITE),
-                TextFont {
-                    font: asset_server.load("FiraSans.Bold.ttf"),
-                    font_size: 50.0,
-                    ..default()
-                },
-        ));
-        let item_key_bindings = JonmoBuilder::from((
-                Node { ..default() },
-                Button,
-                Text("Key Bindings".to_string()),
-                TextColor(Color::WHITE),
-                TextFont {
-                    font: asset_server.load("FiraSans.Bold.ttf"),
-                    font_size: 50.0,
-                    ..default()
-                },
-        ));
+    let mouse_sensetivity_hover = LazyEntity::new();
+    let key_bindings_hover = LazyEntity::new();
 
-        menu_parent.child(item_mouse_sensetivity)
-            .child(item_key_bindings)
-            .spawn(world);
-    }
-}
-
-pub fn _draw_sound_settings_ui(
-    mut commands: Commands,
-    target: Query<Entity, With<ActiveUi>>,
-    asset_server: Res<AssetServer>,
-) {
-    trace!("draw_sound_settings_ui");
-    for _target_entity in target.iter() {
-        let menu_parent = commands
-            .spawn((
-                Node {
-                    position_type: PositionType::Absolute,
-                    width: Val::Percent(80.),
-                    height: Val::Percent(80.),
-                    left: Val::Percent(10.),
-                    flex_direction: FlexDirection::Column,
-                    justify_content: JustifyContent::Center,
-                    align_self: AlignSelf::Center,
-                    flex_wrap: FlexWrap::Wrap,
-                    ..default()
-                },
-                BackgroundColor(CRIMSON.into()),
-                UiMenu,
-                UiIndex(0),
-            ))
-            .id();
-
-        let item_music_volume = commands
-            .spawn((
-                Node { ..default() },
-                Button,
-                Text("Music Volume".to_string()),
-                TextColor(Color::WHITE),
-                TextFont {
-                    font: asset_server.load("FiraSans.Bold.ttf"),
-                    font_size: 50.0,
-                    ..default()
-                },
-            ))
-            .id();
-        let item_sound_volume = commands
-            .spawn((
-                Node { ..default() },
-                Button,
-                Text("Sound Volume".to_string()),
-                TextColor(Color::WHITE),
-                TextFont {
-                    font: asset_server.load("FiraSans.Bold.ttf"),
-                    font_size: 50.0,
-                    ..default()
-                },
-            ))
-            .id();
-
-        commands.entity(menu_parent)
-            .add_child(item_music_volume)
-            .add_child(item_sound_volume);
-    }
+    JonmoBuilder::from((
+            Node {
+                position_type: PositionType::Absolute,
+                width: Val::Percent(80.),
+                height: Val::Percent(80.),
+                left: Val::Percent(10.),
+                flex_direction: FlexDirection::Column,
+                justify_content: JustifyContent::Center,
+                align_self: AlignSelf::Center,
+                flex_wrap: FlexWrap::Wrap,
+                display: Display::None,
+                ..default()
+            },
+            BackgroundColor(CRIMSON.into()),
+            UiControllerSettings,
+    ))
+    .child(jonmo_menu_item(mouse_sensetivity_hover, &asset_server, "Mouse Sensetivity"))
+    .child(jonmo_menu_item(key_bindings_hover, &asset_server, "Key Bindings"))
+    .spawn(world);
 }
 
 pub fn jonmo_draw_sound_settings_ui(
     world: &mut World,
-    target: Query<Entity, With<ActiveUi>>,
 ) {
     trace!("draw_sound_settings_ui");
-    for _target_entity in target.iter() {
-        let asset_server = world.resource::<AssetServer>();
-        let menu_parent = JonmoBuilder::from((
-                Node {
-                    position_type: PositionType::Absolute,
-                    width: Val::Percent(80.),
-                    height: Val::Percent(80.),
-                    left: Val::Percent(10.),
-                    flex_direction: FlexDirection::Column,
-                    justify_content: JustifyContent::Center,
-                    align_self: AlignSelf::Center,
-                    flex_wrap: FlexWrap::Wrap,
-                    ..default()
-                },
-                BackgroundColor(CRIMSON.into()),
-                UiMenu,
-                UiIndex(0),
-        ));
-        let item_music_volume = JonmoBuilder::from((
-                Node { ..default() },
-                Button,
-                Text("Music Volume".to_string()),
-                TextColor(Color::WHITE),
-                TextFont {
-                    font: asset_server.load("FiraSans.Bold.ttf"),
-                    font_size: 50.0,
-                    ..default()
-                },
-        ));
-        let item_sound_volume = JonmoBuilder::from((
-                Node { ..default() },
-                Button,
-                Text("Sound Volume".to_string()),
-                TextColor(Color::WHITE),
-                TextFont {
-                    font: asset_server.load("FiraSans.Bold.ttf"),
-                    font_size: 50.0,
-                    ..default()
-                },
-        ));
+    let asset_server = world.resource::<AssetServer>();
 
-        menu_parent.child(item_music_volume)
-            .child(item_sound_volume)
-            .spawn(world);
-    }
-}
+    let music_volume_hover = LazyEntity::new();
+    let sound_volume_hover = LazyEntity::new();
 
-pub fn _draw_video_settings_ui(
-    mut commands: Commands,
-    target: Query<Entity, With<ActiveUi>>,
-    _projection: Query<&Projection>,
-    _asset_server: Res<AssetServer>,
-) {
-    trace!("draw_video_settings_ui");
-    for _target_entity in target.iter() {
-        let _menu_parent = commands
-            .spawn((
-                Node {
-                    position_type: PositionType::Absolute,
-                    width: Val::Percent(80.),
-                    height: Val::Percent(80.),
-                    left: Val::Percent(10.),
-                    flex_direction: FlexDirection::Column,
-                    justify_content: JustifyContent::Center,
-                    align_self: AlignSelf::Center,
-                    flex_wrap: FlexWrap::Wrap,
-                    ..default()
-                },
-                BackgroundColor(CRIMSON.into()),
-                UiMenu,
-                UiIndex(0),
-            ))
-            .id();
-    }
+    JonmoBuilder::from((
+            Node {
+                position_type: PositionType::Absolute,
+                width: Val::Percent(80.),
+                height: Val::Percent(80.),
+                left: Val::Percent(10.),
+                flex_direction: FlexDirection::Column,
+                justify_content: JustifyContent::Center,
+                align_self: AlignSelf::Center,
+                flex_wrap: FlexWrap::Wrap,
+                display: Display::None,
+                ..default()
+            },
+            BackgroundColor(CRIMSON.into()),
+            UiSoundSettings,
+            UiIndex(0),
+    ))
+    .child(jonmo_menu_item(music_volume_hover, &asset_server, "Music Volume"))
+    .child(jonmo_menu_item(sound_volume_hover, &asset_server, "Sound Volume"))
+    .spawn(world);
 }
 
 pub fn jonmo_draw_video_settings_ui(
     world: &mut World,
-    target: Query<Entity, With<ActiveUi>>,
     _projection: Query<&Projection>,
 ) {
     trace!("draw_video_settings_ui");
-    for _target_entity in target.iter() {
-        let asset_server = world.resource::<AssetServer>();
-        let _menu_parent = JonmoBuilder::from((
-                Node {
-                    position_type: PositionType::Absolute,
-                    width: Val::Percent(80.),
-                    height: Val::Percent(80.),
-                    left: Val::Percent(10.),
-                    flex_direction: FlexDirection::Column,
-                    justify_content: JustifyContent::Center,
-                    align_self: AlignSelf::Center,
-                    flex_wrap: FlexWrap::Wrap,
-                    ..default()
-                },
-                BackgroundColor(CRIMSON.into()),
-                UiMenu,
-                UiIndex(0),
-        ))
-        .spawn(world);
-    }
+    let asset_server = world.resource::<AssetServer>();
+    let _menu_parent = JonmoBuilder::from((
+            Node {
+                position_type: PositionType::Absolute,
+                width: Val::Percent(80.),
+                height: Val::Percent(80.),
+                left: Val::Percent(10.),
+                flex_direction: FlexDirection::Column,
+                justify_content: JustifyContent::Center,
+                align_self: AlignSelf::Center,
+                flex_wrap: FlexWrap::Wrap,
+                ..default()
+            },
+            BackgroundColor(CRIMSON.into()),
+            UiVideoSettings,
+            UiIndex(0),
+    ))
+    .spawn(world);
 }

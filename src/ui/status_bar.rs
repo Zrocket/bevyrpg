@@ -3,6 +3,14 @@ use jonmo::prelude::*;
 
 use super::*;
 
+pub struct StatusUIPlugin;
+impl Plugin for StatusUIPlugin {
+    fn build(&self, app: &mut App) {
+       app
+           .add_systems(OnEnter(GameState::Gameplay), (jonmo_draw_status_ui));
+    }
+}
+
 pub fn draw_status_ui(
     mut commands: Commands,
     asset_server: Res<AssetServer>,
