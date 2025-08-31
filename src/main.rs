@@ -63,7 +63,7 @@ struct Args {
     level: Option<String>,
 }
 
-#[derive(Clone, Hash, Debug, Eq, PartialEq, Default, SubStates)]
+#[derive(Clone, Hash, Debug, Eq, PartialEq, Default, SubStates, Reflect)]
 #[source(GameState = GameState::Paused)]
 pub enum PauseMenuState {
     ControllerSettings,
@@ -75,7 +75,7 @@ pub enum PauseMenuState {
     VideoSettings,
 }
 
-#[derive(Clone, Hash, Debug, Eq, PartialEq, Default, States)]
+#[derive(Clone, Hash, Debug, Eq, PartialEq, Default, States, Reflect)]
 pub enum GameState {
     Console,
     Gameplay,
@@ -134,7 +134,7 @@ fn main() {
         SkeinPlugin::default(),
     ))
     .add_plugins((
-            TestsPlugin,
+            //TestsPlugin,
             Sprite3dPlugin,
             DialogPlugin,
             NavMeshPlugin,
@@ -153,6 +153,8 @@ fn main() {
         app.add_plugins(WorldInspectorPlugin::new());
     }
     app.register_type::<RigidBody>()
+        .register_type::<GameState>()
+        .register_type::<PauseMenuState>()
         .init_state::<GameState>()
         .add_sub_state::<PauseMenuState>()
         .add_loading_state(
@@ -177,6 +179,7 @@ fn pause_game(
     //mut pause_menu_state_setter: ResMut<NextState<PauseMenuState>>,
 ) {
     trace!("SYSTEM: pause_game");
+    println!("{:?}", game_state.get());
     if key.just_pressed(KeyCode::Comma) {
         match game_state.get() {
             GameState::Gameplay => {
