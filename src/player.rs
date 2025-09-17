@@ -30,7 +30,8 @@ impl Plugin for GamePlayerPlugin {
         info!("GamePlayerPlugin build");
         app.register_type::<Player>()
             .register_type::<PlayerCamera>()
-            .add_systems(OnEnter(GameState::Loading), spawn_player);
+            .add_systems(OnEnter(GameState::Loading), spawn_player)
+            .add_systems(Update, player_forward.run_if(in_state(GameState::Gameplay)));
     }
 }
 
@@ -153,3 +154,22 @@ fn spawn_player(
         .add_child(gun);
 }
 
+fn player_forward(
+    cam_transform: Query<&Transform, (With<PlayerCamera>, Without<Player>)>,
+    mut player_transform: Query<&mut Transform, With<Player>>,
+) {
+    trace!("SYSTEM: player_forward");
+    if let Ok(cam_transform) = cam_transform.single() &&
+        let Ok(mut player_transform) = player_transform.single_mut() {
+            let forward = cam_transform.forward();
+            player_transform.look_to(*forward, Vec3::Y);
+    }
+
+
+    /*if let Ok(cam_transform) = cam_transform.single() {
+        let forward = cam_transform.forward();
+        if let Ok(mut player_transform) = player_transform.single_mut() {
+            player_transform.look_to(*forward, Vec3::Y);
+        }
+    }*/
+}
