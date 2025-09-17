@@ -47,7 +47,7 @@ impl Plugin for DevRoomPlugin {
             .add_systems(
                 OnEnter(GameState::Loading),
                 (
-                    spawn_player,
+                    //spawn_player,
                     spawn_walking_cube,
                     spawn_sphere,
                     spawn_chair_cube,
@@ -106,125 +106,6 @@ fn devroom_setup(
 
     *loaded = true;
     info!("DevRoom Loaded");
-}
-
-fn spawn_player(
-    mut commands: Commands,
-    asset_server: Res<AssetServer>,
-    gun_assets: Res<DA_GunAssets>,
-    gltf_assets: Res<Assets<Gltf>>,
-) {
-    trace!("SYSTEM: spawn_player");
-
-    // Gun
-    debug!("Creating Gun");
-    //let temp = gun_assets.uzi.clone_weak();
-    let uzi = gltf_assets.get(&gun_assets.uzi).unwrap().scenes[0].path().unwrap();
-    //let temp = uzi.scenes[0].path().unwrap();
-    let gun = commands
-        .spawn((
-            Transform::from_translation(vec3(0.1, -0.2, -0.5)),
-           // SceneRoot(asset_server.load("guns/uzi.glb#Scene0")),
-            SceneRoot(asset_server.load(uzi)),
-            Item {
-                name: Name::new("gun"),
-                description: Description("gun".to_string()),
-                weight: Weight(0),
-            },
-        ))
-        .id();
-
-    // Player
-    debug!("Creating Player");
-    let input_map = InputMap::new([
-        (Action::Jump, KeyCode::Space),
-        (Action::Run, KeyCode::ShiftLeft),
-        (Action::Left, KeyCode::KeyA),
-        (Action::Right, KeyCode::KeyD),
-        (Action::Forward, KeyCode::KeyW),
-        (Action::Backward, KeyCode::KeyS),
-        (Action::Crouch, KeyCode::ControlLeft),
-        (Action::Up, KeyCode::KeyQ),
-        (Action::Down, KeyCode::KeyE),
-        (Action::Interact, KeyCode::KeyF),
-        (Action::OpenInventory, KeyCode::KeyI),
-        (Action::OpenConsole, KeyCode::Backslash),
-    ]);
-
-    let logical_entity = commands
-        .spawn((
-            (
-                Collider::capsule(0.1, 0.5),
-                Friction {
-                    combine_rule: CoefficientCombine::Min,
-                    ..default()
-                },
-                RigidBody::Dynamic,
-                LockedAxes::ROTATION_LOCKED,
-                GravityScale(1.0),
-                Transform::from_xyz(0.0, 5.0, 0.0),
-                CameraConfig {
-                    height_offset: 0.0,
-                    //radius_scale: 0.75,
-                },
-                Player,
-                PlayerController::default(),
-                PlayerControllerInput::default(),
-                CharacterBundle {
-                    mana: Mana(100),
-                    max_mana: MaxMana(100),
-                    health: Health(100),
-                    max_health: MaxHealth(100),
-                    experience: Experience(100),
-                    ..default()
-                },
-                Inventory { ..default() },
-                TnuaController::default(),
-                TnuaAvian3dSensorShape(Collider::capsule(0.1, 0.1)),
-                FloatHeight(1.5),
-            ),
-            (CollisionLayers::new(CollisionLayer::Player, LayerMask::ALL),),
-        ))
-        //.insert((Walk::default(), InputManagerBundle::with_map(input_map)))
-        .insert((Walk::default(), input_map))
-        .insert(TnuaSimpleAirActionsCounter::default())
-        .insert(AvianPickupActor {
-            prop_filter: SpatialQueryFilter::from_mask(CollisionLayer::Prop),
-            actor_filter: SpatialQueryFilter::from_mask(CollisionLayer::Player),
-            obstacle_filter: SpatialQueryFilter::from_mask(CollisionLayer::Default),
-            hold: AvianPickupActorHoldConfig {
-                pitch_range: -40.0_f32.to_radians()..=75.0_f32.to_radians(),
-                distance_to_allow_holding: 100.0,
-                ..default()
-            },
-            ..default()
-        })
-        .insert(RayHit(Entity::PLACEHOLDER))
-        .id();
-
-    // Camera
-    debug!("Creating Camera");
-    commands
-        .spawn((
-            Camera {
-                hdr: true,
-                clear_color: ClearColorConfig::Custom(Srgba::rgb(0.0, 0.0, 0.0).into()),
-                ..default()
-            },
-            Camera3d { ..default() },
-            Projection::Perspective(PerspectiveProjection {
-                fov: std::f32::consts::PI / 2.0,
-                ..default()
-            }),
-            Transform {
-                translation: Vec3 { y: 2., ..default() },
-                ..default()
-            },
-            RenderPlayer { logical_entity },
-            PlayerCamera,
-            AtmosphereCamera::default(),
-        ))
-        .add_child(gun);
 }
 
 fn spawn_chair_cube(
