@@ -57,7 +57,7 @@ impl Plugin for DevRoomPlugin {
             .register_type::<FirstPassCube>()
             .register_type::<MainPassCube>()
             .add_plugins(AtmospherePlugin)
-            .add_systems(Update, player_forward.run_if(in_state(GameState::Gameplay)))
+            //.add_systems(Update, player_forward.run_if(in_state(GameState::Gameplay)))
             .add_systems(Update, devroom_setup.run_if(in_state(GameState::Loading)))
             .add_systems(OnEnter(GameState::Gameplay), spawn_sprites)
             .add_plugins(SpritesPlugin);
@@ -277,7 +277,7 @@ fn _spawn_projection_cat(
 }
 
 
-fn player_forward(
+/*fn player_forward(
     cam_transform: Query<&Transform, (With<PlayerCamera>, Without<Player>)>,
     mut player_transform: Query<&mut Transform, With<Player>>,
 ) {
@@ -295,7 +295,7 @@ fn player_forward(
             player_transform.look_to(*forward, Vec3::Y);
         }
     }*/
-}
+}*/
 
 fn spawn_sprites(
     mut commands: Commands,
