@@ -85,6 +85,7 @@ pub enum GameState {
     Paused,
     #[default]
     Preload,
+    Postload,
 }
 
 fn main() {
@@ -164,6 +165,11 @@ fn main() {
         )
         .add_loading_state(
             LoadingState::new(GameState::Loading)
+                .continue_to_state(GameState::Postload)
+                .on_failure_continue_to_state(GameState::Postload)
+        )
+        .add_loading_state(
+            LoadingState::new(GameState::Postload)
                 .continue_to_state(GameState::Gameplay)
                 .on_failure_continue_to_state(GameState::Gameplay)
         );
