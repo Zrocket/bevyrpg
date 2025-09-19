@@ -24,13 +24,18 @@ pub struct Player;
 #[reflect(Component)]
 pub struct PlayerCamera;
 
+#[derive(Component, Reflect, Default)]
+#[reflect(Component)]
+pub struct PlayerSpawner;
+
 pub struct GamePlayerPlugin;
 impl Plugin for GamePlayerPlugin {
     fn build(&self, app: &mut App) {
         info!("GamePlayerPlugin build");
         app.register_type::<Player>()
             .register_type::<PlayerCamera>()
-            .add_systems(OnEnter(GameState::Loading), spawn_player)
+            .register_type::<PlayerSpawner>()
+            .add_systems(OnEnter(GameState::Postload), spawn_player)
             .add_systems(Update, player_forward.run_if(in_state(GameState::Gameplay)));
     }
 }
@@ -40,8 +45,16 @@ fn spawn_player(
     asset_server: Res<AssetServer>,
     gun_assets: Res<DA_GunAssets>,
     gltf_assets: Res<Assets<Gltf>>,
+    player_spawner_query: Query<&GlobalTransform, With<PlayerSpawner>>,
 ) {
     trace!("SYSTEM: spawn_player");
+
+    let mut spawn_point = Transform::from_xyz(0.0, 5.0, 0.0);
+
+    if let Ok(player_spawner) = player_spawner_query.single() {
+        spawn_point.translation = player_spawner.translation();
+        println!("ZZZZZZZZZZZZZZZZZZZZZZZ: {:?}", player_spawner);
+    }
 
     // Gun
     debug!("Creating Gun");
@@ -89,7 +102,8 @@ fn spawn_player(
                 RigidBody::Dynamic,
                 LockedAxes::ROTATION_LOCKED,
                 GravityScale(1.0),
-                Transform::from_xyz(0.0, 5.0, 0.0),
+                //Transform::from_xyz(0.0, 5.0, 0.0),
+                spawn_point,
                 CameraConfig {
                     height_offset: 0.0,
                     //radius_scale: 0.75,
