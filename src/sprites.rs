@@ -18,7 +18,7 @@ pub struct SpriteBundle {
 #[derive(Component)]
 pub struct Talkable;
 impl interact::Interaction for Talkable {
-    fn interact(&self,commands: &mut Commands,entity:Entity,prop:Entity,) {
+    fn interact(&self,commands: &mut Commands, _entity:Entity, prop:Entity,) {
         println!("Talkable Interaction Impl");
         commands.trigger_targets(DialogEvent {actor:prop}, prop);
     }

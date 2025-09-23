@@ -1,4 +1,4 @@
-use bevy::{ecs::entity, prelude::*};
+use bevy::prelude::*;
 use super::*;
 
 #[derive(Debug, Clone, Deref, Component, Reflect)]
@@ -56,7 +56,6 @@ pub fn jonmo_draw_crosshair(
             flex_direction: FlexDirection::Column,
             align_self: AlignSelf::Center,
             justify_self: JustifySelf::Center,
-            //left: Val::Vw(45.0),
             ..default()
         },
     ))
@@ -65,12 +64,7 @@ pub fn jonmo_draw_crosshair(
     .child(
         JonmoBuilder::from((
             Node {
-                //position_type: PositionType::Absolute,
-                //display: Display::Flex,
-                //flex_direction: FlexDirection::Column,
                 align_self: AlignSelf::Center,
-                //justify_self: JustifySelf::Center,
-                //left: Val::Vw(45.0),
                 ..default()
             },
             UiCrosshair,
@@ -89,16 +83,6 @@ pub fn jonmo_draw_crosshair(
             .map_in(Some)
         )
     )
-    /*.with_entity(move |mut entity| {
-        entity.observe(
-            move |trigger: Trigger<ShootEvent>, mut cooldown_query: Query<&mut Cooldown>| {
-                println!("OBSERVATION EVENT AAAAAAAA");
-                if let Ok(mut cooldown) = cooldown_query.single_mut() {
-                    cooldown.0.reset();
-                }
-            }
-        );
-    })*/
     .spawn(world);
 }
 
