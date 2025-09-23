@@ -1,4 +1,4 @@
-use crate::{DamageEvent, Player, PlayerCamera};
+use crate::{AmmoPouch, DamageEvent, Player, PlayerCamera};
 use avian3d::prelude::*;
 use bevy::prelude::*;
 
@@ -58,7 +58,7 @@ pub fn shoot(
 
             if let Some(ray_data) = ray_caster.cast_ray(
                 camera_position,
-                direction.into(),
+                direction,
                 100.0,
                 false,
                 &SpatialQueryFilter::default().with_excluded_entities([player]),
@@ -125,32 +125,37 @@ pub fn shoot_rocket(
     mut commands: Commands,
     mut shoot_events: EventReader<ShootEvent>,
     mut _damage_event: EventWriter<DamageEvent>,
-    _player_entity_query: Query<Entity, With<Player>>,
+    mut player_query: Query<&mut AmmoPouch, With<Player>>,
     camera_transform_query: Query<&GlobalTransform, With<PlayerCamera>>,
     mut meshes: ResMut<Assets<Mesh>>,
     mut materials: ResMut<Assets<StandardMaterial>>,
 ) {
-    trace!("Event Handler: shoot_grenade");
+    trace!("Event Handler: shoot_rocket");
     for _event in shoot_events.read() {
-        for global_transform in camera_transform_query.iter() {
-            let camera_position = global_transform.translation();
-            let rocket_position = camera_position + (global_transform.forward() * 3.);
-            let direction = global_transform.forward();
-            let linear_velocity = direction * 20.;
-            commands.spawn((
-                    Rocket,
-                    RigidBody::Kinematic,
-                    Collider::capsule(ROCKET_SIZE, ROCKET_SIZE),
-                    Mesh3d(meshes.add(Capsule3d::new(ROCKET_SIZE, ROCKET_SIZE))),
-                    MeshMaterial3d(materials.add(Color::WHITE)),
-                    Transform {
-                        translation: rocket_position,
-                        ..default()
-                    },
-                    LinearVelocity(linear_velocity),
-                    CollisionEventsEnabled,
-            ))
-                .observe(explode_rocket);
+        if let Ok(mut player_ammo) = player_query.single_mut() && player_ammo.0 > 0 {
+            player_ammo.0 -= 1;
+            println!("player_ammo: {:?}", player_ammo);
+
+            for global_transform in camera_transform_query.iter() {
+                let camera_position = global_transform.translation();
+                let rocket_position = camera_position + (global_transform.forward() * 3.);
+                let direction = global_transform.forward();
+                let linear_velocity = direction * 20.;
+                commands.spawn((
+                        Rocket,
+                        RigidBody::Kinematic,
+                        Collider::capsule(ROCKET_SIZE, ROCKET_SIZE),
+                        Mesh3d(meshes.add(Capsule3d::new(ROCKET_SIZE, ROCKET_SIZE))),
+                        MeshMaterial3d(materials.add(Color::WHITE)),
+                        Transform {
+                            translation: rocket_position,
+                            ..default()
+                        },
+                        LinearVelocity(linear_velocity),
+                        CollisionEventsEnabled,
+                ))
+                    .observe(explode_rocket);
+            }
         }
     }
 }

@@ -90,17 +90,7 @@ pub fn jonmo_draw_status_ui(
     health_query: &mut QueryState<(&Health, &MaxHealth), With<Player>>,
     mana_query: &mut QueryState<(&Mana, &MaxMana), With<Player>>,
 ) {
-    trace!("draw_status_ui");
-    /*let health_ui_icons: [Handle<Image>; 3] = [
-        asset_server.load("HP/Style_1.png"),
-        asset_server.load("HP/Style_2.png"),
-        asset_server.load("HP/Style_3.png"),
-    ];*/
-    /*let health_ui_icons: [Handle<Image>; 3] = [
-        ui_assets.health_1.clone_weak(),
-        ui_assets.health_2.clone_weak(),
-        ui_assets.health_3.clone_weak(),
-    ];*/
+    trace!("jonmo_draw_status_ui");
     let asset_server = world.resource::<AssetServer>();
     let ui_assets = world.resource::<DA_UiAssets>();
     if mana_query.single(world).is_ok()
@@ -129,11 +119,11 @@ pub fn jonmo_draw_status_ui(
                     },
                     ZIndex(10),
                     ImageNode {
-                        //image: health_ui_icons[0].clone().into(),
-                        image: ui_assets.health_1.clone_weak().into(),
+                        image: ui_assets.health_1.clone_weak(),
                         ..default()
                     },
             ));
+
             let player_mana_node = JonmoBuilder::from((
                     Node { ..default() },
                     Button,
@@ -148,8 +138,21 @@ pub fn jonmo_draw_status_ui(
                     ZIndex(10),
             ));
 
+            let ammo_pouch = LazyEntity::new();
+            let player_ammo_node = JonmoBuilder::from((
+                    Node { ..default() },
+                    Text("Player Ammo".to_string()),
+                    TextColor(Color::WHITE),
+                    TextFont {
+                        font: asset_server.load("FiraSans-Bold.ttf"),
+                        font_size: 50.0,
+                        ..default()
+                    },
+            ));
+
             status_bar_node.child(player_health_node)
                 .child(player_mana_node)
+                .child(player_ammo_node)
                 .spawn(world);
     }
 }
