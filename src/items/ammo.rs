@@ -12,6 +12,10 @@ pub enum AmmoType {
 #[reflect(Component)]
 pub struct Ammo;
 
+#[derive(Debug, Clone, Component,  Reflect, Default)]
+#[reflect(Component)]
+pub struct AmmoPouch(pub i32);
+
 impl Interaction for Ammo {
     fn interact(
         &self,
@@ -28,6 +32,7 @@ pub struct AmmoPlugin;
 impl Plugin for AmmoPlugin {
     fn build(&self, app: &mut App) {
         app.register_type::<Ammo>()
+            .register_type::<AmmoPouch>()
             .add_observer(ammo_event_observer);
     }
 }
