@@ -47,7 +47,7 @@ static FONT_DATA: &[u8] = include_bytes!("../../assets/iosevka.ttf");
 #[reflect(Component)]
 pub struct ComputerCube;
 impl Interaction for ComputerCube {
-    fn interact(&self,commands: &mut Commands,entity:Entity,prop:Entity,) {
+    fn interact(&self,commands: &mut Commands, _entity:Entity, prop:Entity,) {
         commands.trigger_targets(ChangeScreenEvent{ frame_closure: new_computer_screen}, prop);
     }
 }
