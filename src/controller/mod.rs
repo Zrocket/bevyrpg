@@ -8,7 +8,6 @@ use bevy::prelude::*;
 use bevy_tnua::TnuaUserControlsSystemSet;
 pub use interact_controller::*;
 use inventory_controller::*;
-use leafwing_input_manager::common_conditions::action_pressed;
 use menu_controller::*;
 pub use player_controller::*;
 

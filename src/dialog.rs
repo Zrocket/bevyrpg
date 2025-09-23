@@ -3,8 +3,6 @@ use serde::{Deserialize, Serialize};
 use bevy_yarnspinner::prelude::*;
 use bevy_yarnspinner_example_dialogue_view::prelude::*;
 
-use crate::GameState;
-
 #[derive(Debug, Component, Reflect, Eq, PartialEq, Serialize, Deserialize)]
 #[reflect(Component, Serialize, Deserialize)]
 pub struct YarnNode(pub String);
