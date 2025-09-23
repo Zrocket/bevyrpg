@@ -1,6 +1,6 @@
-use avian3d::prelude::{CoefficientCombine, Collider, CollisionLayers, Friction, GravityScale, LayerMask, LockedAxes, RigidBody, SpatialQueryFilter};
+use avian3d::{prelude::{CoefficientCombine, Collider, CollisionLayers, Friction, GravityScale, LayerMask, LockedAxes, RigidBody, SpatialQuery, SpatialQueryFilter}};
 use avian_pickup::actor::{AvianPickupActor, AvianPickupActorHoldConfig};
-use bevy::{prelude::*, render::RenderPlugin};
+use bevy::prelude::*;
 use bevy_atmosphere::plugin::AtmosphereCamera;
 use bevy_tnua::{control_helpers::TnuaSimpleAirActionsCounter, prelude::TnuaController};
 use bevy_tnua_avian3d::TnuaAvian3dSensorShape;
@@ -28,6 +28,10 @@ pub struct PlayerCamera;
 #[reflect(Component)]
 pub struct PlayerSpawner;
 
+#[derive(Component, Reflect, Default)]
+#[reflect(Component)]
+pub struct PlayerTrigger;
+
 pub struct GamePlayerPlugin;
 impl Plugin for GamePlayerPlugin {
     fn build(&self, app: &mut App) {
@@ -35,8 +39,13 @@ impl Plugin for GamePlayerPlugin {
         app.register_type::<Player>()
             .register_type::<PlayerCamera>()
             .register_type::<PlayerSpawner>()
+            .register_type::<PlayerTrigger>()
             .add_systems(OnEnter(GameState::Postload), spawn_player)
-            .add_systems(Update, player_forward.run_if(in_state(GameState::Gameplay)));
+            .add_systems(Update, (
+                    player_forward.run_if(in_state(GameState::Gameplay)),
+                    check_player_triggers.run_if(in_state(GameState::Gameplay)),
+                )
+            );
     }
 }
 
@@ -53,7 +62,6 @@ fn spawn_player(
 
     if let Ok(player_spawner) = player_spawner_query.single() {
         spawn_point.translation = player_spawner.translation();
-        println!("ZZZZZZZZZZZZZZZZZZZZZZZ: {:?}", player_spawner);
     }
 
     // Gun
@@ -186,4 +194,19 @@ fn player_forward(
             player_transform.look_to(*forward, Vec3::Y);
         }
     }*/
+}
+
+fn check_player_triggers(
+    spatial_query: SpatialQuery,
+    player_query: Query<&Collider, With<Player>>,
+    trigger_query: Query<&GlobalTransform, With<PlayerTrigger>>,
+) {
+    for trigger_transform in trigger_query.iter() {
+        let temp = spatial_query.shape_intersections(
+            &Collider::cuboid(1.0, 1.0, 1.0),
+            trigger_transform.translation(),
+            trigger_transform.rotation(),
+            &SpatialQueryFilter::default()
+        );
+    }
 }
