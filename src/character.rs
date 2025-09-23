@@ -70,6 +70,7 @@ pub struct CharacterBundle {
     pub mind: Mind,
     pub profession: Profession,
     pub skills: Skills,
+    pub ammo_pouch: AmmoPouch,
 }
 
 impl Default for CharacterBundle {
@@ -89,6 +90,7 @@ impl Default for CharacterBundle {
             mind: Mind(100),
             profession: Profession::default(),
             skills: Skills::default(),
+            ammo_pouch: AmmoPouch(10),
         }
     }
 }
