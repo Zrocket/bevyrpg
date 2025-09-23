@@ -36,15 +36,14 @@ impl Plugin for ChairPlugin {
 
 fn sit_event_observer(
     trigger: Trigger<SitEvent>,
-    mut commands: Commands,
     mut player_query: Query<&mut Transform, With<Player>>,
-    transform_query: Query<&Transform, Without<Player>>,
+    transform_query: Query<&GlobalTransform, Without<Player>>,
 ) {
     if let Ok(mut player_transform) = player_query.single_mut()
         && let Ok(chair_transform) = transform_query.get(trigger.target) {
             *player_transform = Transform {
-                translation: Vec3 { x: chair_transform.translation.x, y: chair_transform.translation.y + 1.0, z: chair_transform.translation.z },
-                rotation: chair_transform.rotation,
+                translation: Vec3 { x: chair_transform.translation().x, y: chair_transform.translation().y + 1.0, z: chair_transform.translation().z },
+                rotation: chair_transform.rotation(),
                 ..default()
             };
     }
