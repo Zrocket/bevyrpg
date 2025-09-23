@@ -185,7 +185,6 @@ fn pause_game(
     //mut pause_menu_state_setter: ResMut<NextState<PauseMenuState>>,
 ) {
     trace!("SYSTEM: pause_game");
-    //println!("{:?}", game_state.get());
     if key.just_pressed(KeyCode::Comma) {
         match game_state.get() {
             GameState::Gameplay => {

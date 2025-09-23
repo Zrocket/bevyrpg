@@ -1,9 +1,7 @@
-use bevy::{asset::RenderAssetUsages, prelude::*, render::{camera::RenderTarget, render_resource::{Extent3d, TextureFormat, TextureUsages}}, state::state::FreelyMutableState};
-use bevy_asset_loader::dynamic_asset::{DynamicAssetCollections, DynamicAssets};
-use ratatui::Frame;
-use soft_ratatui::SoftBackend;
+use bevy::prelude::*;
+use bevy_asset_loader::dynamic_asset::DynamicAssetCollections;
 
-use crate::{level::DA_LevelAsset, new_computer_screen, ChangeScreenEvent, ComputerTextureCam, DamageEvent, Description, GameState, Health, Inventory, Item, MyProcGenMaterial, PickUpEvent, Player, RemoveEvent, SoftTerminal};
+use crate::{new_computer_screen, ChangeScreenEvent, DamageEvent, Description, GameState, Health, Inventory, Item, PickUpEvent, Player, RemoveEvent, };
 use super::Weight;
 
 pub struct TestsPlugin;

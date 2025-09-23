@@ -11,15 +11,8 @@ use bevy::{
 };
 use bevy_atmosphere::prelude::*;
 use bevy_sprite3d::{Sprite3dBuilder, Sprite3dParams};
-use bevy_tnua::control_helpers::TnuaSimpleAirActionsCounter;
 use bevy_tnua::prelude::*;
 use bevy_tnua_avian3d::*;
-use leafwing_input_manager::input_map::InputMap;
-
-
-use super::CameraConfig;
-use super::RenderPlayer;
-use super::controller::*;
 
 use crate::*;
 

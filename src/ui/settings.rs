@@ -1,4 +1,4 @@
-use bevy::{color::palettes::css::{CORNSILK, CRIMSON}, window::SystemCursorIcon};
+use bevy::color::palettes::css::{CORNSILK, CRIMSON};
 use jonmo::prelude::*;
 
 use super::*;
