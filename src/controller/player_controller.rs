@@ -65,6 +65,21 @@ pub struct PlayerControllerInput {
     pub movement: Vec3,
 }
 
+pub struct PlayerControllerPlugin;
+impl Plugin for PlayerControllerPlugin {
+    fn build(&self, app: &mut App) {
+        app.add_systems(
+            Update,
+            (
+                player_controller_input,
+                player_controller_look,
+                tnua_player_input,
+            )
+            .chain()
+        );
+    }
+}
+
 pub fn player_controller_input(
     key_input_query: Query<&ActionState<Action>, With<Player>>,
     mut mouse_events_reader: EventReader<mouse::MouseMotion>,
@@ -93,6 +108,7 @@ pub fn player_controller_input(
                 get_axis(key_input, &Action::Up, &Action::Down),
                 get_axis(key_input, &Action::Forward, &Action::Backward),
             );
+            player_input.sprint = key_input.pressed(&Action::Run);
         }
     }
 }
@@ -153,12 +169,18 @@ pub fn tnua_player_input(
             }
             //air_actions_counter.update(tnua_controller.as_mut());
 
+            let mut acceleration = 10.0;
+
+            if player_controller_input.sprint {
+                acceleration = 15.0;
+            }
+
             // Feed the basis every frame. Even if the player doesn't move - just use `desired_velocity:
             // Vec3::ZERO`. `TnuaController` starts without a basis, which will make the character collider
             // just fall.
             tnua_controller.basis(TnuaBuiltinWalk {
                 // The `desired_velocity` determines how the character will move.
-                desired_velocity: movement_direction.normalize_or_zero() * 10.0,
+                desired_velocity: movement_direction.normalize_or_zero() * acceleration,
                 // The `float_height` must be greater (even if by little) from the distance between the
                 // character's center and the lowest point of its collider.
                 float_height: 1.5,
