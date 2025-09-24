@@ -1,7 +1,6 @@
-use avian_pickup::prelude::*;
 use avian3d::prelude::*;
 use bevy::{
-    log::LogPlugin, platform::collections::HashMap, prelude::*, state::state::FreelyMutableState, window::{ CursorGrabMode, CursorOptions, WindowResolution,}
+    log::LogPlugin, prelude::*, window::{ CursorGrabMode, CursorOptions, WindowResolution,}
 };
 use bevy_asset_loader::prelude::*;
 use bevy_inspector_egui::quick::WorldInspectorPlugin;
@@ -16,7 +15,6 @@ mod controller;
 mod devroom;
 mod dialog;
 mod enemy;
-mod fpsdevroom;
 mod furniture;
 mod interact;
 mod inventory;
@@ -29,7 +27,7 @@ mod render;
 mod rover;
 mod shoot;
 mod sprites;
-mod tests;
+//mod tests;
 mod ui;
 mod utils;
 
@@ -51,7 +49,7 @@ pub use sprites::*;
 pub use ui::*;
 pub use utils::*;
 use level::*;
-use tests::TestsPlugin;
+//use tests::TestsPlugin;
 
 #[derive(Parser, Debug)]
 struct Args {
