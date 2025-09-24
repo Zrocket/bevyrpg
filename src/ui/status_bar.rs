@@ -11,7 +11,7 @@ impl Plugin for StatusUIPlugin {
     }
 }
 
-pub fn draw_status_ui(
+pub fn _draw_status_ui(
     mut commands: Commands,
     asset_server: Res<AssetServer>,
     ui_assets: Res<DA_UiAssets>,
