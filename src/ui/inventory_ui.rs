@@ -10,7 +10,7 @@ impl Plugin for InventoryUIPlugin {
     }
 }
 
-pub fn draw_inventory_ui(
+pub fn _draw_inventory_ui(
     mut commands: Commands,
     items: Query<(Entity, &Name, &InInventory)>,
     inventory: Query<&Inventory, With<Player>>,
