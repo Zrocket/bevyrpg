@@ -30,6 +30,7 @@ impl Plugin for ControllerPlugin {
         app.add_event::<InteractEvent>()
             .add_plugins(InputManagerPlugin::<Action>::default())
             .add_plugins(MenuControllerPlugin)
+            .add_plugins(PlayerControllerPlugin)
             .register_type::<RayHit>();
             //.add_systems(Update, manage_cursor) //.run_if(in_state(GameState::Gameplay)))
             app.add_systems(
@@ -44,22 +45,6 @@ impl Plugin for ControllerPlugin {
                 )
             );
 
-        app.add_systems(
-            Update,
-            (
-                player_controller_input,
-                player_controller_look,
-                //fps_controller_move,
-                tnua_player_input,
-            )
-                .chain(), //.after(bevy::input::mouse::mouse_button_input_system)
-                          //.after(bevy::input::keyboard::keyboard_input_system)
-                          //.after(bevy::input::gamepad::gamepad_axis_event_system)
-                          //.after(bevy::input::gamepad::gamepad_button_event_system)
-                          //.after(bevy::input::gamepad::gamepad_connection_system)
-                          //.after(bevy::input::gamepad::gamepad_event_system)
-                          //.after(bevy::input::touch::touch_screen_input_system),
-        );
     }
 }
 
