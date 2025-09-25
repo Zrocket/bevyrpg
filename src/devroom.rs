@@ -16,15 +16,6 @@ use bevy_tnua_avian3d::*;
 
 use crate::*;
 
-#[derive(Debug, PhysicsLayer, Default, Component, Reflect)]
-#[reflect(Component)]
-pub enum CollisionLayer {
-    #[default]
-    Default,
-    Player,
-    Prop,
-}
-
 #[derive(Debug, Component, Reflect)]
 #[reflect(Component)]
 struct FirstPassCube;
@@ -41,11 +32,8 @@ impl Plugin for DevRoomPlugin {
                 OnEnter(GameState::Loading),
                 (
                     spawn_walking_cube,
-                    spawn_sphere,
-                    spawn_chair_cube,
                 ).chain()
             )
-            .register_type::<CollisionLayer>()
             .register_type::<FirstPassCube>()
             .register_type::<MainPassCube>()
             .add_plugins(AtmospherePlugin)
@@ -99,28 +87,6 @@ fn devroom_setup(
     info!("DevRoom Loaded");
 }
 
-fn spawn_chair_cube(
-    mut commands: Commands,
-    mut meshes: ResMut<Assets<Mesh>>,
-    mut materials: ResMut<Assets<StandardMaterial>>,
-) {
-    trace!("SYSTEM: spawn_walking_cube");
-
-    // Cube
-    debug!("Creating Cube");
-    commands
-        .spawn((
-            Mesh3d(meshes.add(Cuboid::new(1.0, 1.0, 1.0))),
-            MeshMaterial3d(materials.add(Color::WHITE)),
-            Transform::from_xyz(10., 1.5, -3.2),
-            RigidBody::Dynamic,
-            Collider::cuboid(1.0, 1.0, 1.0),
-            CollisionLayers::new(CollisionLayer::Prop, LayerMask::ALL),
-            Chair,
-        ))
-        .insert(Name::new("Cube Chair"));
-}
-
 fn spawn_walking_cube(
     mut commands: Commands,
     mut meshes: ResMut<Assets<Mesh>>,
@@ -153,28 +119,6 @@ fn spawn_walking_cube(
             z: -15.0,
         }))
         .insert(Name::new("Cube"));
-}
-
-fn spawn_sphere(
-    mut commands: Commands,
-    mut meshes: ResMut<Assets<Mesh>>,
-    mut materials: ResMut<Assets<StandardMaterial>>,
-) {
-    trace!("SYSTEM: spawn_sphere");
-
-    // Sphere
-    debug!("Creating Sphere");
-    commands
-        .spawn((
-            Mesh3d(meshes.add(Sphere::new(0.5).mesh().ico(20).unwrap())),
-            MeshMaterial3d(materials.add(Color::WHITE)),
-            Transform::from_xyz(-0.9, 1.5, -4.2),
-            RigidBody::Dynamic,
-            Collider::sphere(0.5),
-            CollisionLayers::new(CollisionLayer::Prop, LayerMask::ALL),
-        ))
-        .insert(Name::new("Sphere"))
-        .insert(MiscItem);
 }
 
 fn _spawn_projection_cat(

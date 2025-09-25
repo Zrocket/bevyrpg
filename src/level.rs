@@ -2,9 +2,18 @@ use bevy::{asset::AssetPath, input::common_conditions::input_pressed};
 use bevy_asset_loader::{asset_collection::AssetCollection, loading_state::{config::ConfigureLoadingState, LoadingState, LoadingStateAppExt}, standard_dynamic_asset::StandardDynamicAssetCollection};
 
 use super::GameState;
-use crate::{CollisionLayer, MiscItem};
-use avian3d::prelude::{ColliderConstructor, CollisionLayers, LayerMask, Physics, RigidBody};
+use crate::MiscItem;
+use avian3d::prelude::{ColliderConstructor, CollisionLayers, LayerMask, Physics, PhysicsLayer, RigidBody};
 use bevy::{gltf::Gltf, prelude::*};
+
+#[derive(Debug, PhysicsLayer, Default, Component, Reflect)]
+#[reflect(Component)]
+pub enum CollisionLayer {
+    #[default]
+    Default,
+    Player,
+    Prop,
+}
 
 #[derive(Resource)]
 pub struct LevelGltf(pub Handle<Gltf>);
@@ -77,6 +86,7 @@ impl Plugin for BlenderTranslationPlugin {
             .register_type::<BlenderNavmesh>()
             .register_type::<DA_LevelAsset>()
             .register_type::<DA_GunAssets>()
+            .register_type::<CollisionLayer>()
             .add_event::<ChangeLevelEvent>()
             .add_systems(OnEnter(GameState::Gameplay), translate_components)
             .add_systems(OnEnter(GameState::Preload),gltf_preload)
