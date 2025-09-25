@@ -18,12 +18,6 @@ use leafwing_input_manager::prelude::*;
 use crate::interact::InteractEvent;
 use crate::{shoot, ShootEvent};
 
-//#[derive(Actionlike, Clone, Debug, Copy, PartialEq, Eq, Hash, Reflect)]
-//#[actionlike(DualAxis)]
-//pub enum CameraMovement {
-//    Pan,
-//}
-
 pub struct ControllerPlugin;
 impl Plugin for ControllerPlugin {
     fn build(&self, app: &mut App) {
@@ -31,9 +25,8 @@ impl Plugin for ControllerPlugin {
             .add_plugins(InputManagerPlugin::<Action>::default())
             .add_plugins(MenuControllerPlugin)
             .add_plugins(PlayerControllerPlugin)
-            .register_type::<RayHit>();
-            //.add_systems(Update, manage_cursor) //.run_if(in_state(GameState::Gameplay)))
-            app.add_systems(
+            .register_type::<RayHit>()
+            .add_systems(
                 Update,
                 (
                     manage_cursor,
