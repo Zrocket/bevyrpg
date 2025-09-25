@@ -110,7 +110,6 @@ fn spawn_player(
                 RigidBody::Dynamic,
                 LockedAxes::ROTATION_LOCKED,
                 GravityScale(1.0),
-                //Transform::from_xyz(0.0, 5.0, 0.0),
                 spawn_point,
                 CameraConfig {
                     height_offset: 0.0,
@@ -206,7 +205,7 @@ fn check_player_triggers(
             &Collider::cuboid(1.0, 1.0, 1.0),
             trigger_transform.translation(),
             trigger_transform.rotation(),
-            &SpatialQueryFilter::default()
+            &SpatialQueryFilter::from_mask(CollisionLayer::Player)
         );
     }
 }
