@@ -6,7 +6,7 @@ pub struct InventoryUIPlugin;
 impl Plugin for InventoryUIPlugin {
     fn build(&self, app: &mut App) {
        app
-           .add_systems(OnEnter(GameState::Gameplay), jonmo_draw_inventory_ui); 
+           .add_systems(OnEnter(GameState::Gameplay), jonmo_draw_inventory_ui);
     }
 }
 
@@ -52,7 +52,6 @@ pub fn jonmo_draw_inventory_ui(
     inventory: &mut QueryState<&Inventory, With<Player>>,
 ) {
     trace!("draw_inventory_ui");
-    let asset_server = world.resource::<AssetServer>();
     let mut inventory_items: Vec<JonmoBuilder> = Vec::new();
     if let Ok(inventory_handle) = inventory.single(world) {
         for item in inventory_handle.items.iter() {

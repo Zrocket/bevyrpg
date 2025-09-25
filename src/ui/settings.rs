@@ -93,12 +93,12 @@ fn jonmo_menu_item(
     .insert(Hoverable(false))
     .entity_sync(hover.clone())
     .with_entity(move |mut entity| {
-        entity.observe(move |trigger: Trigger<Pointer<Over>>, mut hover_query: Query<&mut Hoverable>| {
+        entity.observe(move |_trigger: Trigger<Pointer<Over>>, mut hover_query: Query<&mut Hoverable>| {
             if let Ok(mut hover) = hover_query.get_mut(hover_observer_1.get()) {
                 hover.0 = true;
             }
         });
-        entity.observe(move |trigger: Trigger<Pointer<Out>>, mut hover_query: Query<&mut Hoverable>| {
+        entity.observe(move |_trigger: Trigger<Pointer<Out>>, mut hover_query: Query<&mut Hoverable>| {
             if let Ok(mut hover) = hover_query.get_mut(hover_observer_2.get()) {
                 hover.0 = false;
             }
@@ -139,17 +139,17 @@ fn jonmo_sub_menu_item(
     .insert(Hoverable(false))
     .entity_sync(holder.clone())
     .with_entity(move |mut entity| {
-        entity.observe(move |trigger: Trigger<Pointer<Over>>, mut hover_query: Query<&mut Hoverable>| {
+        entity.observe(move |_trigger: Trigger<Pointer<Over>>, mut hover_query: Query<&mut Hoverable>| {
             if let Ok(mut hover) = hover_query.get_mut(hover_observer_1.get()) {
                 hover.0 = true;
             }
         });
-        entity.observe(move |trigger: Trigger<Pointer<Out>>, mut hover_query: Query<&mut Hoverable>| {
+        entity.observe(move |_trigger: Trigger<Pointer<Out>>, mut hover_query: Query<&mut Hoverable>| {
             if let Ok(mut hover) = hover_query.get_mut(hover_observer_2.get()) {
                 hover.0 = false;
             }
         });
-        entity.observe(move |trigger: Trigger<Pointer<Click>>, mut pause_state: ResMut<NextState<PauseMenuState>>| {
+        entity.observe(move |_trigger: Trigger<Pointer<Click>>, mut pause_state: ResMut<NextState<PauseMenuState>>| {
             pause_state.set(new_state.clone());
         });
     })
@@ -180,7 +180,7 @@ fn jonmo_menu_button(
     ))
     .with_entity(move |mut entity| {
         entity.observe(
-            move |trigger: Trigger<Pointer<Click>>| {
+            move |_trigger: Trigger<Pointer<Click>>| {
             }
         );
     })
