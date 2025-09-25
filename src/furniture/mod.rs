@@ -19,6 +19,7 @@ impl Plugin for FurniturePlugin {
             ChairPlugin,
             ComputerPlugin,
             DoorPlugin,
+            LadderPlugin,
         ));
     }
 }
