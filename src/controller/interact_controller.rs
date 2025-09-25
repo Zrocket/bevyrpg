@@ -31,12 +31,7 @@ pub fn player_raycast(
                 true,
                 &SpatialQueryFilter::default().with_excluded_entities([player]),
             ) {
-                //info!("interact ray casted");
-                let ray_hit_point = camera_position + camera_direction * ray_data.distance;
-                //info!(
-                //    "INTERACT Entity {:?} hit at point {}, from {}",
-                //    ray_data.entity, ray_hit_point, camera_position
-                //);
+                let _ray_hit_point = camera_position + camera_direction * ray_data.distance;
                 ray_hit.0 = ray_data.entity;
             }
         }
@@ -45,16 +40,13 @@ pub fn player_raycast(
 
 pub fn manage_interact(
     mut commands: Commands,
-    ray_caster: SpatialQuery,
     player: Query<(Entity, &RayHit), With<Player>>,
-    camera_query: Query<(&Camera, &GlobalTransform), Without<HeldProp>>,
     interact_query: Query<&dyn Interaction>,
     mut avian_pickup_input_writer: EventWriter<AvianPickupInput>,
     held_prop_query: Query<&HeldProp>,
 ) {
     trace!("SYSTEM: manage_interact");
     if let Ok((player, ray_hit)) = player.single() {
-        //info!("got plalyer");
         if let Ok(_held_prop) = held_prop_query.single() {
             avian_pickup_input_writer.write(
                 AvianPickupInput { actor: player, action: avian_pickup::input::AvianPickupAction::Drop }
@@ -62,7 +54,6 @@ pub fn manage_interact(
             return
         }
         if let Ok(interaction) = interact_query.get(ray_hit.0) {
-            //info!("ray interaction");
             for act in interaction.iter() {
                 act.interact(&mut commands, player, ray_hit.0);
             }

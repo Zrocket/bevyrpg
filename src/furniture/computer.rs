@@ -84,7 +84,7 @@ fn change_computer_screen (
 ) {
     trace!("SYSTEM: computer_test");
 
-    softatui.draw(trigger.frame_closure.clone())
+    softatui.draw(trigger.frame_closure)
         .expect("oops");
 
     let width = softatui.backend().get_pixmap_width() as u32;
@@ -192,7 +192,7 @@ fn spawn_computer(
 
         ..default()
     });
-    
+
     commands.insert_resource(MyProcGenMaterial(material_handle.clone()));
 
     // Cube with material containing the rendered UI texture.
