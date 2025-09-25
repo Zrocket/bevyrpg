@@ -1,7 +1,8 @@
+use avian3d::prelude::{Collider, SpatialQuery, SpatialQueryFilter};
 use bevy::prelude::*;
 use bevy_trait_query::RegisterExt;
 
-use crate::{interact::Interaction, Player};
+use crate::{interact::Interaction, CollisionLayer, Player};
 
 #[derive(Event)]
 pub struct LadderEvent {
@@ -31,12 +32,19 @@ impl Plugin for LadderPlugin {
 
 fn ladder_event_observer(
     trigger: Trigger<LadderEvent>,
-    mut command: Commands,
-    player_query: Query<Entity, With<Player>>,
-    ladder: Query<Entity, With<LadderComponent>>,
+    spatial_query: SpatialQuery,
+    player_query: Query<&Collider, With<Player>>,
+    ladder_query: Query<&GlobalTransform, With<LadderComponent>>,
 ) {
     trace!("OBSERVER: ladder_event_observer");
-    if let Ok(ladder_entity) = ladder.single()
-        && let Ok(player_entity) = player_query.single() {
+    if let Ok(ladder) = ladder_query.single()
+        && let Ok(player) = player_query.single() {
+            let temp = spatial_query.shape_intersections(
+                &Collider::cuboid(4.0, 4.0, 4.0),
+                ladder.translation(),
+                ladder.rotation(),
+                &SpatialQueryFilter::from_mask(CollisionLayer::Player)
+            );
+        println!("{:?}", temp);
     }
 }
