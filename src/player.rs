@@ -2,18 +2,19 @@ use avian3d::{prelude::{CoefficientCombine, Collider, CollisionLayers, Friction,
 use avian_pickup::actor::{AvianPickupActor, AvianPickupActorHoldConfig};
 use bevy::prelude::*;
 use bevy_atmosphere::plugin::AtmosphereCamera;
-use bevy_tnua::{control_helpers::TnuaSimpleAirActionsCounter, prelude::TnuaController};
+use bevy_tnua::{control_helpers::{TnuaBlipReuseAvoidance, TnuaSimpleAirActionsCounter}, prelude::TnuaController, TnuaObstacleRadar};
 use bevy_tnua_avian3d::TnuaAvian3dSensorShape;
 use leafwing_input_manager::prelude::InputMap;
 
 use crate::{level::DA_GunAssets, Action, CameraConfig, CharacterBundle, CollisionLayer, Description, Experience, FloatHeight, GameState, Health, Inventory, Item, Mana, MaxHealth, MaxMana, PlayerController, PlayerControllerInput, RayHit, RenderPlayer, Walk, Weight};
 
-#[derive(Clone, Hash, Debug, Eq, PartialEq, Default, States)]
+#[derive(Clone, Component, Hash, Debug, Eq, PartialEq, Default, States)]
 pub enum PlayerState {
     #[default]
     Grounded,
-    Ladder,
+    Ladder(Entity),
     UnGrounded,
+    Sitting,
 }
 
 #[derive(Component, Reflect, Default)]
@@ -148,6 +149,10 @@ fn spawn_player(
             ..default()
         })
         .insert(RayHit(Entity::PLACEHOLDER))
+        .insert(Name::new("Player"))
+        .insert(PlayerState::Grounded)
+        .insert(TnuaObstacleRadar::new(1.0, 3.0))
+        .insert(TnuaBlipReuseAvoidance::default())
         .id();
 
     // Camera
