@@ -1,7 +1,8 @@
-use bevy::prelude::*;
+use avian3d::prelude::RigidBodyDisabled;
+use bevy::{prelude::*, state::commands};
 use bevy_trait_query::RegisterExt;
 
-use crate::{interact::Interaction, Player};
+use crate::{interact::Interaction, Player, PlayerState};
 
 #[derive(Event)]
 pub struct SitEvent {
@@ -36,15 +37,18 @@ impl Plugin for ChairPlugin {
 
 fn sit_event_observer(
     trigger: Trigger<SitEvent>,
-    mut player_query: Query<&mut Transform, With<Player>>,
+    mut commands: Commands,
+    mut player_query: Query<(&mut Transform, &mut PlayerState, Entity), With<Player>>,
     transform_query: Query<&GlobalTransform, Without<Player>>,
 ) {
-    if let Ok(mut player_transform) = player_query.single_mut()
+    if let Ok((mut player_transform, mut player_state, player_entity)) = player_query.single_mut()
         && let Ok(chair_transform) = transform_query.get(trigger.target) {
             *player_transform = Transform {
                 translation: Vec3 { x: chair_transform.translation().x, y: chair_transform.translation().y + 1.0, z: chair_transform.translation().z },
                 rotation: chair_transform.rotation(),
                 ..default()
             };
+            *player_state = PlayerState::Sitting;
+            commands.entity(player_entity).insert(RigidBodyDisabled);
     }
 }
