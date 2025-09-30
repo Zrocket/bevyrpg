@@ -1,4 +1,4 @@
-use crate::{PauseMenuState, UiControllerSettings, UiIndex, UiMenu, UiSettings, UiSoundSettings};
+use crate::{PauseMenuState, UiControllerSettings, UiMenu, UiSettings, UiSoundSettings};
 use bevy::prelude::*;
 
 pub struct MenuControllerPlugin;
@@ -29,26 +29,5 @@ pub fn ui_close<T: Component>(
 ) {
     for mut node in node_query.iter_mut() {
         node.display = Display::None;
-    }
-}
-
-pub fn _menu_navigation(
-    key: Res<ButtonInput<KeyCode>>,
-    mut menu_node_query: Query<&mut Node, With<UiMenu>>,
-    mut index_query: Query<&mut UiIndex, With<UiMenu>>,
-) {
-    if let Ok(mut _menu_node) = menu_node_query.single_mut() {
-        for mut index in index_query.iter_mut() {
-            // navigate up
-            if (key.just_pressed(KeyCode::KeyW) || key.just_pressed(KeyCode::ArrowUp)) && index.0 > 0 {
-                index.0 -= 1;
-            // navigate down
-            } else if key.just_pressed(KeyCode::KeyS) || key.just_pressed(KeyCode::ArrowDown) {
-                index.0 += 1;
-            // select
-            } else if key.just_pressed(KeyCode::Enter) {
-                todo!();
-            }
-        }
     }
 }
