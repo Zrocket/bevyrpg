@@ -13,7 +13,6 @@ use bevy::prelude::*;
 pub struct RayHit(pub Entity);
 
 pub fn player_raycast(
-    mut commands: Commands,
     camera_query: Query<(&Camera, &GlobalTransform), Without<HeldProp>>,
     ray_caster: SpatialQuery,
     mut player: Query<(Entity, &mut RayHit), With<Player>>,
