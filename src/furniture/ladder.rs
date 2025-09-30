@@ -1,48 +1,33 @@
-use avian3d::prelude::{Collider, SpatialQuery, SpatialQueryFilter};
+use avian3d::prelude::{OnCollisionEnd, OnCollisionStart};
 use bevy::prelude::*;
-use bevy_trait_query::RegisterExt;
 
-use crate::{interact::Interaction, CollisionLayer};
-
-#[derive(Event)]
-pub struct LadderEvent {
-    actor: Entity,
-    target: Entity,
-}
+use crate::{Player, PlayerState};
 
 #[derive(Debug, Default, Component, Reflect)]
 #[reflect(Component)]
 pub struct LadderComponent;
-impl Interaction for LadderComponent {
-    fn interact(&self,commands: &mut Commands,entity:Entity,prop:Entity,) {
-        println!("Ladder Interaction");
-        commands.trigger_targets(LadderEvent {actor: entity, target: prop}, entity);
-    }
-}
 
 pub struct LadderPlugin;
 impl Plugin for LadderPlugin {
     fn build(&self, app: &mut App) {
-        app.register_type::<LadderComponent>()
-            .register_component_as::<dyn Interaction, LadderComponent>()
-            .add_event::<LadderEvent>()
-            .add_observer(ladder_event_observer);
+        app.register_type::<LadderComponent>();
     }
 }
 
-fn ladder_event_observer(
-    _trigger: Trigger<LadderEvent>,
-    spatial_query: SpatialQuery,
-    ladder_query: Query<&GlobalTransform, With<LadderComponent>>,
+pub fn ladder_collision_observer(
+    trigger: Trigger<OnCollisionStart>,
+    mut player_query: Query<&mut PlayerState, With<Player>>,
 ) {
-    trace!("OBSERVER: ladder_event_observer");
-    if let Ok(ladder) = ladder_query.single() {
-            let temp = spatial_query.shape_intersections(
-                &Collider::cuboid(4.0, 4.0, 4.0),
-                ladder.translation(),
-                ladder.rotation(),
-                &SpatialQueryFilter::from_mask(CollisionLayer::Player)
-            );
-        println!("{:?}", temp);
+    if player_query.contains(trigger.collider) && let Ok(mut player) = player_query.single_mut() {
+        *player = PlayerState::Ladder(trigger.body.unwrap());
+    }
+}
+
+pub fn ladder_decollision_observer(
+    trigger: Trigger<OnCollisionEnd>,
+    mut player_query: Query<&mut PlayerState, With<Player>>,
+) {
+    if player_query.contains(trigger.collider) && let Ok(mut player) = player_query.single_mut() {
+        *player = PlayerState::Grounded;
     }
 }
