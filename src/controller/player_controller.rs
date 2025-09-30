@@ -1,14 +1,14 @@
 use std::f32::consts::*;
 
+use avian3d::prelude::{GravityScale, RigidBodyDisabled};
 use bevy::{input::mouse, prelude::*};
 use bevy_tnua::{
-    builtins::{TnuaBuiltinJump, TnuaBuiltinWalk},
-    control_helpers::TnuaSimpleAirActionsCounter,
-    controller::TnuaController,
+    builtins::{TnuaBuiltinClimb, TnuaBuiltinJump, TnuaBuiltinWalk}, control_helpers::{TnuaBlipReuseAvoidance, TnuaSimpleAirActionsCounter}, controller::TnuaController, radar_lens::TnuaRadarLens, spatial_ext::TnuaSpatialExt, TnuaBasis, TnuaObstacleRadar
 };
-use leafwing_input_manager::prelude::*;
+use bevy_tnua_avian3d::TnuaSpatialExtAvian3d;
+use leafwing_input_manager::{action_state, prelude::*};
 
-use crate::Player;
+use crate::{Player, PlayerState};
 
 // Used as padding by camera pitching (up/down) to avoid spooky math problems
 const ANGLE_EPSILON: f32 = 0.001953125;
@@ -54,9 +54,8 @@ pub enum Action {
     OpenConsole,
 }
 
-#[derive(Component, Default)]
+#[derive(Component, Default, Debug)]
 pub struct PlayerControllerInput {
-    pub fly: bool,
     pub sprint: bool,
     pub jump: bool,
     pub crouch: bool,
@@ -129,66 +128,104 @@ pub fn player_controller_look(mut query: Query<(&mut PlayerController, &PlayerCo
 }
 
 // Query for the `ActionState` component in your game logic systems!
+#[allow(clippy::type_complexity)]
 pub fn tnua_player_input(
-    action_state_query: Query<&ActionState<Action>, With<Player>>,
-    mut tnua_query: Query<(&mut TnuaController, &mut TnuaSimpleAirActionsCounter), With<Player>>,
-    player_input_query: Query<&PlayerControllerInput>,
+    mut commands: Commands,
+    mut tnua_query: Query<(
+        &mut TnuaController,
+        &mut TnuaSimpleAirActionsCounter,
+        &mut PlayerState,
+        &ActionState<Action>,
+        &PlayerControllerInput,
+        &TnuaObstacleRadar,
+        &mut TnuaBlipReuseAvoidance,
+        Entity,
+        ), With<Player>>,
+        spatial_ext: TnuaSpatialExtAvian3d,
 ) {
     // Get player's tnua controller, otherwise return
-    let Ok((mut tnua_controller, mut air_actions_counter)) = tnua_query.single_mut() else {
+    let Ok((mut tnua_controller,
+            mut air_actions_counter,
+            mut player_state,
+            action_state,
+            player_controller_input,
+            obstacle_radar,
+            mut blip_reuse_avoiodance,
+            player_entity
+            )) = tnua_query.single_mut() else {
         return;
     };
 
-    if let Ok(action_state) = action_state_query.single()
-        // Get player controller input
-        && let Ok(player_controller_input) = player_input_query.single() {
+    // Creates a 3D rotation matrix from a normalized rotation axis and angle (in radians).
+    // returns a 3x3 column major matrix.
+    let mut move_to_world = Mat3::from_axis_angle(Vec3::Y, player_controller_input.yaw);
+    move_to_world.z_axis *= -1.0; // Forward is -Z
+    move_to_world.y_axis = Vec3::Y; // Vertical movement aligned with world up
+    let movement_direction = move_to_world * player_controller_input.movement;
 
-            // Creates a 3D rotation matrix from a normalized rotation axis and angle (in radians).
-            // returns a 3x3 column major matrix.
-            let mut move_to_world = Mat3::from_axis_angle(Vec3::Y, player_controller_input.yaw);
-            move_to_world.z_axis *= -1.0; // Forward is -Z
-            move_to_world.y_axis = Vec3::Y; // Vertical movement aligned with world up
-            let movement_direction = move_to_world * player_controller_input.movement;
+    air_actions_counter.update(tnua_controller.as_mut());
 
-            air_actions_counter.update(tnua_controller.as_mut());
-            // Each action has a button-like state of its own that you can check
-            //println!(
-            //    "Air Actions Counter: {}",
-            //    air_actions_counter.air_count_for(TnuaBuiltinJump::NAME)
-            //);
-            //println!("Action State: {}", action_state.just_pressed(&Action::Jump));
-            //if action_state.just_pressed(&Action::Jump) && air_actions_counter.air_count_for(TnuaBuiltinJump::NAME) == 0 {
-            if action_state.pressed(&Action::Jump) {
-                tnua_controller.action(TnuaBuiltinJump {
-                    allow_in_air: false,
-                    // The height is the only mandatory field of the jump button.
-                    height: 1.5,
-                    // `TnuaBuiltinJump` also has customization fields with sensible defaults.
-                    ..Default::default()
-                });
-            }
-            //air_actions_counter.update(tnua_controller.as_mut());
+    // This also needs to be called once per frame. It checks which obstacles needs to be
+    // blocked - e.g. because we've just finished an action on them and we don't want to
+    // reinitiate that action.
+    blip_reuse_avoiodance.update(tnua_controller.as_ref(), obstacle_radar);
 
-            let mut acceleration = 10.0;
+    // Each action has a button-like state of its own that you can check
+    //println!(
+    //    "Air Actions Counter: {}",
+    //    air_actions_counter.air_count_for(TnuaBuiltinJump::NAME)
+    //);
+    //println!("Action State: {}", action_state.just_pressed(&Action::Jump));
+    //if action_state.just_pressed(&Action::Jump) && air_actions_counter.air_count_for(TnuaBuiltinJump::NAME) == 0 {
+    if action_state.pressed(&Action::Jump) {
+        tnua_controller.action(TnuaBuiltinJump {
+            allow_in_air: false,
+            // The height is the only mandatory field of the jump button.
+            height: 1.5,
+            // `TnuaBuiltinJump` also has customization fields with sensible defaults.
+            ..Default::default()
+        });
+        if *player_state == PlayerState::Sitting {
+            *player_state = PlayerState::Grounded;
+            commands.entity(player_entity).remove::<RigidBodyDisabled>();
+        }
+    }
+    //air_actions_counter.update(tnua_controller.as_mut());
 
-            if player_controller_input.sprint {
-                acceleration = 15.0;
-            }
+    let mut acceleration = 10.0;
 
-            // Feed the basis every frame. Even if the player doesn't move - just use `desired_velocity:
-            // Vec3::ZERO`. `TnuaController` starts without a basis, which will make the character collider
-            // just fall.
-            tnua_controller.basis(TnuaBuiltinWalk {
-                // The `desired_velocity` determines how the character will move.
-                desired_velocity: movement_direction.normalize_or_zero() * acceleration,
-                // The `float_height` must be greater (even if by little) from the distance between the
-                // character's center and the lowest point of its collider.
-                float_height: 1.5,
-                // `TnuaBuiltinWalk` has many other fields for customizing the movement - but they have
-                // sensible defaults. Refer to the `TnuaBuiltinWalk`'s documentation to learn what they do.
-                ..Default::default()
-            });
+    if player_controller_input.sprint {
+        acceleration = 15.0;
     }
 
+    if *player_state == PlayerState::Sitting {
+        return;
+    }
 
+    // Feed the basis every frame. Even if the player doesn't move - just use `desired_velocity:
+    // Vec3::ZERO`. `TnuaController` starts without a basis, which will make the character collider
+    // just fall.
+    tnua_controller.basis(TnuaBuiltinWalk {
+        // The `desired_velocity` determines how the character will move.
+        desired_velocity: movement_direction.normalize_or_zero() * acceleration,
+        // The `float_height` must be greater (even if by little) from the distance between the
+        // character's center and the lowest point of its collider.
+        float_height: 1.5,
+        // `TnuaBuiltinWalk` has many other fields for customizing the movement - but they have
+        // sensible defaults. Refer to the `TnuaBuiltinWalk`'s documentation to learn what they do.
+        ..Default::default()
+    });
+
+    let radar_lens = TnuaRadarLens::new(obstacle_radar, &spatial_ext);
+    for blip in radar_lens.iter_blips() {
+        print!("{:?} ", blip.entity());
+    }
+    println!("AAAAAAA");
+
+    if let PlayerState::Ladder(ladder) = *player_state {
+        tnua_controller.action(TnuaBuiltinClimb {
+            climbable_entity: Some(ladder),
+            ..default()
+        });
+    }
 }

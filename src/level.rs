@@ -2,8 +2,8 @@ use bevy::{asset::AssetPath, input::common_conditions::input_pressed};
 use bevy_asset_loader::{asset_collection::AssetCollection, loading_state::{config::ConfigureLoadingState, LoadingState, LoadingStateAppExt}, standard_dynamic_asset::StandardDynamicAssetCollection};
 
 use super::GameState;
-use crate::MiscItem;
-use avian3d::prelude::{ColliderConstructor, CollisionLayers, LayerMask, Physics, PhysicsLayer, RigidBody};
+use crate::{ladder_decollision_observer, ladder_collision_observer, LadderComponent, MiscItem};
+use avian3d::prelude::{ColliderConstructor, CollidingEntities, CollisionEventsEnabled, CollisionLayers, LayerMask, Physics, PhysicsLayer, RigidBody};
 use bevy::{gltf::Gltf, prelude::*};
 
 #[derive(Debug, PhysicsLayer, Default, Component, Reflect)]
@@ -151,6 +151,7 @@ fn translate_components(
     mut commands: Commands,
     prop_query: Query<Entity, With<BlenderProp>>,
     collider_query: Query<Entity, (With<BlenderColliderConstructor>, Without<BlenderProp>)>,
+    ladder_query: Query<Entity, With<LadderComponent>>,
 ) {
     trace!("SYSTEM: translate_blender_components");
 
@@ -166,6 +167,13 @@ fn translate_components(
         commands.entity(entity)
             .insert(RigidBody::Static)
             .insert(ColliderConstructor::ConvexHullFromMesh);
+    }
+    for entity in ladder_query.iter() {
+        commands.entity(entity)
+            .insert(CollidingEntities::default())
+            .insert(CollisionEventsEnabled)
+            .observe(ladder_collision_observer)
+            .observe(ladder_decollision_observer);
     }
 }
 
