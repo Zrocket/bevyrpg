@@ -2,7 +2,7 @@ use avian_pickup::{input::{AvianPickupAction, AvianPickupInput}, prop::HeldProp}
 use bevy::prelude::*;
 use bevy_trait_query::RegisterExt;
 
-use crate::{interact::Interaction, Inspectable, InteractEvent};
+use crate::{interact::Interaction, Inspectable};
 
 #[derive(Component, Reflect, Default)]
 #[reflect(Component)]
