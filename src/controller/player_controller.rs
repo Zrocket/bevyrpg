@@ -2,8 +2,9 @@ use std::f32::consts::*;
 
 use avian3d::prelude::{GravityScale, RigidBodyDisabled};
 use bevy::{input::mouse, prelude::*};
+use bevy_seedling::sample::SamplePlayer;
 use bevy_tnua::{
-    builtins::{TnuaBuiltinClimb, TnuaBuiltinJump, TnuaBuiltinWalk}, control_helpers::{TnuaBlipReuseAvoidance, TnuaSimpleAirActionsCounter}, controller::TnuaController, radar_lens::TnuaRadarLens, spatial_ext::TnuaSpatialExt, TnuaBasis, TnuaObstacleRadar
+    builtins::{TnuaBuiltinClimb, TnuaBuiltinCrouch, TnuaBuiltinJump, TnuaBuiltinWalk}, control_helpers::{TnuaBlipReuseAvoidance, TnuaSimpleAirActionsCounter}, controller::TnuaController, radar_lens::TnuaRadarLens, spatial_ext::TnuaSpatialExt, TnuaBasis, TnuaObstacleRadar
 };
 use bevy_tnua_avian3d::TnuaSpatialExtAvian3d;
 use leafwing_input_manager::{action_state, prelude::*};
@@ -189,6 +190,15 @@ pub fn tnua_player_input(
             *player_state = PlayerState::Grounded;
             commands.entity(player_entity).remove::<RigidBodyDisabled>();
         }
+    }
+
+    if action_state.pressed(&Action::Crouch) {
+        tnua_controller.action(TnuaBuiltinCrouch {
+            float_offset: -1.5,
+            height_change_impulse_for_duration: 0.1,
+            height_change_impulse_limit: 0.3,
+            uncancellable: false,
+        });
     }
     //air_actions_counter.update(tnua_controller.as_mut());
 
