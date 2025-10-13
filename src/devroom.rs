@@ -28,17 +28,17 @@ pub struct DevRoomPlugin;
 impl Plugin for DevRoomPlugin {
     fn build(&self, app: &mut App) {
         app
-            .add_systems(
+            /*.add_systems(
                 OnEnter(GameState::Loading),
                 (
                     spawn_walking_cube,
                 ).chain()
-            )
+            )*/
+            //.add_systems(OnEnter(GameState::Gameplay), spawn_sprites)
             .register_type::<FirstPassCube>()
             .register_type::<MainPassCube>()
             .add_plugins(AtmospherePlugin)
             .add_systems(Update, devroom_setup.run_if(in_state(GameState::Loading)))
-            .add_systems(OnEnter(GameState::Gameplay), spawn_sprites)
             .add_plugins(SpritesPlugin);
     }
 }
@@ -87,7 +87,7 @@ fn devroom_setup(
     info!("DevRoom Loaded");
 }
 
-fn spawn_walking_cube(
+fn _spawn_walking_cube(
     mut commands: Commands,
     mut meshes: ResMut<Assets<Mesh>>,
     mut materials: ResMut<Assets<StandardMaterial>>,
@@ -121,97 +121,7 @@ fn spawn_walking_cube(
         .insert(Name::new("Cube"));
 }
 
-fn _spawn_projection_cat(
-    mut commands: Commands,
-    mut meshes: ResMut<Assets<Mesh>>,
-    mut materials: ResMut<Assets<StandardMaterial>>,
-    mut color_materials: ResMut<Assets<ColorMaterial>>,
-    mut images: ResMut<Assets<Image>>,
-) {
-    // Render to Texture test
-
-    let size = Extent3d {
-        width: 512,
-        height: 512,
-        ..default()
-    };
-
-    // This is the texture to be rendered to.
-    let mut image = Image::new_fill(
-        size,
-        bevy::render::render_resource::TextureDimension::D2,
-        &[0, 0, 0, 0],
-        TextureFormat::Bgra8UnormSrgb,
-        RenderAssetUsages::default(),
-    );
-    // You need to set these texture usage flags in order to use the image as a render target
-    image.texture_descriptor.usage =
-        TextureUsages::TEXTURE_BINDING | TextureUsages::COPY_DST | TextureUsages::RENDER_ATTACHMENT;
-
-    let image_handle = images.add(image);
-
-    //let cube_handle = meshes.add(Cuboid::new(40.0, 0.0, 40.0));
-    let cube_handle = meshes.add(Rectangle::new(50., 50.));
-    let _cube_material_handle = materials.add(StandardMaterial {
-        base_color: Color::srgb(0.8, 0.7, 0.6),
-        reflectance: 0.02,
-        unlit: false,
-        ..default()
-    });
-
-    // This specifies the layer used for the first pass, which will be attached to the first pass
-    // camera and cube.
-    let first_pass_layer = RenderLayers::layer(1);
-
-    // The cube that will be rendered to the texture.
-    commands.spawn((
-            Mesh2d(cube_handle),
-            MeshMaterial2d(color_materials.add(ColorMaterial::from_color(RED))),
-            Transform::from_translation(Vec3::new(0.0, 0.0, 1.0)),
-            FirstPassCube,
-            first_pass_layer.clone(),
-    ));
-
-    // Light
-    commands.spawn((
-            PointLight::default(),
-            Transform::from_translation(Vec3::new(0.0, 0.0, 10.0)),
-            RenderLayers::layer(0).with(1),
-    ));
-
-    // Camera
-    commands.spawn((
-            Camera2d,
-            Camera {
-                target: image_handle.clone().into(),
-                clear_color: Color::WHITE.into(),
-                ..default()
-            },
-            Transform::from_translation(Vec3::new(0.0, 0.0, 15.0)).looking_at(Vec3::ZERO, Vec3::Y),
-            first_pass_layer,
-    ));
-
-    let cube_size = 4.0;
-    let cube_handle = meshes.add(Cuboid::new(cube_size, cube_size, cube_size));
-
-    // This material has the texture that has been rendered.
-    let material_handle = materials.add(StandardMaterial {
-        base_color_texture: Some(image_handle),
-        reflectance: 0.02,
-        unlit: false,
-        ..default()
-    });
-
-    // Main pass cube, with material containing the rendered first pass texture.
-    commands.spawn((
-            Mesh3d(cube_handle),
-            MeshMaterial3d(material_handle),
-            Transform::from_xyz(0.0, 5.0, 5.5).with_rotation(Quat::from_rotation_x(-PI / 5.0)),
-            MainPassCube,
-    ));
-}
-
-fn spawn_sprites(
+fn _spawn_sprites(
     mut commands: Commands,
     images: Res<ImageAssets>,
     mut sprite_params: Sprite3dParams,
@@ -250,16 +160,6 @@ fn spawn_sprites(
         },
         FaceCamera {},
     ));
-    /*commands.spawn(PointLightBundle {
-        point_light: PointLight {
-            intensity: 300.0,
-            color: Color::srgb(1.0, 231. / 255., 221. / 255.),
-            shadows_enabled: true,
-            ..default()
-        },
-        transform: Transform::from_xyz(2.0, 1.8, -5.5),
-        ..default()
-    });*/
 
     let atlas = TextureAtlas {
         layout: images.layout.clone(),
@@ -278,14 +178,4 @@ fn spawn_sprites(
         Transform::from_xyz(-5., 0.7, 6.5),
         FaceCamera {},
     ));
-    /*commands.spawn(PointLightBundle {
-        point_light: PointLight {
-            intensity: 100.0,
-            color: Srgba::rgb(91. / 255., 1.0, 92. / 255.).into(),
-            shadows_enabled: true,
-            ..default()
-        },
-        transform: Transform::from_xyz(-5., 1.1, 6.5),
-        ..default()
-    });*/
 }
