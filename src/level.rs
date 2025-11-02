@@ -1,4 +1,4 @@
-use bevy::{asset::AssetPath, input::common_conditions::input_pressed};
+use bevy::{input::common_conditions::input_pressed};
 use bevy_asset_loader::{asset_collection::AssetCollection, loading_state::{config::ConfigureLoadingState, LoadingState, LoadingStateAppExt}, standard_dynamic_asset::StandardDynamicAssetCollection};
 
 use super::GameState;
@@ -51,19 +51,19 @@ pub struct BlenderColliderConstructor;
 #[reflect(Component)]
 pub struct BlenderNavmesh;
 
-#[derive(Event)]
-pub struct ChangeLevelEvent(String);
+#[derive(Message)]
+pub struct ChangeLevelMessage(String);
 
 #[derive(AssetCollection, Reflect, Resource, Debug)]
 #[reflect(Resource)]
-pub struct DA_LevelAsset {
+pub struct DALevelAsset {
     #[asset(key = "level")]
     level: Handle<Gltf>,
 }
 
 #[derive(AssetCollection, Reflect, Resource, Debug)]
 #[reflect(Resource)]
-pub struct DA_GunAssets {
+pub struct DAGunAssets {
     #[asset(key = "uzi")]
     pub uzi: Handle<Gltf>,
     #[asset(key = "shotgun")]
@@ -84,14 +84,14 @@ impl Plugin for BlenderTranslationPlugin {
             .register_type::<BlenderColliderConstructor>()
             .register_type::<BlenderProp>()
             .register_type::<BlenderNavmesh>()
-            .register_type::<DA_LevelAsset>()
-            .register_type::<DA_GunAssets>()
+            .register_type::<DALevelAsset>()
+            .register_type::<DAGunAssets>()
             .register_type::<CollisionLayer>()
-            .add_event::<ChangeLevelEvent>()
+            .add_message::<ChangeLevelMessage>()
             .add_systems(OnEnter(GameState::Gameplay), translate_components)
             .add_systems(OnEnter(GameState::Preload),gltf_preload)
             .add_systems(Update, test_reload.run_if(input_pressed(KeyCode::KeyR)))
-            .add_systems(Update, change_level_event_handler)
+            .add_systems(Update, change_level_message_handler)
             //.add_systems(Update, wait_for_level_load)
             .add_systems(OnExit(GameState::Loading), animation_preload)
             .add_loading_state(
@@ -99,18 +99,18 @@ impl Plugin for BlenderTranslationPlugin {
                     .with_dynamic_assets_file::<StandardDynamicAssetCollection>("gunassets.ron")
                     .with_dynamic_assets_file::<StandardDynamicAssetCollection>("devroom.ron")
                     //.with_dynamic_assets_file::<StandardDynamicAssetCollection>("fpslevel.ron")
-                    .load_collection::<DA_GunAssets>()
-                    .load_collection::<DA_LevelAsset>()
+                    .load_collection::<DAGunAssets>()
+                    .load_collection::<DALevelAsset>()
             );
     }
 }
 
 fn wait_for_level_load(
     mut commands: Commands,
-    asset_server: Res<AssetServer>,
-    mut time: ResMut<Time<Physics>>,
+    _asset_server: Res<AssetServer>,
+    mut _time: ResMut<Time<Physics>>,
     //level_gltf: Res<LevelGltf>,
-    level_gltf: Res<DA_LevelAsset>,
+    level_gltf: Res<DALevelAsset>,
     gltf_assets: Res<Assets<Gltf>>,
     mut loaded: Local<bool>,
 ) {
@@ -130,19 +130,19 @@ fn wait_for_level_load(
     *loaded = true;
 }
 
-fn change_level_event_handler(
+fn change_level_message_handler(
     mut commands: Commands,
     asset_server: Res<AssetServer>,
-    mut time: ResMut<Time<Physics>>,
-    mut change_level_events: EventReader<ChangeLevelEvent>,
+    mut _time: ResMut<Time<Physics>>,
+    mut change_level_messages: MessageReader<ChangeLevelMessage>,
     current_level_query: Query<Entity, With<CurrentLevel>>,
 ) {
-    trace!("SYSTEM: change_level_event_handler");
-    for event in change_level_events.read() {
+    trace!("SYSTEM: change_level_message_handler");
+    for message in change_level_messages.read() {
         if let Ok(current_level) = current_level_query.single() {
             commands.entity(current_level).despawn();
         }
-        let level_gltf: Handle<Gltf> = asset_server.load(&event.0);
+        let level_gltf: Handle<Gltf> = asset_server.load(&message.0);
         commands.insert_resource(LevelGltf(level_gltf));
     }
 }
@@ -178,21 +178,21 @@ fn translate_components(
 }
 
 fn gltf_preload(
-    mut change_level_event_wriiter: EventWriter<ChangeLevelEvent>,
-    //level_asset: Res<DA_LevelAsset>,
+    mut change_level_message_wriiter: MessageWriter<ChangeLevelMessage>,
+    //level_asset: Res<DALevelAsset>,
     //gltf_assets: Res<Assets<Gltf>>,
 ) {
     trace!("SYSTEM: gltf_preload");
     //let level = gltf_assets.get(&level_asset.level).unwrap();
-    //change_level_event_wriiter.write(ChangeLevelEvent("levels/World.glb".into()));
-    change_level_event_wriiter.write(ChangeLevelEvent("levels/World.glb".into()));
+    //change_level_message_wriiter.write(ChangeLevelMessage("levels/World.glb".into()));
+    change_level_message_wriiter.write(ChangeLevelMessage("levels/World.glb".into()));
 }
 
 fn test_reload(
-    mut change_level_event_wriiter: EventWriter<ChangeLevelEvent>,
+    mut change_level_message_wriiter: MessageWriter<ChangeLevelMessage>,
 ) {
     trace!("SYSTEM: test_reload");
-    change_level_event_wriiter.write(ChangeLevelEvent("levels/fps.glb".into()));
+    change_level_message_wriiter.write(ChangeLevelMessage("levels/fps.glb".into()));
 }
 
 fn animation_preload(
@@ -206,7 +206,7 @@ fn animation_preload(
     if let Some(gltf) = gltf_assets.get(&level_gltf.0) {
         for (entity, animation_name) in blender_animation_query.iter() {
             let animation_clip_handle = gltf.named_animations[animation_name.0.as_str()].clone();
-            let animation_clip = animation_clip_handle.clone_weak();
+            let animation_clip = animation_clip_handle.clone();
             let (animation_graph, _index) = AnimationGraph::from_clip(animation_clip);
             commands.entity(entity).insert(AnimationGraphHandle(animation_graphs.add(animation_graph)));
         }

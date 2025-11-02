@@ -20,7 +20,7 @@ pub fn player_raycast(
     trace!("SYSTEM: player_raycast");
     if let Ok((player, mut ray_hit)) = player.single_mut() {
         for (camera, global_transform) in camera_query.iter() {
-            let center_window = camera.viewport_to_world(global_transform, Vec2 { y: RESOLUTION_HEIGHT / 2., x: RESOLUTION_WIDTH / 2. }).unwrap();
+            let center_window = camera.viewport_to_world(global_transform, Vec2 { y: (RESOLUTION_HEIGHT / 2) as f32, x: (RESOLUTION_WIDTH / 2) as f32 }).unwrap();
             let camera_position = global_transform.translation();
             let camera_direction = global_transform.forward();
             if let Some(ray_data) = ray_caster.cast_ray(
@@ -41,7 +41,7 @@ pub fn manage_interact(
     mut commands: Commands,
     player: Query<(Entity, &RayHit), With<Player>>,
     interact_query: Query<&dyn Interaction>,
-    mut avian_pickup_input_writer: EventWriter<AvianPickupInput>,
+    mut avian_pickup_input_writer: MessageWriter<AvianPickupInput>,
     held_prop_query: Query<&HeldProp>,
 ) {
     trace!("SYSTEM: manage_interact");

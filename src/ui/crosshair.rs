@@ -8,15 +8,13 @@ pub struct CrosshairPlugin;
 impl Plugin for CrosshairPlugin {
     fn build(&self, app: &mut App) {
         app
-            .add_systems(OnEnter(GameState::Gameplay), (
-                jonmo_draw_crosshair,
-            ))
+            .add_systems(OnEnter(GameState::Gameplay), draw_crosshair)
             .add_systems(Update, cooldown_tick)
             .add_observer(cooldown_observer);
     }
 }
 
-pub fn _draw_crosshair(mut commands: Commands, asset_server: Res<AssetServer>) {
+pub fn draw_crosshair(mut commands: Commands, asset_server: Res<AssetServer>) {
     trace!("draw_crosshair");
     let crosshair: Handle<Image> = asset_server.load("new_crosshairs/dot.png");
     /*commands.spawn((ImageNode {
@@ -42,7 +40,7 @@ pub fn _draw_crosshair(mut commands: Commands, asset_server: Res<AssetServer>) {
         .insert(UiCrosshair);
 }
 
-pub fn jonmo_draw_crosshair(
+/*pub fn jonmo_draw_crosshair(
     world: &mut World,
 ) {
     let asset_server = world.resource::<AssetServer>();
@@ -84,11 +82,11 @@ pub fn jonmo_draw_crosshair(
         )
     )
     .spawn(world);
-}
+}*/
 
 pub fn cooldown_observer(
-    trigger: Trigger<ShootEvent>,
-    time: Res<Time>,
+    trigger: On<ShootEvent>,
+    _time: Res<Time>,
     mut cooldown_query: Query<&mut Cooldown>,
 ) {
     if let Ok(mut cooldown) = cooldown_query.single_mut() {

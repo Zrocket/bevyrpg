@@ -1,16 +1,6 @@
 use std::f32::consts::PI;
 use avian3d::collision::collider::Collider;
-use bevy::{
-    asset::RenderAssetUsages,
-    color::palettes::css::RED,
-    core_pipeline::core_3d::Camera3d, math::vec3, prelude::*, render::camera::ClearColorConfig,
-    render:: {
-        render_resource::{Extent3d, TextureFormat, TextureUsages},
-        view::RenderLayers,
-    },
-};
-use bevy_atmosphere::prelude::*;
-use bevy_sprite3d::{Sprite3dBuilder, Sprite3dParams};
+use bevy::prelude::*;
 use bevy_tnua::prelude::*;
 use bevy_tnua_avian3d::*;
 
@@ -37,15 +27,14 @@ impl Plugin for DevRoomPlugin {
             //.add_systems(OnEnter(GameState::Gameplay), spawn_sprites)
             .register_type::<FirstPassCube>()
             .register_type::<MainPassCube>()
-            .add_plugins(AtmospherePlugin)
-            .add_systems(Update, devroom_setup.run_if(in_state(GameState::Loading)))
-            .add_plugins(SpritesPlugin);
+            .add_systems(Update, devroom_setup.run_if(in_state(GameState::Loading)));
+            //.add_plugins(SpritesPlugin);
     }
 }
 
 fn devroom_setup(
     mut commands: Commands,
-    mut window: Query<&mut Window>,
+    mut window: Query<&mut CursorOptions>,
     level_gltf: Res<LevelGltf>,
     gltf_assets: Res<Assets<Gltf>>,
     mut loaded: Local<bool>,
@@ -60,14 +49,14 @@ fn devroom_setup(
 
     info!("Loading DevRoom");
     commands.spawn(
-(
+        (
             CurrentLevel,
             SceneRoot(gltf.named_scenes["World"].clone())
         )
     );
 
     if let Ok(mut window) = window.single_mut() {
-        window.cursor_options.grab_mode = bevy::window::CursorGrabMode::Locked;
+        window.grab_mode = bevy::window::CursorGrabMode::Locked;
     }
     info!("Creating DirectionalLightBundle");
     commands.spawn((
@@ -121,22 +110,22 @@ fn _spawn_walking_cube(
         .insert(Name::new("Cube"));
 }
 
-fn _spawn_sprites(
+/*fn _spawn_sprites(
     mut commands: Commands,
     images: Res<ImageAssets>,
     mut sprite_params: Sprite3dParams,
-    mut sprite_event: EventWriter<SpriteEvent>,
+    mut sprite_message: MessageWriter<SpriteMessage>,
 ) {
     info!("SYSTEM: spawn_sprites");
-    sprite_event.write(SpriteEvent { sprite_type: SpriteType::Character, tile_x: 8, tile_y: 0, x: 4.5, y: -4.0, height:1, frames:2 });
-    sprite_event.write(SpriteEvent { sprite_type: SpriteType::Character, tile_x: 4, tile_y: 0, x: 1.5, y: -7.0, height: 4, frames: 2});
-    sprite_event.write(SpriteEvent { sprite_type: SpriteType::Character, tile_x: 6, tile_y: 0, x: 0.5, y: 2.0, height: 4, frames: 2 });
-    sprite_event.write(SpriteEvent { sprite_type: SpriteType::Character, tile_x: 0, tile_y: 19, x: 3.5, y: 1.0, height: 1, frames: 1 });
-    sprite_event.write(SpriteEvent { sprite_type: SpriteType::Character, tile_x: 1, tile_y: 19, x: 4.0, y: 6.0, height: 1, frames: 1 });
-    sprite_event.write(SpriteEvent { sprite_type: SpriteType::Character, tile_x: 4, tile_y: 19, x: 0.0, y: 5.0, height: 1, frames: 1 });
-    sprite_event.write(SpriteEvent { sprite_type: SpriteType::Character, tile_x: 5, tile_y: 19, x: -4.0, y: 5.4, height:1, frames: 1});
-    sprite_event.write(SpriteEvent { sprite_type: SpriteType::Character, tile_x: 2, tile_y: 19, x: -0.5, y: -8.5, height:1, frames: 1 });
-    sprite_event.write(SpriteEvent { sprite_type: SpriteType::Character, tile_x: 13, tile_y: 16, x: 4.2, y: -8., height: 2, frames: 1 });
+    sprite_message.write(SpriteMessage { sprite_type: SpriteType::Character, tile_x: 8, tile_y: 0, x: 4.5, y: -4.0, height:1, frames:2 });
+    sprite_message.write(SpriteMessage { sprite_type: SpriteType::Character, tile_x: 4, tile_y: 0, x: 1.5, y: -7.0, height: 4, frames: 2});
+    sprite_message.write(SpriteMessage { sprite_type: SpriteType::Character, tile_x: 6, tile_y: 0, x: 0.5, y: 2.0, height: 4, frames: 2 });
+    sprite_message.write(SpriteMessage { sprite_type: SpriteType::Character, tile_x: 0, tile_y: 19, x: 3.5, y: 1.0, height: 1, frames: 1 });
+    sprite_message.write(SpriteMessage { sprite_type: SpriteType::Character, tile_x: 1, tile_y: 19, x: 4.0, y: 6.0, height: 1, frames: 1 });
+    sprite_message.write(SpriteMessage { sprite_type: SpriteType::Character, tile_x: 4, tile_y: 19, x: 0.0, y: 5.0, height: 1, frames: 1 });
+    sprite_message.write(SpriteMessage { sprite_type: SpriteType::Character, tile_x: 5, tile_y: 19, x: -4.0, y: 5.4, height:1, frames: 1});
+    sprite_message.write(SpriteMessage { sprite_type: SpriteType::Character, tile_x: 2, tile_y: 19, x: -0.5, y: -8.5, height:1, frames: 1 });
+    sprite_message.write(SpriteMessage { sprite_type: SpriteType::Character, tile_x: 13, tile_y: 16, x: 4.2, y: -8., height: 2, frames: 1 });
 
     let atlas = TextureAtlas {
         layout: images.layout.clone(),
@@ -144,8 +133,11 @@ fn _spawn_sprites(
     };
 
     commands.spawn((
-        Sprite3dBuilder {
+        Sprite {
             image: images.tileset.clone(),
+            ..default()
+        },
+        Sprite3d {
             pixels_per_metre: 16.,
             emissive: Srgba::rgb(1.0, 0.5, 0.0).into(),
             unlit: true,
@@ -178,4 +170,4 @@ fn _spawn_sprites(
         Transform::from_xyz(-5., 0.7, 6.5),
         FaceCamera {},
     ));
-}
+}*/

@@ -39,8 +39,8 @@ impl Plugin for AmmoPlugin {
 
 
 fn ammo_event_observer(
-        trigger: Trigger<InteractEvent, Ammo>
+        trigger: On<InteractEvent, Ammo>
 ) {
     let _player = trigger.event().actor;
-    let _ammo = trigger.target();
+    let _ammo = trigger.target;
 }
