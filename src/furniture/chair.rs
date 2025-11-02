@@ -1,5 +1,5 @@
 use avian3d::prelude::RigidBodyDisabled;
-use bevy::{prelude::*, state::commands};
+use bevy::prelude::*;
 use bevy_trait_query::RegisterExt;
 
 use crate::{interact::Interaction, Player, PlayerState};
@@ -20,7 +20,7 @@ impl Interaction for Chair {
         entity: Entity,
         prop: Entity,
         ) {
-        commands.trigger_targets(SitEvent {actor: entity, target: prop}, prop);
+        commands.trigger(SitEvent {actor: entity, target: prop});
     }
 }
 
@@ -30,13 +30,13 @@ impl Plugin for ChairPlugin {
     fn build(&self, app: &mut App) {
         app.register_type::<Chair>()
             .register_component_as::<dyn Interaction, Chair>()
-            .add_event::<SitEvent>()
+           // .add_event::<SitEvent>()
             .add_observer(sit_event_observer);
     }
 }
 
 fn sit_event_observer(
-    trigger: Trigger<SitEvent>,
+    trigger: On<SitEvent>,
     mut commands: Commands,
     mut player_query: Query<(&mut Transform, &mut PlayerState, Entity), With<Player>>,
     transform_query: Query<&GlobalTransform, Without<Player>>,

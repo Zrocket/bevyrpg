@@ -7,7 +7,6 @@ mod status_bar;
 mod settings;
 
 use bevy_simple_text_input::TextInputPlugin;
-use jonmo::prelude::*;
 use crosshair::*;
 use inventory_ui::*;
 use status_bar::*;
@@ -17,7 +16,7 @@ pub use settings::*;
 
 #[derive(AssetCollection, Resource, Reflect, Debug)]
 #[reflect(Resource)]
-pub struct DA_UiAssets {
+pub struct DAUiAssets {
     #[asset(key = "health_1")]
     health_1: Handle<Image>,
     #[asset(key = "health_2")]
@@ -55,8 +54,7 @@ impl Plugin for UiPlugin {
     fn build(&self, app: &mut App) {
         app
             .add_plugins(TextInputPlugin)
-            .add_plugins(JonmoPlugin)
-            .register_type::<DA_UiAssets>()
+            .register_type::<DAUiAssets>()
             .add_plugins((
                     StatusUIPlugin,
                     InventoryUIPlugin,
@@ -76,7 +74,7 @@ impl Plugin for UiPlugin {
             .add_loading_state(
                 LoadingState::new(GameState::Preload)
                     .with_dynamic_assets_file::<StandardDynamicAssetCollection>("uiassets.ron")
-                    .load_collection::<DA_UiAssets>()
+                    .load_collection::<DAUiAssets>()
             );
     }
 }

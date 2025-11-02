@@ -1,5 +1,4 @@
 use bevy::color::palettes::css::{BLUE, GREEN};
-use jonmo::prelude::*;
 
 use super::*;
 
@@ -7,14 +6,14 @@ pub struct StatusUIPlugin;
 impl Plugin for StatusUIPlugin {
     fn build(&self, app: &mut App) {
        app
-           .add_systems(OnEnter(GameState::Gameplay), jonmo_draw_status_ui);
+           .add_systems(OnEnter(GameState::Gameplay), draw_status_ui);
     }
 }
 
-pub fn _draw_status_ui(
+pub fn draw_status_ui(
     mut commands: Commands,
     asset_server: Res<AssetServer>,
-    ui_assets: Res<DA_UiAssets>,
+    ui_assets: Res<DAUiAssets>,
     health_query: Query<(&Health, &MaxHealth), With<Player>>,
     mana_query: Query<(&Mana, &MaxMana), With<Player>>,
 ) {
@@ -59,7 +58,7 @@ pub fn _draw_status_ui(
                     ZIndex(10),
                     ImageNode {
                         //image: health_ui_icons[0].clone().into(),
-                        image: ui_assets.health_1.clone_weak().into(),
+                        image: ui_assets.health_1.clone().into(),
                         ..default()
                     },
                 ))
@@ -85,7 +84,7 @@ pub fn _draw_status_ui(
     }
 }
 
-pub fn jonmo_draw_status_ui(
+/*pub fn jonmo_draw_status_ui(
     world: &mut World,
     health_query: &mut QueryState<(&Health, &MaxHealth), With<Player>>,
     mana_query: &mut QueryState<(&Mana, &MaxMana), With<Player>>,
@@ -155,4 +154,4 @@ pub fn jonmo_draw_status_ui(
                 .child(player_ammo_node)
                 .spawn(world);
     }
-}
+}*/

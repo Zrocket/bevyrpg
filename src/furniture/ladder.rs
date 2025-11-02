@@ -1,4 +1,4 @@
-use avian3d::prelude::{OnCollisionEnd, OnCollisionStart};
+use avian3d::prelude::{CollisionEnd, CollisionStart};
 use bevy::prelude::*;
 
 use crate::{Player, PlayerState};
@@ -15,19 +15,19 @@ impl Plugin for LadderPlugin {
 }
 
 pub fn ladder_collision_observer(
-    trigger: Trigger<OnCollisionStart>,
+    trigger: On<CollisionStart>,
     mut player_query: Query<&mut PlayerState, With<Player>>,
 ) {
-    if player_query.contains(trigger.collider) && let Ok(mut player) = player_query.single_mut() {
-        *player = PlayerState::Ladder(trigger.body.unwrap());
+    if player_query.contains(trigger.event().collider2) && let Ok(mut player) = player_query.single_mut() {
+        *player = PlayerState::Ladder(trigger.event().body1.unwrap());
     }
 }
 
 pub fn ladder_decollision_observer(
-    trigger: Trigger<OnCollisionEnd>,
+    trigger: On<CollisionEnd>,
     mut player_query: Query<&mut PlayerState, With<Player>>,
 ) {
-    if player_query.contains(trigger.collider) && let Ok(mut player) = player_query.single_mut() {
+    if player_query.contains(trigger.event().collider2) && let Ok(mut player) = player_query.single_mut() {
         *player = PlayerState::Grounded;
     }
 }

@@ -21,7 +21,7 @@ impl Plugin for TestsPlugin {
 
 fn dynamic_asset_test(
     dynamic_assets: Res<DynamicAssetCollections<GameState>>,
-    //level_asset: Res<DA_LevelAsset>,
+    //level_asset: Res<DALevelAsset>,
 ) {
     println!(" DYNAMICASSETS: {:?}", dynamic_assets);
     //println!("LEVELASSET: {:?}", level_asset);

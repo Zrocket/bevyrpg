@@ -36,8 +36,8 @@ impl Plugin for WeaponPlugin {
 }
 
 fn weapon_event_observer(
-    trigger: Trigger<InteractEvent, Weapon>
+    trigger: On<InteractEvent, Weapon>
 ) {
     let _actor = trigger.event().actor;
-    let _weapon = trigger.target();
+    let _weapon = trigger.target;
 }

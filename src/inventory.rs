@@ -4,14 +4,14 @@ use std::ops::Deref;
 
 use crate::items::*;
 
-#[derive(Event)]
-pub struct PickUpEvent {
+#[derive(Message)]
+pub struct PickUpMessage {
     pub actor: Entity,
     pub target: Entity,
 }
 
-#[derive(Event)]
-pub struct RemoveEvent {
+#[derive(Message)]
+pub struct RemoveMessage {
     pub actor: Entity,
     pub target: Entity,
 }
@@ -62,8 +62,8 @@ impl Deref for InInventory {
 pub struct InventoryPlugin;
 impl Plugin for InventoryPlugin {
     fn build(&self, app: &mut App) {
-        app.add_event::<PickUpEvent>()
-            .add_event::<RemoveEvent>()
+        app.add_message::<PickUpMessage>()
+            .add_message::<RemoveMessage>()
             .add_systems(
                 Update,
                 add_to_inventory.run_if(in_state(GameState::Gameplay)),
@@ -78,7 +78,7 @@ impl Plugin for InventoryPlugin {
 
 fn add_to_inventory(
     mut commands: Commands,
-    mut pick_up_events: EventReader<PickUpEvent>,
+    mut pick_up_events: MessageReader<PickUpMessage>,
     mut item: Query<Entity>,
     mut actor: Query<(Entity, &mut Inventory)>,
 ) {
@@ -102,7 +102,7 @@ fn add_to_inventory(
 
 fn remove_from_inventory(
     mut commands: Commands,
-    mut remove_events: EventReader<RemoveEvent>,
+    mut remove_events: MessageReader<RemoveMessage>,
     item_query: Query<Entity, With<Item>>,
     mut actor: Query<(Entity, &mut Inventory)>,
 ) {

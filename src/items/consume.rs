@@ -27,8 +27,8 @@ impl Plugin for ComsumePlugin {
 }
 
 fn consume_event_observer(
-    trigger: Trigger<InteractEvent, Consume>
+    trigger: On<InteractEvent, Consume>
 ) {
     let _actor = trigger.event().actor;
-    let _consumeable = trigger.target();
+    let _consumeable = trigger.target;
 }

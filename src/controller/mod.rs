@@ -5,23 +5,23 @@ mod player_controller;
 
 use bevy::input::common_conditions::input_pressed;
 use bevy::prelude::*;
-use bevy_tnua::TnuaUserControlsSystemSet;
+use bevy_tnua::TnuaUserControlsSystems;
 pub use interact_controller::*;
 use inventory_controller::*;
 use menu_controller::*;
 pub use player_controller::*;
 
 use super::GameState;
-use bevy::window::CursorGrabMode;
+use bevy::window::{CursorGrabMode, CursorOptions};
 use leafwing_input_manager::prelude::*;
 
-use crate::interact::InteractEvent;
-use crate::{shoot, ShootEvent};
+use crate::{ShootEvent, shoot};
 
 pub struct ControllerPlugin;
 impl Plugin for ControllerPlugin {
     fn build(&self, app: &mut App) {
-        app.add_event::<InteractEvent>()
+        app
+            //.add_event::<InteractMessage>()
             .add_plugins(InputManagerPlugin::<Action>::default())
             .add_plugins(MenuControllerPlugin)
             .add_plugins(PlayerControllerPlugin)
@@ -34,7 +34,7 @@ impl Plugin for ControllerPlugin {
                     manage_inspect.run_if(in_state(GameState::Gameplay)),
                     player_raycast.run_if(in_state(GameState::Gameplay)),
                     manage_inventory.run_if(in_state(GameState::Gameplay)),
-                    inventory_navigation.in_set(TnuaUserControlsSystemSet),
+                    inventory_navigation.in_set(TnuaUserControlsSystems),
                 )
             );
 
@@ -42,18 +42,18 @@ impl Plugin for ControllerPlugin {
 }
 
 fn manage_cursor(
-    mut windows: Query<&mut Window>,
+    mut windows: Query<&mut CursorOptions>,
     mut commands: Commands,
     btn: Res<ButtonInput<MouseButton>>,
     key: Res<ButtonInput<KeyCode>>,
     mut controllers: Query<&mut PlayerController>,
-    mut shoot_event_writer: EventWriter<shoot::ShootEvent>,
+    mut shoot_event_writer: MessageWriter<shoot::ShootEvent>,
 ) {
     if let Ok(mut window) = windows.single_mut() {
-        if window.cursor_options.grab_mode != CursorGrabMode::Locked {
+        if window.grab_mode != CursorGrabMode::Locked {
             if btn.just_pressed(MouseButton::Left) {
-                window.cursor_options.grab_mode = CursorGrabMode::Locked;
-                window.cursor_options.visible = false;
+                window.grab_mode = CursorGrabMode::Locked;
+                window.visible = false;
                 for mut controller in &mut controllers {
                     controller.enable_input = true;
                 }
@@ -64,8 +64,8 @@ fn manage_cursor(
         }
 
         if key.just_pressed(KeyCode::Escape) {
-            window.cursor_options.grab_mode = CursorGrabMode::None;
-            window.cursor_options.visible = true;
+            window.grab_mode = CursorGrabMode::None;
+            window.visible = true;
             for mut controller in &mut controllers {
                 controller.enable_input = false;
             }
