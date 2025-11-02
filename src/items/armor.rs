@@ -44,8 +44,8 @@ impl Plugin for ArmorPlugin {
 }
 
 fn armor_event_observer(
-        trigger: Trigger<InteractEvent, Armor>
+        trigger: On<InteractEvent, Armor>
 ) {
     let _player = trigger.event().actor;
-    let _armor = trigger.target();
+    let _armor = trigger.target;
 }

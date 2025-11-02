@@ -95,24 +95,24 @@ impl Default for CharacterBundle {
     }
 }
 
-#[derive(Event)]
-pub struct DamageEvent {
+#[derive(Message)]
+pub struct DamageMessage {
     pub target: Entity,
     pub ammount: i32,
 }
-#[derive(Event)]
-pub struct LevelUpEvent(pub Entity);
+#[derive(Message)]
+pub struct LevelUpMessage(pub Entity);
 
-#[derive(Event)]
-pub struct ExperienceEvent {
+#[derive(Message)]
+pub struct ExperienceMessage {
     pub target: Entity,
     pub ammount: i32,
 }
-#[derive(Event)]
-pub struct DeathEvent(pub Entity);
+#[derive(Message)]
+pub struct DeathMessage(pub Entity);
 
-#[derive(Event)]
-pub struct AttackEvent {
+#[derive(Message)]
+pub struct AttackMessage {
     pub attacker: Entity,
     pub defender: Entity,
 }
@@ -141,10 +141,10 @@ pub struct Skills {
 pub struct CharacterPlugin;
 impl Plugin for CharacterPlugin {
     fn build(&self, app: &mut App) {
-        app.add_event::<DamageEvent>()
-            .add_event::<LevelUpEvent>()
-            .add_event::<ExperienceEvent>()
-            .add_event::<AttackEvent>()
+        app.add_message::<DamageMessage>()
+            .add_message::<LevelUpMessage>()
+            .add_message::<ExperienceMessage>()
+            .add_message::<AttackMessage>()
             .add_systems(
                 Update,
                 damage_event_handler.run_if(in_state(GameState::Gameplay)),
@@ -175,8 +175,8 @@ impl Plugin for CharacterPlugin {
 }
 
 fn attack_event_handler(
-    mut attack_events: EventReader<AttackEvent>,
-    mut damage_event_writer: EventWriter<DamageEvent>,
+    mut attack_events: MessageReader<AttackMessage>,
+    mut damage_event_writer: MessageWriter<DamageMessage>,
     actors: Query<AnyOf<(&Matter, &Maneuver)>>,
 ) {
     trace!("attack_event_handler");
@@ -186,7 +186,7 @@ fn attack_event_handler(
             let Some(matter) = attacker.0 &&
             let Some(maneuver) = defender.1 &&
             matter.0 > maneuver.0 {
-                damage_event_writer.write(DamageEvent {
+                damage_event_writer.write(DamageMessage {
                     target: event.defender,
                     ammount: matter.0,
                 });
@@ -197,7 +197,7 @@ fn attack_event_handler(
 fn damage_event_handler(
     mut commands: Commands,
     mut health_query: Query<&mut Health>,
-    mut damage_events: EventReader<DamageEvent>,
+    mut damage_events: MessageReader<DamageMessage>,
 ) {
     for event in damage_events.read() {
         if let Ok(mut health) = health_query.get_mut(event.target) {
@@ -214,15 +214,15 @@ fn damage_event_handler(
 
 fn experience_event_handler(
     mut experience_query: Query<&mut Experience>,
-    mut events: EventReader<ExperienceEvent>,
-    mut level_up_writer: EventWriter<LevelUpEvent>,
+    mut events: MessageReader<ExperienceMessage>,
+    mut level_up_writer: MessageWriter<LevelUpMessage>,
 ) {
     for event in events.read() {
         if let Ok(mut experience) = experience_query.get_mut(event.target) {
             info!("Giving {} experience to {:?}", event.ammount, event.target);
             experience.0 += event.ammount;
             if experience.0 >= 100 {
-                level_up_writer.write(LevelUpEvent(event.target));
+                level_up_writer.write(LevelUpMessage(event.target));
             }
         }
     }
@@ -230,7 +230,7 @@ fn experience_event_handler(
 
 fn level_up_event_handler(
     mut level_query: Query<&mut Level>,
-    mut level_up_events: EventReader<LevelUpEvent>,
+    mut level_up_events: MessageReader<LevelUpMessage>,
 ) {
     for event in level_up_events.read() {
         if let Ok(mut level) = level_query.get_mut(event.0) {

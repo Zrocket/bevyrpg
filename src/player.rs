@@ -1,12 +1,11 @@
 use avian3d::{prelude::{CoefficientCombine, Collider, CollisionLayers, Friction, GravityScale, LayerMask, LockedAxes, RigidBody, SpatialQuery, SpatialQueryFilter}};
 use avian_pickup::actor::{AvianPickupActor, AvianPickupActorHoldConfig};
-use bevy::prelude::*;
-use bevy_atmosphere::plugin::AtmosphereCamera;
+use bevy::{prelude::*, render::view::Hdr};
 use bevy_tnua::{control_helpers::{TnuaBlipReuseAvoidance, TnuaSimpleAirActionsCounter}, prelude::TnuaController, TnuaObstacleRadar};
 use bevy_tnua_avian3d::TnuaAvian3dSensorShape;
 use leafwing_input_manager::prelude::InputMap;
 
-use crate::{level::DA_GunAssets, Action, CameraConfig, CharacterBundle, CollisionLayer, Description, Experience, FloatHeight, GameState, Health, Inventory, Item, Mana, MaxHealth, MaxMana, PlayerController, PlayerControllerInput, RayHit, RenderPlayer, Walk, Weight};
+use crate::{level::DAGunAssets, Action, CameraConfig, CharacterBundle, CollisionLayer, Description, Experience, FloatHeight, GameState, Health, Inventory, Item, Mana, MaxHealth, MaxMana, PlayerController, PlayerControllerInput, RayHit, RenderPlayer, Walk, Weight};
 
 #[derive(Clone, Component, Hash, Debug, Eq, PartialEq, Default, States)]
 pub enum PlayerState {
@@ -53,7 +52,7 @@ impl Plugin for GamePlayerPlugin {
 fn spawn_player(
     mut commands: Commands,
     asset_server: Res<AssetServer>,
-    gun_assets: Res<DA_GunAssets>,
+    gun_assets: Res<DAGunAssets>,
     gltf_assets: Res<Assets<Gltf>>,
     player_spawner_query: Query<&GlobalTransform, With<PlayerSpawner>>,
 ) {
@@ -73,7 +72,7 @@ fn spawn_player(
     let gun = commands
         .spawn((
             Transform::from_translation(vec3(0.1, -0.2, -0.5)),
-           // SceneRoot(asset_server.load("guns/uzi.glb#Scene0")),
+            //SceneRoot(asset_server.load("guns/uzi.glb#Scene0")),
             SceneRoot(asset_server.load(uzi)),
             Item {
                 name: Name::new("gun"),
@@ -129,7 +128,7 @@ fn spawn_player(
                 },
                 Inventory { ..default() },
                 TnuaController::default(),
-                TnuaAvian3dSensorShape(Collider::capsule(0.1, 0.1)),
+                TnuaAvian3dSensorShape(Collider::capsule(0.1, 0.5)),
                 FloatHeight(1.5),
             ),
             (CollisionLayers::new(CollisionLayer::Player, LayerMask::ALL),),
@@ -160,10 +159,10 @@ fn spawn_player(
     commands
         .spawn((
             Camera {
-                hdr: true,
                 clear_color: ClearColorConfig::Custom(Srgba::rgb(0.0, 0.0, 0.0).into()),
                 ..default()
             },
+            Hdr,
             Camera3d { ..default() },
             Projection::Perspective(PerspectiveProjection {
                 fov: std::f32::consts::PI / 2.0,
@@ -175,7 +174,6 @@ fn spawn_player(
             },
             RenderPlayer { logical_entity },
             PlayerCamera,
-            AtmosphereCamera::default(),
         ))
         .add_child(gun);
 }
@@ -202,11 +200,11 @@ fn player_forward(
 
 fn check_player_triggers(
     spatial_query: SpatialQuery,
-    player_query: Query<&Collider, With<Player>>,
+    _player_query: Query<&Collider, With<Player>>,
     trigger_query: Query<&GlobalTransform, With<PlayerTrigger>>,
 ) {
     for trigger_transform in trigger_query.iter() {
-        let temp = spatial_query.shape_intersections(
+        let _temp = spatial_query.shape_intersections(
             &Collider::cuboid(1.0, 1.0, 1.0),
             trigger_transform.translation(),
             trigger_transform.rotation(),

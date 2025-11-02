@@ -1,5 +1,4 @@
 use bevy::color::palettes::css::{CORNSILK, CRIMSON};
-use jonmo::prelude::*;
 
 use super::*;
 
@@ -25,18 +24,18 @@ pub struct MenuUiPlugin;
 impl Plugin for MenuUiPlugin {
     fn build(&self, app: &mut App) {
         app
-            .register_type::<UiMenu>()
-            .add_systems(OnEnter(GameState::Gameplay), (
-                jonmo_draw_menu_ui,
-                jonmo_draw_settings_ui,
-                jonmo_draw_sound_settings_ui,
+            .register_type::<UiMenu>();
+            //.add_systems(OnEnter(GameState::Gameplay), (
+                //jonmo_draw_menu_ui,
+                //jonmo_draw_settings_ui,
+                //jonmo_draw_sound_settings_ui,
                 //jonmo_draw_video_settings_ui,
-                jonmo_draw_controller_settings_ui,
-            ));
+                //jonmo_draw_controller_settings_ui,
+            //));
     }
 }
 
-pub fn jonmo_draw_menu_ui(
+/*pub fn jonmo_draw_menu_ui(
     world: &mut World,
 ) {
     trace!("draw_menu_ui");
@@ -70,9 +69,9 @@ pub fn jonmo_draw_menu_ui(
     .child(jonmo_menu_item(load_hover.clone(), asset_server, "Load"))
     .child(jonmo_menu_item(quit_hover.clone(), asset_server, "Quit"))
     .spawn(world);
-}
+}*/
 
-fn jonmo_menu_item(
+/*fn jonmo_menu_item(
     holder: LazyEntity,
     asset_server: &AssetServer,
     label: &'static str,
@@ -115,9 +114,9 @@ fn jonmo_menu_item(
             }
         })
         .map_in(Some))
-}
+}*/
 
-fn jonmo_sub_menu_item(
+/*fn jonmo_sub_menu_item(
     holder: LazyEntity,
     asset_server: &AssetServer,
     label: &'static str,
@@ -165,9 +164,9 @@ fn jonmo_sub_menu_item(
         })
         .map_in(Some))
 
-}
+}*/
 
-fn jonmo_menu_button(
+/*fn jonmo_menu_button(
     color: Color,
     label: &'static str,
 ) -> JonmoBuilder {
@@ -184,9 +183,9 @@ fn jonmo_menu_button(
             }
         );
     })
-}
+}*/
 
-pub fn jonmo_draw_settings_ui(
+/*pub fn jonmo_draw_settings_ui(
     world: &mut World,
 ) {
     trace!("draw_settings_ui");
@@ -219,9 +218,9 @@ pub fn jonmo_draw_settings_ui(
     .child(jonmo_sub_menu_item(sound_hover.clone(), asset_server, "Sound Settings", PauseMenuState::SoundSettings))
     .child(jonmo_sub_menu_item(gameplay_hover.clone(), asset_server, "Gameplay Settings", PauseMenuState::GameplaySettings))
     .spawn(world);
-}
+}*/
 
-pub fn jonmo_draw_controller_settings_ui(
+/*pub fn jonmo_draw_controller_settings_ui(
     world: &mut World,
 ) {
     trace!("draw_controller_settings_ui");
@@ -250,9 +249,9 @@ pub fn jonmo_draw_controller_settings_ui(
     .child(jonmo_menu_item(mouse_sensetivity_hover, &asset_server, "Mouse Sensetivity"))
     .child(jonmo_menu_item(key_bindings_hover, &asset_server, "Key Bindings"))
     .spawn(world);
-}
+}*/
 
-pub fn jonmo_draw_sound_settings_ui(
+/*pub fn jonmo_draw_sound_settings_ui(
     world: &mut World,
 ) {
     trace!("draw_sound_settings_ui");
@@ -281,9 +280,9 @@ pub fn jonmo_draw_sound_settings_ui(
     .child(jonmo_menu_item(music_volume_hover, &asset_server, "Music Volume"))
     .child(jonmo_menu_item(sound_volume_hover, &asset_server, "Sound Volume"))
     .spawn(world);
-}
+}*/
 
-pub fn jonmo_draw_video_settings_ui(
+/*pub fn jonmo_draw_video_settings_ui(
     world: &mut World,
     _projection: Query<&Projection>,
 ) {
@@ -306,4 +305,4 @@ pub fn jonmo_draw_video_settings_ui(
             UiIndex(0),
     ))
     .spawn(world);
-}
+}*/

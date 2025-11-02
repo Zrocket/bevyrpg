@@ -27,7 +27,7 @@ pub struct DoorComponent;
 impl Interaction for DoorComponent {
     fn interact(&self,commands: &mut Commands,entity:Entity,prop:Entity,) {
         println!("Door Interaction");
-        commands.trigger_targets(DoorEvent {actor: entity, target: prop}, entity);
+        commands.trigger(DoorEvent {actor: entity, target: prop});
     }
 }
 
@@ -36,17 +36,18 @@ impl Plugin for DoorPlugin {
     fn build(&self, app: &mut App) {
         app.register_type::<DoorComponent>()
             .register_component_as::<dyn Interaction, DoorComponent>()
-            .add_event::<DoorEvent>()
+            //.add_event::<DoorEvent>()
             .add_observer(door_event_observer);
     }
 }
 
 fn door_event_observer(
-    trigger: Trigger<DoorEvent>,
+    _trigger: On<DoorEvent>,
     mut door: Query<(Entity, &mut AnimationPlayer)>,
 ) {
+    println!("CCCCCCCCCCC");
     trace!("OBSERVER: door_event_observer");
-    if let Ok((door_entity, mut door_animation_player)) = door.single_mut() {
+    if let Ok((_door_entity, mut door_animation_player)) = door.single_mut() {
         door_animation_player.play(1.into());
     }
 }

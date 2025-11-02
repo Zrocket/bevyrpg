@@ -3,8 +3,8 @@ use avian3d::collision::collider::Collider;
 
 use crate::{GameState, PlayerController};
 
-pub const RESOLUTION_HEIGHT: f32 = 720.0;
-pub const RESOLUTION_WIDTH: f32 = 1280.0;
+pub const RESOLUTION_HEIGHT: u32 = 720;
+pub const RESOLUTION_WIDTH: u32 = 1280;
 
 #[derive(Component)]
 pub struct CameraConfig {

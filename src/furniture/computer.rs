@@ -6,9 +6,10 @@ use bevy_trait_query::RegisterExt;
 use ratatui::style::Stylize;
 use ratatui::widgets::{Block, Borders, Paragraph, Wrap};
 use ratatui::{Frame, Terminal};
-use soft_ratatui::SoftBackend;
+use soft_ratatui::embedded_graphics_unicodefonts::{mono_8x13_atlas, mono_8x13_italic_atlas, mono_8x13_bold_atlas};
+use soft_ratatui::{EmbeddedGraphics, SoftBackend};
 use bevy::asset::RenderAssetUsages;
-use bevy::render::camera::RenderTarget;
+use bevy::camera::RenderTarget;
 use std::f32::consts::PI;
 
 use crate::interact::Interaction;
@@ -27,14 +28,13 @@ pub struct UseComputerEvent {
 }
 
 pub struct ComputerPlugin;
-
 impl Plugin for ComputerPlugin {
     fn build(&self, app: &mut App) {
         app.init_resource::<SoftTerminal>()
             .register_type::<ComputerCube>()
             .register_component_as::<dyn Interaction, ComputerCube>()
             .register_type::<ComputerTextureCam>()
-            .add_event::<ChangeScreenEvent<>>()
+            //.add_event::<ChangeScreenEvent<>>()
             .add_observer(change_computer_screen)
             //.add_systems(Update, change_computer_screen)
             .add_systems(OnEnter(GameState::Loading), spawn_computer);
@@ -47,8 +47,8 @@ static FONT_DATA: &[u8] = include_bytes!("../../assets/iosevka.ttf");
 #[reflect(Component)]
 pub struct ComputerCube;
 impl Interaction for ComputerCube {
-    fn interact(&self,commands: &mut Commands, _entity:Entity, prop:Entity,) {
-        commands.trigger_targets(ChangeScreenEvent{ frame_closure: new_computer_screen}, prop);
+    fn interact(&self,commands: &mut Commands, _entity:Entity, _prop:Entity,) {
+        commands.trigger(ChangeScreenEvent{ frame_closure: new_computer_screen});
     }
 }
 
@@ -66,17 +66,27 @@ pub struct ChangeScreenEvent {
 
 // Create resource to hold the ratatui terminal
 #[derive(Resource, Deref, DerefMut)]
-pub struct SoftTerminal(Terminal<SoftBackend>);
+pub struct SoftTerminal(Terminal<SoftBackend<EmbeddedGraphics>>);
 impl Default for SoftTerminal {
     fn default() -> Self {
-       let backend = SoftBackend::new_with_font(15, 15, 12, FONT_DATA);
+        let font_regular = mono_8x13_atlas();
+        let font_italic = mono_8x13_italic_atlas();
+        let font_bold = mono_8x13_bold_atlas();
+        let backend = SoftBackend::<EmbeddedGraphics>::new(
+            30,
+            30,
+            font_regular,
+            Some(font_bold),
+            Some(font_italic),
+            );
+       //let backend = SoftBackend::new_with_font(15, 15, 12, FONT_DATA);
        //backend.set_font_size(12);
        Self(Terminal::new(backend).unwrap())
     }
 }
 
 fn change_computer_screen (
-    trigger: Trigger<ChangeScreenEvent>,
+    trigger: On<ChangeScreenEvent>,
     mut softatui: ResMut<SoftTerminal>,
     proc_material: Res<MyProcGenMaterial>,
     mut images: ResMut<Assets<Image>>,
