@@ -23,8 +23,8 @@ impl Interaction for MiscItem {
         actor: Entity,
         prop: Entity,
     ) {
-        println!("Misc Interaction Impl");
-        commands.trigger_targets(MiscInteractEvent {actor, prop}, prop);
+        info!("Misc Interaction Impl");
+        commands.trigger(MiscInteractEvent {actor, prop});
     }
 }
 
@@ -36,7 +36,6 @@ impl Inspectable for MiscItem {
         prop: Entity,
     ) {
         println!("Misc Inspectable Impl");
-        //commands.trigger_targets(MiscInteractEvent {actor, prop}, prop);
     }
 }
 
@@ -45,17 +44,17 @@ impl Plugin for MiscItemPlugin {
         app.register_type::<MiscItem>()
             .register_component_as::<dyn Interaction, MiscItem>()
             .register_component_as::<dyn Inspectable, MiscItem>()
-            .add_event::<MiscInteractEvent>()
+            //.add_event::<MiscInteractEvent>()
             .add_observer(misc_event_observer);
     }
 }
 
 fn misc_event_observer(
-    trigger: Trigger<MiscInteractEvent>,
-    mut avian_pickup_input_writer: EventWriter<AvianPickupInput>,
+    trigger: On<MiscInteractEvent>,
+    mut avian_pickup_input_writer: MessageWriter<AvianPickupInput>,
     _held_prop_query: Query<&HeldProp>,
 ) {
-    info!("Misc Interact event");
+    info!("Misc Interact event observer");
     let actor = trigger.event().actor;
     avian_pickup_input_writer.write(AvianPickupInput { actor, action: AvianPickupAction::Pull });
 }

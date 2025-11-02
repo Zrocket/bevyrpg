@@ -26,7 +26,7 @@ mod player;
 mod render;
 mod rover;
 mod shoot;
-mod sprites;
+//mod sprites;
 //mod tests;
 mod ui;
 mod utils;
@@ -45,7 +45,7 @@ pub use player::*;
 pub use render::*;
 pub use rover::*;
 pub use shoot::*;
-pub use sprites::*;
+//pub use sprites::*;
 pub use ui::*;
 pub use utils::*;
 use level::*;
@@ -93,14 +93,14 @@ fn main() {
     app.add_plugins(
         DefaultPlugins .set(WindowPlugin {
                 primary_window: Some(Window {
-                    cursor_options: CursorOptions {
-                        grab_mode: CursorGrabMode::Locked,
-                        ..default()
-                    },
                     resolution: WindowResolution::new(RESOLUTION_WIDTH, RESOLUTION_HEIGHT),
                     title: "Bevy RPG".to_string(),
                     resizable: false,
                     focused: true,
+                    ..default()
+                }),
+                primary_cursor_options: Some(CursorOptions {
+                    grab_mode: CursorGrabMode::Locked,
                     ..default()
                 }),
                 ..default()

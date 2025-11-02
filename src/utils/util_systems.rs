@@ -1,11 +1,11 @@
 use bevy::{
     prelude::*,
-    render::mesh::{MeshVertexAttributeId, PrimitiveTopology, VertexAttributeValues},
+    mesh::{MeshVertexAttributeId, PrimitiveTopology, VertexAttributeValues},
 };
 
 pub fn cleanup_system<T: Component>(mut commands: Commands, query: Query<Entity, With<T>>) {
     for entity_id in query.iter() {
-        commands.entity(entity_id).despawn_recursive();
+        commands.entity(entity_id).despawn();
     }
 }
 

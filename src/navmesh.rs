@@ -1,12 +1,14 @@
 use bevy::prelude::*;
 use bevy_tnua::prelude::*;
 use bevy_tnua_avian3d::TnuaAvian3dPlugin;
-use oxidized_navigation::{
-    self, colliders::avian::AvianCollider, debug_draw::{DrawNavMesh, OxidizedNavigationDebugDrawPlugin}, query::{find_polygon_path, perform_string_pulling_on_path}, NavMesh, NavMeshSettings, OxidizedNavigationPlugin
-};
+use vleue_navigator::VleueNavigatorPlugin;
 use super::utils::{F32Ext, Vec3Ext};
+use bevy_rerecast::{Mesh3dBackendPlugin, prelude::*};
 
-use crate::{error_pipe, Player};
+use crate::{GameState, Player, error_pipe};
+
+#[derive(Resource)]
+struct NavMeshHandle(Handle<Navmesh>);
 
 #[derive(Debug, Default, Component, Reflect)]
 #[reflect(Component)]
@@ -46,80 +48,45 @@ pub struct FloatHeight(pub f32);
 pub struct NavMeshPlugin;
 impl Plugin for NavMeshPlugin {
     fn build(&self, app: &mut App) {
-        app.add_plugins(OxidizedNavigationPlugin::<AvianCollider>::new(
-            NavMeshSettings::from_agent_and_bounds(0.5, 1.9, 250.0, -1.0),
-        ));
-
-            app.register_type::<Walk>()
+        app
+            .add_plugins(NavmeshPlugins::default())
+            .add_plugins(Mesh3dBackendPlugin::default())
+            .register_type::<Walk>()
             .register_type::<FloatHeight>()
-            .register_type::<DesiredPosition>();
-        app.add_plugins(OxidizedNavigationDebugDrawPlugin);
-        app.add_plugins(TnuaAvian3dPlugin::new(Update));
-        app.add_plugins(TnuaControllerPlugin::default());
-        app.add_systems(
-            Update,
-            (
-                toggle_nav_mesh_system,
-                navmesh_pathfinding.pipe(error_pipe),
-                apply_walking,
-            ),
-        );
+            .register_type::<DesiredPosition>()
+            .add_plugins(TnuaAvian3dPlugin::new(FixedUpdate))
+            .add_plugins(TnuaControllerPlugin::new(FixedUpdate))
+            .add_plugins(VleueNavigatorPlugin)
+            .add_systems(OnEnter(GameState::Loading), generate_navmesh);
+            //.add_systems(
+            //Update,
+            //(
+                //navmesh_pathfinding.pipe(error_pipe),
+         //       apply_walking,
+            //),
+        //);
     }
 }
 
-//
-//  Toggle drawing Nav-mesh.
-//  Press M to toggle drawing the navmesh.
-//
-fn toggle_nav_mesh_system(keys: Res<ButtonInput<KeyCode>>, mut show_navmesh: ResMut<DrawNavMesh>) {
-    trace!("SYSTEM: toggle_nav_mesh");
-
-    if keys.just_pressed(KeyCode::KeyM) {
-        show_navmesh.0 = !show_navmesh.0;
-    }
+fn generate_navmesh(
+    mut generator: NavmeshGenerator,
+    mut commands: Commands,
+) {
+    let agent_radius = 0.6;
+    let agent_height = 1.8;
+    let settings = NavmeshSettings::from_agent_3d(agent_radius, agent_height);
+    let navmesh_handle = generator.generate(settings);
+    commands.insert_resource(NavMeshHandle(navmesh_handle));
 }
 
-fn navmesh_pathfinding(
-    nav_mesh_settings: Res<NavMeshSettings>,
-    nav_mesh: Res<NavMesh>,
+/*fn navmesh_pathfinding(
+    nav_mesh: Res<NavMeshHandle>,
+    nav: Res<Assets<Navmesh>>,
+    asset_server: AssetServer,
     mut query: Query<(&Transform, &DesiredPosition, &mut Walk)>,
 ) -> anyhow::Result<()> {
     trace!("SYSTEM: navmesh_pathfinding");
-
-    for (transform, desired_position, mut walk) in &mut query {
-        if let Ok(nav_mesh) = nav_mesh.get().read()
-            && let Ok(path) = find_polygon_path(
-                &nav_mesh,
-                &nav_mesh_settings,
-                transform.translation,
-                desired_position.0,
-                None,
-                Some(&[1.0, 0.5]),
-            ) {
-                let path = perform_string_pulling_on_path(
-                    &nav_mesh,
-                    transform.translation,
-                    desired_position.0,
-                    &path,
-                )
-                .map_err(|e| anyhow::Error::msg(format!("{e:?}")))?;
-
-                let dir = path
-                    .into_iter()
-                    .map(|next_point| (next_point - transform.translation).horizontal())
-                    .filter(|dir| dir.length_squared() > 1e-3f32.squared())
-                    .filter_map(|dir| dir.try_normalize())
-                    .next();
-                if let Some(dir) = dir {
-                    let dir = Dir3::new(dir);
-                    if dir.is_ok() {
-                        walk.direction = Some(dir.unwrap());
-                    }
-                };
-        }
-    }
-    Ok(())
-}
+}*/
 
 fn apply_walking(
     mut character_query: Query<(&mut TnuaController, &mut Walk, &FloatHeight), Without<Player>>,

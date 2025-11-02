@@ -1,13 +1,12 @@
 use std::f32::consts::*;
 
-use avian3d::prelude::{GravityScale, RigidBodyDisabled};
+use avian3d::prelude::{RigidBodyDisabled};
 use bevy::{input::mouse, prelude::*};
-use bevy_seedling::sample::SamplePlayer;
 use bevy_tnua::{
-    builtins::{TnuaBuiltinClimb, TnuaBuiltinCrouch, TnuaBuiltinJump, TnuaBuiltinWalk}, control_helpers::{TnuaBlipReuseAvoidance, TnuaSimpleAirActionsCounter}, controller::TnuaController, radar_lens::TnuaRadarLens, spatial_ext::TnuaSpatialExt, TnuaBasis, TnuaObstacleRadar
+    builtins::{TnuaBuiltinClimb, TnuaBuiltinCrouch, TnuaBuiltinJump, TnuaBuiltinWalk}, control_helpers::{TnuaBlipReuseAvoidance, TnuaSimpleAirActionsCounter}, controller::TnuaController, radar_lens::TnuaRadarLens, TnuaObstacleRadar
 };
 use bevy_tnua_avian3d::TnuaSpatialExtAvian3d;
-use leafwing_input_manager::{action_state, prelude::*};
+use leafwing_input_manager::prelude::*;
 
 use crate::{Player, PlayerState};
 
@@ -82,7 +81,7 @@ impl Plugin for PlayerControllerPlugin {
 
 pub fn player_controller_input(
     key_input_query: Query<&ActionState<Action>, With<Player>>,
-    mut mouse_events_reader: EventReader<mouse::MouseMotion>,
+    mut mouse_events_reader: MessageReader<mouse::MouseMotion>,
     mut player_controller_query: Query<(&PlayerController, &mut PlayerControllerInput)>,
 ) {
     for (player_controller, mut player_input) in player_controller_query
@@ -230,7 +229,6 @@ pub fn tnua_player_input(
     for blip in radar_lens.iter_blips() {
         print!("{:?} ", blip.entity());
     }
-    println!("AAAAAAA");
 
     if let PlayerState::Ladder(ladder) = *player_state {
         tnua_controller.action(TnuaBuiltinClimb {

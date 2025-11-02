@@ -29,8 +29,8 @@ impl Plugin for BookPlugin {
 }
 
 fn book_event_observer(
-    trigger: Trigger<InteractEvent, Book>
+    trigger: On<InteractEvent, Book>
 ) {
     let _player = trigger.event().actor;
-    let _book = trigger.target();
+    let _book = trigger.target;
 }

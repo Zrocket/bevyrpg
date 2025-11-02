@@ -20,15 +20,15 @@ pub struct Talkable;
 impl interact::Interaction for Talkable {
     fn interact(&self,commands: &mut Commands, _entity:Entity, prop:Entity,) {
         println!("Talkable Interaction Impl");
-        commands.trigger_targets(DialogEvent {actor:prop}, prop);
+        commands.trigger(DialogEvent {actor:prop}, prop);
     }
 }
 impl Inspectable for Talkable {
     fn inspect(
         &self,
-        commands: &mut Commands,
-        actor: Entity,
-        prop: Entity,
+        _commands: &mut Commands,
+        _actor: Entity,
+        _prop: Entity,
     ) {
         println!("Talkable Inspectable Impl");
     }
@@ -71,8 +71,8 @@ pub struct ImageAssets {
     pub tileset: Handle<Image>,
 }
 
-#[derive(Event)]
-pub struct SpriteEvent {
+#[derive(Message)]
+pub struct SpriteMessage {
     pub sprite_type: SpriteType,
     pub tile_x: usize,
     pub tile_y: usize,
@@ -102,7 +102,7 @@ impl Plugin for SpritesPlugin {
         )
         .register_component_as::<dyn interact::Interaction, Talkable>()
         .register_component_as::<dyn interact::Inspectable, Talkable>();
-        app.add_event::<SpriteEvent>()
+        app.add_message::<SpriteMessage>()
             .add_systems(Update, sprite_handler.run_if(in_state(GameState::Gameplay)))
             .add_systems(Update, face_camera.run_if(in_state(GameState::Gameplay)))
             .add_systems(
@@ -114,7 +114,7 @@ impl Plugin for SpritesPlugin {
 
 fn sprite_handler(
     mut commands: Commands,
-    mut sprite_events: EventReader<SpriteEvent>,
+    mut sprite_events: MessageReader<SpriteMessage>,
     images: Res<ImageAssets>,
     mut sprite_params: Sprite3dParams,
 ) {
@@ -144,7 +144,7 @@ fn sprite_handler(
 
                 info!("Character Sprite");
                 let mut c = commands.spawn((
-                    Sprite3dBuilder {
+                    Sprite3d {
                         image: images.character_tileset.clone(),
                         pixels_per_metre: 16.,
                         double_sided: false,
