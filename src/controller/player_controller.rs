@@ -1,9 +1,9 @@
 use std::f32::consts::*;
 
-use avian3d::prelude::{RigidBodyDisabled};
+use avian3d::{math::{AdjustPrecision, Vector3}, prelude::RigidBodyDisabled};
 use bevy::{input::mouse, prelude::*};
 use bevy_tnua::{
-    builtins::{TnuaBuiltinClimb, TnuaBuiltinCrouch, TnuaBuiltinJump, TnuaBuiltinWalk}, control_helpers::{TnuaBlipReuseAvoidance, TnuaSimpleAirActionsCounter}, controller::TnuaController, radar_lens::TnuaRadarLens, TnuaObstacleRadar
+    TnuaObstacleRadar, builtins::{TnuaBuiltinClimb, TnuaBuiltinCrouch, TnuaBuiltinJump, TnuaBuiltinWalk}, control_helpers::{TnuaBlipReuseAvoidance, TnuaSimpleAirActionsCounter}, controller::TnuaController, math::AsF32, radar_lens::{TnuaBlipSpatialRelation, TnuaRadarLens}
 };
 use bevy_tnua_avian3d::TnuaSpatialExtAvian3d;
 use leafwing_input_manager::prelude::*;
@@ -227,13 +227,22 @@ pub fn tnua_player_input(
 
     let radar_lens = TnuaRadarLens::new(obstacle_radar, &spatial_ext);
     for blip in radar_lens.iter_blips() {
-        print!("{:?} ", blip.entity());
+        if let TnuaBlipSpatialRelation::Aeside(blip_direction) = blip.spatial_relation(0.5) {
+            if 0.5 < player_controller_input.movement.dot(blip_direction.adjust_precision()).abs() {
+                  let direction_to_anchor = blip.normal_from_closest_point().reject_from_normalized(Vector3::Y);
+                  if let PlayerState::Ladder(ladder) = *player_state {
+                      tnua_controller.action(TnuaBuiltinClimb {
+                          climbable_entity: Some(ladder),
+                          anchor: blip.closest_point().get(),
+                          desired_vec_to_anchor: 0.5 * direction_to_anchor,
+                          desired_forward: Dir3::new(direction_to_anchor.f32()).ok(),
+                          initiation_direction: player_controller_input.movement.normalize_or_zero(),
+                          desired_climb_velocity: Vector3::new(0., 10., 0.),
+                          ..default()
+                      });
+            }
+        }
     }
 
-    if let PlayerState::Ladder(ladder) = *player_state {
-        tnua_controller.action(TnuaBuiltinClimb {
-            climbable_entity: Some(ladder),
-            ..default()
-        });
     }
 }
