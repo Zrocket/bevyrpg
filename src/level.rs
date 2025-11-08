@@ -152,8 +152,13 @@ fn translate_components(
     prop_query: Query<Entity, With<BlenderProp>>,
     collider_query: Query<Entity, (With<BlenderColliderConstructor>, Without<BlenderProp>)>,
     ladder_query: Query<Entity, With<LadderComponent>>,
+    mut loaded: Local<bool>,
 ) {
     trace!("SYSTEM: translate_blender_components");
+
+    if *loaded {
+        return;
+    }
 
     for entity in prop_query.iter() {
         commands
@@ -175,6 +180,8 @@ fn translate_components(
             .observe(ladder_collision_observer)
             .observe(ladder_decollision_observer);
     }
+
+    *loaded = true;
 }
 
 fn gltf_preload(
