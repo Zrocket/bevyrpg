@@ -1,11 +1,11 @@
 use avian3d::{prelude::{CoefficientCombine, Collider, CollisionLayers, Friction, GravityScale, LayerMask, LockedAxes, RigidBody, SpatialQuery, SpatialQueryFilter}};
 use avian_pickup::actor::{AvianPickupActor, AvianPickupActorHoldConfig};
-use bevy::{prelude::*, render::view::Hdr};
+use bevy::{camera::Exposure, pbr::{Atmosphere, AtmosphereSettings}, post_process::bloom::Bloom, prelude::*, render::view::Hdr};
 use bevy_tnua::{control_helpers::{TnuaBlipReuseAvoidance, TnuaSimpleAirActionsCounter}, prelude::TnuaController, TnuaObstacleRadar};
 use bevy_tnua_avian3d::TnuaAvian3dSensorShape;
 use leafwing_input_manager::prelude::InputMap;
 
-use crate::{level::DAGunAssets, Action, CameraConfig, CharacterBundle, CollisionLayer, Description, Experience, FloatHeight, GameState, Health, Inventory, Item, Mana, MaxHealth, MaxMana, PlayerController, PlayerControllerInput, RayHit, RenderPlayer, Walk, Weight};
+use crate::{Action, CameraConfig, CharacterBundle, CollisionLayer, Description, Experience, FloatHeight, GameState, Health, Inventory, Item, Mana, MaxHealth, MaxMana, PlayerController, PlayerControllerConfig, PlayerControllerInput, RayHit, RenderPlayer, Walk, Weight, level::DAGunAssets};
 
 #[derive(Clone, Component, Hash, Debug, Eq, PartialEq, Default, States)]
 pub enum PlayerState {
@@ -152,6 +152,7 @@ fn spawn_player(
         .insert(PlayerState::Grounded)
         .insert(TnuaObstacleRadar::new(1.0, 3.0))
         .insert(TnuaBlipReuseAvoidance::default())
+        .insert(PlayerControllerConfig::default())
         .id();
 
     // Camera
@@ -164,6 +165,14 @@ fn spawn_player(
             },
             Hdr,
             Camera3d { ..default() },
+            Atmosphere::EARTH,
+            AtmosphereSettings {
+                aerial_view_lut_max_distance: 3.2e5,
+                scene_units_to_m: 1e+4,
+                ..Default::default()
+            },
+            Exposure::SUNLIGHT,
+            Bloom::NATURAL,
             Projection::Perspective(PerspectiveProjection {
                 fov: std::f32::consts::PI / 2.0,
                 ..default()
