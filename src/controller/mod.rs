@@ -23,7 +23,7 @@ impl Plugin for ControllerPlugin {
         app
             //.add_event::<InteractMessage>()
             .add_plugins(InputManagerPlugin::<Action>::default())
-            .add_plugins(MenuControllerPlugin)
+            //.add_plugins(MenuControllerPlugin)
             .add_plugins(PlayerControllerPlugin)
             .register_type::<RayHit>()
             .add_systems(
