@@ -1,17 +1,19 @@
 use super::*;
 
-mod crosshair;
-mod inventory_ui;
-mod status_bar;
+pub mod crosshair;
+pub mod inventory_ui;
+pub mod status_bar;
 //mod dialog_ui;
-mod settings;
+pub mod widgets;
+pub mod menu;
+pub mod palette;
 
 use bevy_simple_text_input::TextInputPlugin;
 use crosshair::*;
-use inventory_ui::*;
+pub use inventory_ui::*;
 use status_bar::*;
 //use dialog_ui::*;
-pub use settings::*;
+pub use menu::*;
 
 
 #[derive(AssetCollection, Resource, Reflect, Debug)]
@@ -39,15 +41,6 @@ pub struct UiEntity(pub Entity);
 
 #[derive(Component, Reflect)]
 pub struct UiConsole;
-
-#[derive(Component, Reflect)]
-pub struct UiCrosshair;
-
-#[derive(Component, Reflect)]
-pub struct UiStatus;
-
-#[derive(Component, Reflect)]
-pub struct UiInventory;
 
 pub struct UiPlugin;
 impl Plugin for UiPlugin {

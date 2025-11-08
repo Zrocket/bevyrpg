@@ -2,6 +2,9 @@ use bevy::color::palettes::css::{BLUE, GREEN};
 
 use super::*;
 
+#[derive(Component, Reflect)]
+pub struct UiStatus;
+
 pub struct StatusUIPlugin;
 impl Plugin for StatusUIPlugin {
     fn build(&self, app: &mut App) {

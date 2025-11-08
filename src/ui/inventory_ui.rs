@@ -1,6 +1,9 @@
 use super::*;
 use bevy::color::palettes::css::CRIMSON;
 
+#[derive(Component, Reflect)]
+pub struct UiInventory;
+
 pub struct InventoryUIPlugin;
 impl Plugin for InventoryUIPlugin {
     fn build(&self, app: &mut App) {
