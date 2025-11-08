@@ -1,9 +1,9 @@
 use std::f32::consts::*;
 
 use avian3d::{math::{AdjustPrecision, Vector3}, prelude::RigidBodyDisabled};
-use bevy::{input::mouse, prelude::*};
+use bevy::{input::mouse, prelude::*, render::view::screenshot};
 use bevy_tnua::{
-    TnuaObstacleRadar, builtins::{TnuaBuiltinClimb, TnuaBuiltinCrouch, TnuaBuiltinJump, TnuaBuiltinWalk}, control_helpers::{TnuaBlipReuseAvoidance, TnuaSimpleAirActionsCounter}, controller::TnuaController, math::AsF32, radar_lens::{TnuaBlipSpatialRelation, TnuaRadarLens}
+    TnuaObstacleRadar, builtins::{TnuaBuiltinClimb, TnuaBuiltinCrouch, TnuaBuiltinDash, TnuaBuiltinJump, TnuaBuiltinKnockback, TnuaBuiltinWalk, TnuaBuiltinWallSlide}, control_helpers::{TnuaBlipReuseAvoidance, TnuaSimpleAirActionsCounter}, controller::TnuaController, math::{AsF32, Float}, radar_lens::{TnuaBlipSpatialRelation, TnuaRadarLens}
 };
 use bevy_tnua_avian3d::TnuaSpatialExtAvian3d;
 use leafwing_input_manager::prelude::*;
@@ -33,6 +33,51 @@ impl Default for PlayerController {
             yaw: 0.0,
             enable_input: true,
             sensitivity: 0.001,
+        }
+    }
+}
+
+#[derive(Component)]
+pub struct PlayerControllerConfig {
+    pub speed: f32,
+    pub walk: TnuaBuiltinWalk,
+    pub air_actions: usize,
+    pub jump: TnuaBuiltinJump,
+    pub crouch: TnuaBuiltinCrouch,
+    pub run_distance: f32,
+    pub run: TnuaBuiltinDash,
+    pub one_way_platforms_min_proximity: f32,
+    pub knockback: TnuaBuiltinKnockback,
+    pub wall_slide: TnuaBuiltinWallSlide,
+    pub climb_speed: f32,
+    pub climb: TnuaBuiltinClimb,
+}
+
+impl Default for PlayerControllerConfig {
+    fn default() -> Self {
+        Self {
+            speed: 20.,
+            walk: TnuaBuiltinWalk {
+                float_height: 2.0,
+                max_slope: FRAC_PI_4,
+                ..default()
+            },
+            air_actions: 1,
+            jump: TnuaBuiltinJump { 
+                height: 4.0,
+                ..default()
+            },
+            crouch: TnuaBuiltinCrouch {
+                float_offset: -0.9,
+                ..default()
+            },
+            run_distance: 10.0,
+            run: TnuaBuiltinDash::default(),
+            one_way_platforms_min_proximity: 1.0,
+            knockback: TnuaBuiltinKnockback::default(),
+            wall_slide: TnuaBuiltinWallSlide::default(),
+            climb_speed: 10.0,
+            climb: TnuaBuiltinClimb::default(),
         }
     }
 }
@@ -132,6 +177,7 @@ pub fn player_controller_look(mut query: Query<(&mut PlayerController, &PlayerCo
 pub fn tnua_player_input(
     mut commands: Commands,
     mut tnua_query: Query<(
+        &PlayerControllerConfig,
         &mut TnuaController,
         &mut TnuaSimpleAirActionsCounter,
         &mut PlayerState,
@@ -141,10 +187,11 @@ pub fn tnua_player_input(
         &mut TnuaBlipReuseAvoidance,
         Entity,
         ), With<Player>>,
-        spatial_ext: TnuaSpatialExtAvian3d,
+    spatial_ext: TnuaSpatialExtAvian3d,
 ) {
     // Get player's tnua controller, otherwise return
-    let Ok((mut tnua_controller,
+    let Ok((player_controller_config,
+            mut tnua_controller,
             mut air_actions_counter,
             mut player_state,
             action_state,
@@ -225,8 +272,41 @@ pub fn tnua_player_input(
         ..Default::default()
     });
 
+    let already_climbing_on = 
+        tnua_controller
+        .concrete_action::<TnuaBuiltinClimb>()
+        .and_then(|(action, _)| {
+            let entity = action
+                .climbable_entity
+                .filter(|entity| obstacle_radar.has_blip(*entity))?;
+            Some((entity, action.clone()))
+        });
+
     let radar_lens = TnuaRadarLens::new(obstacle_radar, &spatial_ext);
-    for blip in radar_lens.iter_blips() {
+
+    let screen_space_direction = player_controller_input.movement.clamp_length_max(1.0);
+
+    'blips_loop: for blip in radar_lens.iter_blips() {
+        if !blip_reuse_avoiodance.should_avoid(blip.entity()) {
+            if let Some((climbable_entity, action)) = already_climbing_on.as_ref() {
+                if *climbable_entity != blip.entity() {
+                    continue 'blips_loop;
+                }
+                let dot_initiation = player_controller_input.movement.dot(action.initiation_direction);
+                let initiation_direction = if 0.5 < dot_initiation {
+                    action.initiation_direction
+                } else {
+                    Vector3::ZERO
+                };
+                if initiation_direction == Vector3::ZERO {
+                    let right_left = screen_space_direction.dot(Vector3::X);
+                    if 0.5 <= right_left.abs() {
+                        continue 'blips_loop;
+                    }
+                }
+            }
+        }
+
         if let TnuaBlipSpatialRelation::Aeside(blip_direction) = blip.spatial_relation(0.5) {
             if 0.5 < player_controller_input.movement.dot(blip_direction.adjust_precision()).abs() {
                   let direction_to_anchor = blip.normal_from_closest_point().reject_from_normalized(Vector3::Y);
@@ -240,9 +320,9 @@ pub fn tnua_player_input(
                           desired_climb_velocity: Vector3::new(0., 10., 0.),
                           ..default()
                       });
+                }
             }
         }
-    }
 
     }
 }
