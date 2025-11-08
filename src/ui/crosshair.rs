@@ -1,6 +1,9 @@
 use bevy::prelude::*;
 use super::*;
 
+#[derive(Component, Reflect)]
+pub struct UiCrosshair;
+
 #[derive(Debug, Clone, Deref, Component, Reflect)]
 pub struct Cooldown(Timer);
 
@@ -17,10 +20,6 @@ impl Plugin for CrosshairPlugin {
 pub fn draw_crosshair(mut commands: Commands, asset_server: Res<AssetServer>) {
     trace!("draw_crosshair");
     let crosshair: Handle<Image> = asset_server.load("new_crosshairs/dot.png");
-    /*commands.spawn((ImageNode {
-        image: crosshair.clone().into(),
-        ..default()
-    },));*/
     commands
         .spawn((
             ImageNode {
