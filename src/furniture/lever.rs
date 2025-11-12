@@ -1,36 +1,44 @@
 use bevy::prelude::*;
-use bevy_trait_query::RegisterExt;
 
-use crate::interact::Interaction;
-
-#[derive(Event)]
-pub struct LeverEvent {
-    actor: Entity,
-    target: Entity,
-}
+use crate::{Interactable, InteractionEvent};
 
 #[derive(Debug, Default, Component, Reflect)]
 #[reflect(Component)]
 pub struct LeverComponent;
-impl Interaction for LeverComponent {
-    fn interact(&self,commands: &mut Commands,entity:Entity,prop:Entity,) {
-        println!("Lever Interaction");
-        commands.trigger(LeverEvent {actor: entity, target: prop});
-    }
+
+#[derive(Debug, Default, Component, Reflect)]
+#[reflect(Component)]
+pub struct ActivationTargets(Vec<Entity>);
+
+#[derive(Debug, Default, Component, Reflect)]
+#[reflect(Component)]
+pub struct Activatable;
+
+#[derive(Debug, EntityEvent)]
+pub struct ActivatableEvent {
+    entity: Entity,
 }
 
 pub struct LeverPlugin;
 impl Plugin for LeverPlugin {
     fn build(&self, app: &mut App) {
         app.register_type::<LeverComponent>()
-            .register_component_as::<dyn Interaction, LeverComponent>()
-            //.add_event::<LeverEvent>()
-            .add_observer(lever_event_observer);
+            .add_systems(Update, register_lever_interactions);
     }
 }
 
-fn lever_event_observer(
-    _trigger: On<LeverEvent>,
+fn register_lever_interactions(
+    mut commands: Commands,
+    mut doors_query: Query<Entity, (With<LeverComponent>, Without<Interactable>)>,
+) {
+    for door in doors_query.iter_mut() {
+        commands.entity(door).observe(lever_interaction_observer)
+            .insert(Interactable);
+    }
+}
+
+fn lever_interaction_observer(
+    _trigger: On<InteractionEvent>,
     lever: Query<Entity, With<LeverComponent>>,
 ) {
     trace!("OBSERVER: lever_event_observer");
