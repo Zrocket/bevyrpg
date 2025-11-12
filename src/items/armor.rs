@@ -1,6 +1,6 @@
 use bevy::prelude::*;
 
-use crate::{interact::Interaction, InteractEvent};
+use crate::{Interactable, InteractionEvent};
 
 #[derive(Component, Debug, Clone, Reflect, Default)]
 #[reflect(Component)]
@@ -23,29 +23,28 @@ pub struct Armor {
     defense: i32,
 }
 
-impl Interaction for Armor {
-    fn interact(
-        &self,
-        commands: &mut Commands,
-        _actor: Entity,
-        prop: Entity,
-    ) {
-        commands.entity(prop).despawn();
-    }
-}
-
 pub struct ArmorPlugin;
 
 impl Plugin for ArmorPlugin {
     fn build(&self, app: &mut App) {
         app.register_type::<Armor>()
-            .add_observer(armor_event_observer);
+            .add_systems(Update, register_armor_items);
     }
 }
 
-fn armor_event_observer(
-        trigger: On<InteractEvent, Armor>
+fn register_armor_items(
+    mut commands: Commands,
+    mut unregistered_items_query: Query<Entity, (With<Armor>, Without<Interactable>)>,
+) {
+    for unregistered_item in unregistered_items_query.iter_mut() {
+        commands.entity(unregistered_item).observe(armor_interaction_observer)
+            .insert(Interactable);
+    }
+}
+
+fn armor_interaction_observer(
+        trigger: On<InteractionEvent, Armor>
 ) {
     let _player = trigger.event().actor;
-    let _armor = trigger.target;
+    let _armor = trigger.entity;
 }

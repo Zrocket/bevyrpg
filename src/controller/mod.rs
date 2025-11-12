@@ -1,6 +1,5 @@
 mod interact_controller;
 mod inventory_controller;
-mod menu_controller;
 mod player_controller;
 
 use bevy::input::common_conditions::input_pressed;
@@ -8,7 +7,6 @@ use bevy::prelude::*;
 use bevy_tnua::TnuaUserControlsSystems;
 pub use interact_controller::*;
 use inventory_controller::*;
-use menu_controller::*;
 pub use player_controller::*;
 
 use super::GameState;

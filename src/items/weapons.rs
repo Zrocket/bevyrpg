@@ -1,6 +1,6 @@
 use bevy::prelude::*;
 
-use crate::{interact::Interaction, InteractEvent};
+use crate::{Interactable, InteractionEvent};
 
 #[derive(Component, Debug, Clone, Reflect, Default)]
 #[reflect(Component)]
@@ -15,29 +15,27 @@ pub struct Weapon {
     weapon_type: WeaponType,
 }
 
-impl Interaction for Weapon {
-    fn interact(
-        &self,
-        commands: &mut Commands,
-        _actor: Entity,
-        prop: Entity,
-    ) {
-        commands.entity(prop).despawn();
-    }
-}
-
 pub struct WeaponPlugin;
 
 impl Plugin for WeaponPlugin {
     fn build(&self, app: &mut App) {
-        app.register_type::<Weapon>()
-            .add_observer(weapon_event_observer);
+        app.register_type::<Weapon>();
     }
 }
 
-fn weapon_event_observer(
-    trigger: On<InteractEvent, Weapon>
+fn register_weapon_items(
+    mut commands: Commands,
+    mut unregistered_items_query: Query<Entity, (With<Weapon>, Without<Interactable>)>,
+) {
+    for unregistered_item in unregistered_items_query.iter_mut() {
+        commands.entity(unregistered_item).observe(weapon_interaction_observer)
+            .insert(Interactable);
+    }
+}
+
+fn weapon_interaction_observer(
+    trigger: On<InteractionEvent, Weapon>
 ) {
     let _actor = trigger.event().actor;
-    let _weapon = trigger.target;
+    let _weapon = trigger.entity;
 }
