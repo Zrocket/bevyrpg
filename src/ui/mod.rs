@@ -1,5 +1,6 @@
 use super::*;
 
+pub mod book_ui;
 pub mod crosshair;
 pub mod inventory_ui;
 pub mod status_bar;
