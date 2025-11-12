@@ -2,7 +2,6 @@ use avian3d::prelude::{Collider, RigidBody};
 use bevy::prelude::*;
 use bevy::render::render_resource::{Extent3d, TextureFormat, TextureUsages};
 use bevy::color::palettes::css::GOLD;
-use bevy_trait_query::RegisterExt;
 use ratatui::style::Stylize;
 use ratatui::widgets::{Block, Borders, Paragraph, Wrap};
 use ratatui::{Frame, Terminal};
@@ -12,8 +11,7 @@ use bevy::asset::RenderAssetUsages;
 use bevy::camera::RenderTarget;
 use std::f32::consts::PI;
 
-use crate::interact::Interaction;
-use crate::GameState;
+use crate::{GameState, Interactable, InteractionEvent};
 
 #[derive(Clone, Hash, Debug, Eq, PartialEq, Default, States)]
 pub enum ComputerState {
@@ -32,11 +30,8 @@ impl Plugin for ComputerPlugin {
     fn build(&self, app: &mut App) {
         app.init_resource::<SoftTerminal>()
             .register_type::<ComputerCube>()
-            .register_component_as::<dyn Interaction, ComputerCube>()
             .register_type::<ComputerTextureCam>()
-            //.add_event::<ChangeScreenEvent<>>()
-            .add_observer(change_computer_screen)
-            //.add_systems(Update, change_computer_screen)
+            .add_systems(Update, register_computer_interactions)
             .add_systems(OnEnter(GameState::Loading), spawn_computer);
     }
 }
@@ -46,11 +41,6 @@ static FONT_DATA: &[u8] = include_bytes!("../../assets/iosevka.ttf");
 #[derive(Debug, Clone, Component, Reflect)]
 #[reflect(Component)]
 pub struct ComputerCube;
-impl Interaction for ComputerCube {
-    fn interact(&self,commands: &mut Commands, _entity:Entity, _prop:Entity,) {
-        commands.trigger(ChangeScreenEvent{ frame_closure: new_computer_screen});
-    }
-}
 
 #[derive(Debug, Clone, Component, Reflect)]
 #[reflect(Component)]
@@ -85,8 +75,18 @@ impl Default for SoftTerminal {
     }
 }
 
+fn register_computer_interactions(
+    mut commands: Commands,
+    mut doors_query: Query<Entity, (With<ComputerCube>, Without<Interactable>)>,
+) {
+    for door in doors_query.iter_mut() {
+        commands.entity(door).observe(change_computer_screen)
+            .insert(Interactable);
+    }
+}
+
 fn change_computer_screen (
-    trigger: On<ChangeScreenEvent>,
+    trigger: On<InteractionEvent>,
     mut softatui: ResMut<SoftTerminal>,
     proc_material: Res<MyProcGenMaterial>,
     mut images: ResMut<Assets<Image>>,
@@ -94,7 +94,7 @@ fn change_computer_screen (
 ) {
     trace!("SYSTEM: computer_test");
 
-    softatui.draw(trigger.frame_closure)
+    softatui.draw(new_computer_screen)
         .expect("oops");
 
     let width = softatui.backend().get_pixmap_width() as u32;

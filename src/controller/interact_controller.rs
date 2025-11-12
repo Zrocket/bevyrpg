@@ -1,6 +1,5 @@
-use crate::interact::Interaction;
 use crate::player::Player;
-use crate::{Inspectable, RESOLUTION_HEIGHT, RESOLUTION_WIDTH};
+use crate::{InspectEvent, InteractionEvent, RESOLUTION_HEIGHT, RESOLUTION_WIDTH};
 use avian3d::prelude::*;
 use avian_pickup::{
     input::AvianPickupInput,
@@ -40,7 +39,6 @@ pub fn player_raycast(
 pub fn manage_interact(
     mut commands: Commands,
     player: Query<(Entity, &RayHit), With<Player>>,
-    interact_query: Query<&dyn Interaction>,
     mut avian_pickup_input_writer: MessageWriter<AvianPickupInput>,
     held_prop_query: Query<&HeldProp>,
 ) {
@@ -52,28 +50,20 @@ pub fn manage_interact(
             );
             return
         }
-        if let Ok(interaction) = interact_query.get(ray_hit.0) {
-            for act in interaction.iter() {
-                act.interact(&mut commands, player, ray_hit.0);
-            }
-        }
+        commands.entity(ray_hit.0).trigger(|entity| InteractionEvent { entity, actor: player });
     }
 }
 
 pub fn manage_inspect(
     mut commands: Commands,
     player: Query<(Entity, &RayHit), With<Player>>,
-    inspection_query: Query<&dyn Inspectable>,
     held_prop_query: Query<&HeldProp>,
 ) {
     trace!("SYSTEM: manage_inspect");
     if let Ok(_held_prop) = held_prop_query.single() {
         return;
     }
-    if let Ok((player, ray_hit)) = player.single()
-    && let Ok(inspection) = inspection_query.get(ray_hit.0) {
-        for act in inspection.iter() {
-            act.inspect(&mut commands, player, ray_hit.0);
-        }
+    if let Ok((player, ray_hit)) = player.single() {
+        commands.entity(ray_hit.0).trigger(|entity| InspectEvent { entity, actor: player });
     }
 }

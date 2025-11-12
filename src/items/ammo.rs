@@ -1,6 +1,6 @@
 use bevy::prelude::*;
 
-use crate::{interact::Interaction, InteractEvent};
+use crate::{Interactable, InteractionEvent};
 
 #[derive(Debug, Clone, Reflect, Default)]
 pub enum AmmoType {
@@ -16,31 +16,29 @@ pub struct Ammo;
 #[reflect(Component)]
 pub struct AmmoPouch(pub i32);
 
-impl Interaction for Ammo {
-    fn interact(
-        &self,
-        commands: &mut Commands,
-        _actor: Entity,
-        prop: Entity,
-    ) {
-        commands.entity(prop).despawn();
-    }
-}
-
 pub struct AmmoPlugin;
 
 impl Plugin for AmmoPlugin {
     fn build(&self, app: &mut App) {
         app.register_type::<Ammo>()
             .register_type::<AmmoPouch>()
-            .add_observer(ammo_event_observer);
+            .add_systems(Update, register_ammo_items);
     }
 }
 
+fn register_ammo_items(
+    mut commands: Commands,
+    mut unregistered_items_query: Query<Entity, (With<Ammo>, Without<Interactable>)>,
+) {
+    for unregistered_item in unregistered_items_query.iter_mut() {
+        commands.entity(unregistered_item).observe(ammo_interaction_observer)
+            .insert(Interactable);
+    }
+}
 
-fn ammo_event_observer(
-        trigger: On<InteractEvent, Ammo>
+fn ammo_interaction_observer(
+        trigger: On<InteractionEvent, Ammo>
 ) {
     let _player = trigger.event().actor;
-    let _ammo = trigger.target;
+    let _ammo = trigger.entity;
 }

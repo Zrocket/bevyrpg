@@ -3,7 +3,6 @@ use std::time::Duration;
 use bevy::prelude::*;
 use bevy_sprite3d::*;
 
-use bevy_trait_query::RegisterExt;
 use rand::Rng;
 
 use crate::*;
@@ -17,22 +16,12 @@ pub struct SpriteBundle {
 
 #[derive(Component)]
 pub struct Talkable;
-impl interact::Interaction for Talkable {
+/*impl interact::Interaction for Talkable {
     fn interact(&self,commands: &mut Commands, _entity:Entity, prop:Entity,) {
         println!("Talkable Interaction Impl");
         commands.trigger(DialogEvent {actor:prop}, prop);
     }
-}
-impl Inspectable for Talkable {
-    fn inspect(
-        &self,
-        _commands: &mut Commands,
-        _actor: Entity,
-        _prop: Entity,
-    ) {
-        println!("Talkable Inspectable Impl");
-    }
-}
+}*/
 
 #[derive(Component, Clone, Hash, Debug, Eq, PartialEq, Default)]
 pub enum SpriteType {
@@ -100,8 +89,6 @@ impl Plugin for SpritesPlugin {
             LoadingState::new(GameState::Preload)
                 .load_collection::<ImageAssets>(),
         )
-        .register_component_as::<dyn interact::Interaction, Talkable>()
-        .register_component_as::<dyn interact::Inspectable, Talkable>();
         app.add_message::<SpriteMessage>()
             .add_systems(Update, sprite_handler.run_if(in_state(GameState::Gameplay)))
             .add_systems(Update, face_camera.run_if(in_state(GameState::Gameplay)))
