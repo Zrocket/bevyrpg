@@ -2,7 +2,7 @@ use bevy::{input::common_conditions::input_pressed};
 use bevy_asset_loader::{asset_collection::AssetCollection, loading_state::{config::ConfigureLoadingState, LoadingState, LoadingStateAppExt}, standard_dynamic_asset::StandardDynamicAssetCollection};
 
 use super::GameState;
-use crate::{ladder_decollision_observer, ladder_collision_observer, LadderComponent, MiscItem};
+use crate::{LadderComponent, MiscItem, ladder_collision_observer, ladder_decollision_observer};
 use avian3d::prelude::{ColliderConstructor, CollidingEntities, CollisionEventsEnabled, CollisionLayers, LayerMask, Physics, PhysicsLayer, RigidBody};
 use bevy::{gltf::Gltf, prelude::*};
 
