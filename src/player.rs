@@ -1,6 +1,7 @@
 use avian3d::{prelude::{CoefficientCombine, Collider, CollisionLayers, Friction, GravityScale, LayerMask, LockedAxes, RigidBody, SpatialQuery, SpatialQueryFilter}};
 use avian_pickup::actor::{AvianPickupActor, AvianPickupActorHoldConfig};
 use bevy::{camera::Exposure, pbr::{Atmosphere, AtmosphereSettings}, post_process::bloom::Bloom, prelude::*, render::view::Hdr};
+use bevy_egui::PrimaryEguiContext;
 use bevy_tnua::{control_helpers::{TnuaBlipReuseAvoidance, TnuaSimpleAirActionsCounter}, prelude::TnuaController, TnuaObstacleRadar};
 use bevy_tnua_avian3d::TnuaAvian3dSensorShape;
 use leafwing_input_manager::prelude::InputMap;
@@ -165,6 +166,7 @@ fn spawn_player(
             },
             Hdr,
             Camera3d { ..default() },
+            PrimaryEguiContext,
             Atmosphere::EARTH,
             AtmosphereSettings {
                 aerial_view_lut_max_distance: 3.2e5,

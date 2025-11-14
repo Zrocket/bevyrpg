@@ -1,5 +1,5 @@
 use bevy::prelude::*;
-use bevy_console::{ConsolePlugin, ConsoleConfiguration, reply, ConsoleCommand, PrintConsoleLine};
+use bevy_console::{AddConsoleCommand, ConsoleCommand, ConsoleConfiguration, ConsolePlugin, PrintConsoleLine, reply};
 use clap::Parser;
 
 /// Prints given arguments to the console
@@ -131,9 +131,9 @@ impl Plugin for MyConsolePlugin {
             .insert_resource(ConsoleConfiguration {
                 // override config here
                 ..Default::default()
-            });
+            })
             //.add_console_command::<ExampleCommand, _>(example_command)
-            //.add_console_command::<LogCommand, _>(log_command);
+            .add_console_command::<LogCommand, _>(log_command);
             //.add_systems(Update, write_to_console.after(ConsoleSet::ConsoleUI));
     }
 }
