@@ -3,6 +3,7 @@ use bevy::{
     log::LogPlugin, prelude::*, window::{ CursorGrabMode, CursorOptions, WindowResolution,}
 };
 use bevy_asset_loader::prelude::*;
+use bevy_egui::EguiGlobalSettings;
 use bevy_inspector_egui::quick::WorldInspectorPlugin;
 use bevy_skein::SkeinPlugin;
 use bevy_sprite3d::Sprite3dPlugin;
@@ -90,7 +91,12 @@ fn main() {
     trace!("MAIN");
     let args = Args::parse();
     let mut app = App::new();
-    app.add_plugins(
+    app
+    .insert_resource(EguiGlobalSettings {
+        auto_create_primary_context: false,
+        ..default()
+    })
+    .add_plugins(
         DefaultPlugins .set(WindowPlugin {
                 primary_window: Some(Window {
                     resolution: WindowResolution::new(RESOLUTION_WIDTH, RESOLUTION_HEIGHT),
