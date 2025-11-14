@@ -35,16 +35,8 @@ impl Default for Walk {
     }
 }
 
-#[derive(Bundle)]
-pub struct MovementBundle {
-    walk: Walk,
-    tnua_conroller: TnuaController,
-    float_height: FloatHeight,
-}
-
 #[derive(Debug, Component)]
 pub struct Obstacle;
-
 
 #[derive(Debug, Default, Clone, PartialEq, Component, Reflect)]
 #[reflect(Component)]
@@ -79,9 +71,6 @@ fn vleue_navigator_setup(
     mut materials: ResMut<Assets<StandardMaterial>>,
     mut mushes: ResMut<Assets<Mesh>>,
 ) {
-    let _ = materials.insert(&MATERIAL_OBSTACLE_LIVE, Color::srgb(0.2, 0.7, 0.9).into());
-    let _ = materials.insert(&MATERIAL_OBSTACLE_CACHED, Color::srgb(0.2, 0.9, 0.7).into());
-
     let obstacle_size = 2.0;
     let spacing = 1.0;
     let nb_navmeshes = 3;
