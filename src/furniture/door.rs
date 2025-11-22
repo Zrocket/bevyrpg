@@ -31,7 +31,6 @@ fn register_door_interactions(
     mut doors_query: Query<Entity, (With<DoorComponent>, Without<Interactable>)>,
 ) {
     for door in doors_query.iter_mut() {
-        println!("TESTAAAAAAAAAa");
         commands.entity(door).observe(door_interaction_observer)
             .insert(Interactable);
     }
