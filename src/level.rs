@@ -3,7 +3,7 @@ use bevy_asset_loader::{asset_collection::AssetCollection, loading_state::{confi
 
 use super::GameState;
 use crate::{LadderComponent, MiscItem, Obstacle, ladder_collision_observer, ladder_decollision_observer};
-use avian3d::prelude::{ColliderConstructor, CollidingEntities, CollisionEventsEnabled, CollisionLayers, LayerMask, Physics, PhysicsLayer, RigidBody};
+use avian3d::{math::PI, prelude::{ColliderConstructor, CollidingEntities, CollisionEventsEnabled, CollisionLayers, LayerMask, Physics, PhysicsLayer, RigidBody}};
 use bevy::{gltf::Gltf, prelude::*};
 
 #[derive(Debug, PhysicsLayer, Default, Component, Reflect)]
@@ -51,8 +51,12 @@ pub struct BlenderColliderConstructor;
 #[reflect(Component)]
 pub struct BlenderNavmesh;
 
+#[derive(Debug, Default, Component, Reflect)]
+#[reflect(Component)]
+pub struct BlenderTranslationComplete;
+
 #[derive(Message)]
-pub struct ChangeLevelMessage(String);
+pub struct ChangeLevelMessage(pub String);
 
 #[derive(AssetCollection, Reflect, Resource, Debug)]
 #[reflect(Resource)]
@@ -88,12 +92,9 @@ impl Plugin for BlenderTranslationPlugin {
             .register_type::<DAGunAssets>()
             .register_type::<CollisionLayer>()
             .add_message::<ChangeLevelMessage>()
-            .add_systems(OnEnter(GameState::Gameplay), translate_components)
-            .add_systems(OnEnter(GameState::Preload),gltf_preload)
-            .add_systems(Update, test_reload.run_if(input_pressed(KeyCode::KeyR)))
+            .add_systems(Update, translate_components)
             .add_systems(Update, change_level_message_handler)
-            //.add_systems(Update, wait_for_level_load)
-            .add_systems(OnExit(GameState::Loading), animation_preload)
+            //.add_systems(OnExit(GameState::Loading), animation_preload)
             .add_loading_state(
                 LoadingState::new(GameState::Preload)
                     .with_dynamic_assets_file::<StandardDynamicAssetCollection>("gunassets.ron")
@@ -105,35 +106,9 @@ impl Plugin for BlenderTranslationPlugin {
     }
 }
 
-fn wait_for_level_load(
-    mut commands: Commands,
-    _asset_server: Res<AssetServer>,
-    mut _time: ResMut<Time<Physics>>,
-    //level_gltf: Res<LevelGltf>,
-    level_gltf: Res<DALevelAsset>,
-    gltf_assets: Res<Assets<Gltf>>,
-    mut loaded: Local<bool>,
-) {
-    trace!("SYSTEM: wait_for_level_load");
-    if *loaded {
-        return;
-    }
-    let Some(gltf) = gltf_assets.get(&level_gltf.level) else {
-        return;
-    };
-    commands.spawn(
-(
-            CurrentLevel,
-            SceneRoot(gltf.named_scenes["World"].clone())
-        )
-    );
-    *loaded = true;
-}
-
 fn change_level_message_handler(
     mut commands: Commands,
     asset_server: Res<AssetServer>,
-    mut _time: ResMut<Time<Physics>>,
     mut change_level_messages: MessageReader<ChangeLevelMessage>,
     current_level_query: Query<Entity, With<CurrentLevel>>,
 ) {
@@ -142,65 +117,82 @@ fn change_level_message_handler(
         if let Ok(current_level) = current_level_query.single() {
             commands.entity(current_level).despawn();
         }
-        let level_gltf: Handle<Gltf> = asset_server.load(&message.0);
-        commands.insert_resource(LevelGltf(level_gltf));
+        //let level_gltf: Handle<Gltf> = asset_server.load(&message.0);
+        //commands.insert_resource(LevelGltf(level_gltf));
+
+        let temp = message.0.clone();
+
+        commands.spawn((
+            SceneRoot(asset_server.load(
+                    GltfAssetLabel::Scene(0).from_asset(temp),
+            )),
+            CurrentLevel,
+        ));
+
+        commands.spawn((
+            DirectionalLight {
+                illuminance: light_consts::lux::OVERCAST_DAY,
+                shadows_enabled: true,
+                ..default()
+            },
+            Transform {
+                translation: Vec3::new(0.0, 2.0, 0.0),
+                rotation: Quat::from_rotation_x(-PI / 4.),
+                ..default()
+            },
+        ));
+
     }
 }
 
 fn translate_components(
     mut commands: Commands,
-    prop_query: Query<Entity, With<BlenderProp>>,
-    collider_query: Query<Entity, (With<BlenderColliderConstructor>, Without<BlenderProp>)>,
-    ladder_query: Query<Entity, With<LadderComponent>>,
+    prop_query: Query<Entity, (With<BlenderProp>, Without<BlenderTranslationComplete>)>,
+    collider_query: Query<Entity, (With<BlenderColliderConstructor>, Without<BlenderProp>, Without<BlenderTranslationComplete>)>,
+    ladder_query: Query<Entity, (With<LadderComponent>, Without<BlenderTranslationComplete>)>,
     mut loaded: Local<bool>,
 ) {
     trace!("SYSTEM: translate_blender_components");
 
-    if *loaded {
-        return;
-    }
+    //if *loaded {
+    //    return;
+   // }
 
     for entity in prop_query.iter() {
         commands
             .entity(entity)
-            .insert(CollisionLayers::new(CollisionLayer::Prop, LayerMask::ALL))
-            .insert(RigidBody::Dynamic)
-            .insert(MiscItem)
-            .insert(ColliderConstructor::ConvexHullFromMesh);
+            .queue_silenced(|mut entity: EntityWorldMut| {
+                entity
+                    .insert(CollisionLayers::new(CollisionLayer::Prop, LayerMask::ALL))
+                    .insert(RigidBody::Dynamic)
+                    .insert(MiscItem)
+                    .insert(ColliderConstructor::ConvexHullFromMesh)
+                    .insert(BlenderTranslationComplete);
+            });
     }
     for entity in collider_query.iter() {
         commands.entity(entity)
-            .insert(RigidBody::Static)
-            .insert(Obstacle)
-            .insert(ColliderConstructor::ConvexHullFromMesh);
+            .queue_silenced(|mut entity: EntityWorldMut| {
+                entity
+                    .insert(RigidBody::Static)
+                    .insert(Obstacle)
+                    .insert(ColliderConstructor::ConvexHullFromMesh)
+                    .insert(BlenderTranslationComplete);
+            });
     }
     for entity in ladder_query.iter() {
         commands.entity(entity)
-            .insert(CollidingEntities::default())
-            .insert(CollisionEventsEnabled)
-            .observe(ladder_collision_observer)
-            .observe(ladder_decollision_observer);
+            .queue_silenced(|mut entity: EntityWorldMut| {
+                entity
+                    .insert(CollidingEntities::default())
+                    .insert(CollisionEventsEnabled)
+                    .insert(BlenderTranslationComplete)
+                    .observe(ladder_collision_observer)
+                    .observe(ladder_decollision_observer);
+            });
     }
 
     *loaded = true;
-}
-
-fn gltf_preload(
-    mut change_level_message_wriiter: MessageWriter<ChangeLevelMessage>,
-    //level_asset: Res<DALevelAsset>,
-    //gltf_assets: Res<Assets<Gltf>>,
-) {
-    trace!("SYSTEM: gltf_preload");
-    //let level = gltf_assets.get(&level_asset.level).unwrap();
-    //change_level_message_wriiter.write(ChangeLevelMessage("levels/World.glb".into()));
-    change_level_message_wriiter.write(ChangeLevelMessage("levels/World.glb".into()));
-}
-
-fn test_reload(
-    mut change_level_message_wriiter: MessageWriter<ChangeLevelMessage>,
-) {
-    trace!("SYSTEM: test_reload");
-    change_level_message_wriiter.write(ChangeLevelMessage("levels/fps.glb".into()));
 }
 
 fn animation_preload(
