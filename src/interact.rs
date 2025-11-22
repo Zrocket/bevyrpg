@@ -23,4 +23,3 @@ impl Plugin for InteractPlugin {
         app.add_plugins(AvianPickupPlugin::default());
     }
 }
-
