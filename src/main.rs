@@ -177,6 +177,13 @@ fn main() {
                 .continue_to_state(GameState::Gameplay)
                 .on_failure_continue_to_state(GameState::Gameplay)
         );
+
+        if let Some(level) = args.level {
+            app.world_mut().write_message(ChangeLevelMessage(level.into()));
+        } else {
+            app.world_mut().write_message(ChangeLevelMessage("levels/World.glb".into()));
+        }
+
         app.run();
 }
 
