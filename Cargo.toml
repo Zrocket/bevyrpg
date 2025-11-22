@@ -94,7 +94,7 @@ moonshine-kind = "0.4.1"
 bevy_egui = "0.38"
 bevy_console = { git = "https://github.com/Zrocket/bevy-console.git" }
 bevy-yoleck = "0.29"
-bevy-inspector-egui = "0.34"
+bevy-inspector-egui = "0.35"
 bevy_simple_text_input = "0.12"
 leafwing-input-manager = "0.18"
 bevy_skein = "0.3"
