@@ -26,55 +26,11 @@ impl Plugin for DevRoomPlugin {
             )*/
             //.add_systems(OnEnter(GameState::Gameplay), spawn_sprites)
             .register_type::<FirstPassCube>()
-            .register_type::<MainPassCube>()
-            .add_systems(Update, devroom_setup.run_if(in_state(GameState::Loading)));
+            .register_type::<MainPassCube>();
             //.add_plugins(SpritesPlugin);
     }
 }
 
-fn devroom_setup(
-    mut commands: Commands,
-    mut window: Query<&mut CursorOptions>,
-    level_gltf: Res<LevelGltf>,
-    gltf_assets: Res<Assets<Gltf>>,
-    mut loaded: Local<bool>,
-) {
-    trace!("SYSTEM: spawn_basic_scene");
-    if *loaded {
-        return;
-    }
-    let Some(gltf) = gltf_assets.get(&level_gltf.0) else {
-        return;
-    };
-
-    info!("Loading DevRoom");
-    commands.spawn(
-        (
-            CurrentLevel,
-            SceneRoot(gltf.named_scenes["World"].clone())
-        )
-    );
-
-    if let Ok(mut window) = window.single_mut() {
-        window.grab_mode = bevy::window::CursorGrabMode::Locked;
-    }
-    info!("Creating DirectionalLightBundle");
-    commands.spawn((
-        DirectionalLight {
-            illuminance: light_consts::lux::OVERCAST_DAY,
-            shadows_enabled: true,
-            ..default()
-        },
-        Transform {
-            translation: Vec3::new(0.0, 2.0, 0.0),
-            rotation: Quat::from_rotation_x(-PI / 4.),
-            ..default()
-        },
-    ));
-
-    *loaded = true;
-    info!("DevRoom Loaded");
-}
 
 fn _spawn_walking_cube(
     mut commands: Commands,
