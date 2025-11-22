@@ -1,7 +1,7 @@
 use avian_pickup::{input::{AvianPickupAction, AvianPickupInput}, prop::HeldProp};
 use bevy::prelude::*;
 
-use crate::{Interactable, InteractionEvent};
+use crate::{InspectEvent, Interactable, InteractionEvent};
 
 #[derive(Component, Reflect, Default)]
 #[reflect(Component)]
@@ -21,7 +21,9 @@ fn register_misc_items(
     mut unregistered_items_query: Query<Entity, (With<MiscItem>, Without<Interactable>)>,
 ) {
     for unregistered_item in unregistered_items_query.iter_mut() {
-        commands.entity(unregistered_item).observe(misc_interaction_observer)
+        commands.entity(unregistered_item)
+            .observe(misc_interaction_observer)
+            .observe(misc_inspection_observer)
             .insert(Interactable);
     }
 }
@@ -34,4 +36,13 @@ fn misc_interaction_observer(
     info!("Misc Interact event observer");
     let actor = trigger.event().actor;
     avian_pickup_input_writer.write(AvianPickupInput { actor, action: AvianPickupAction::Pull });
+}
+
+fn misc_inspection_observer(
+    trigger: On<InspectEvent>,
+    name_query: Query<&Name>,
+) {
+    if let Ok(name) = name_query.get(trigger.entity) {
+        println!("{}", name);
+    }
 }
