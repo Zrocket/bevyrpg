@@ -8,6 +8,8 @@ pub mod status_bar;
 pub mod widgets;
 pub mod menu;
 pub mod palette;
+pub mod inspect;
+pub mod start_menu;
 
 use bevy_simple_text_input::TextInputPlugin;
 use crosshair::*;
@@ -15,6 +17,8 @@ pub use inventory_ui::*;
 use status_bar::*;
 //use dialog_ui::*;
 pub use menu::*;
+pub use inspect::*;
+pub use start_menu::*;
 
 
 #[derive(AssetCollection, Resource, Reflect, Debug)]
@@ -51,6 +55,7 @@ impl Plugin for UiPlugin {
             .register_type::<DAUiAssets>()
             .add_plugins((
                     StatusUIPlugin,
+                    InspectUiPlugin,
                     InventoryUIPlugin,
                     CrosshairPlugin,
                     MenuUiPlugin,

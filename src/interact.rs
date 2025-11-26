@@ -16,10 +16,27 @@ pub struct InspectEvent {
     pub actor: Entity,
 }
 
+#[derive(EntityEvent)]
+pub struct EquiptEvent {
+    pub entity: Entity,
+    pub actor: Entity,
+}
+
+#[derive(EntityEvent)]
+pub struct UseEvent {
+    pub entity: Entity,
+    pub actor: Entity,
+}
+
+#[derive(Message)]
+pub struct UnInspectMessage;
+
 pub struct InteractPlugin;
 impl Plugin for InteractPlugin {
     fn build(&self, app: &mut App) {
         trace!("InteractPlugin build");
-        app.add_plugins(AvianPickupPlugin::default());
+        app
+            .add_plugins(AvianPickupPlugin::default())
+            .add_message::<UnInspectMessage>();
     }
 }

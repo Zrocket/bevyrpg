@@ -27,6 +27,10 @@ pub struct PlayerCamera;
 
 #[derive(Component, Reflect, Default)]
 #[reflect(Component)]
+pub struct PlayerFlashlight;
+
+#[derive(Component, Reflect, Default)]
+#[reflect(Component)]
 pub struct PlayerSpawner;
 
 #[derive(Component, Reflect, Default)]
@@ -83,6 +87,17 @@ fn spawn_player(
         ))
         .id();
 
+    let flashlight = commands
+        .spawn((
+            SpotLight {
+                intensity: 1000_000.0,
+                shadows_enabled: true,
+                ..default()
+            },
+            PlayerFlashlight,
+        ))
+        .id();
+
     // Player
     debug!("Creating Player");
     let input_map = InputMap::new([
@@ -93,11 +108,12 @@ fn spawn_player(
         (Action::Forward, KeyCode::KeyW),
         (Action::Backward, KeyCode::KeyS),
         (Action::Crouch, KeyCode::ControlLeft),
-        (Action::Up, KeyCode::KeyQ),
-        (Action::Down, KeyCode::KeyE),
-        (Action::Interact, KeyCode::KeyF),
+        (Action::Up, KeyCode::KeyZ),
+        (Action::Down, KeyCode::KeyX),
+        (Action::Interact, KeyCode::KeyO),
         (Action::OpenInventory, KeyCode::KeyI),
         (Action::OpenConsole, KeyCode::Backslash),
+        (Action::Flashlight, KeyCode::KeyF),
     ]);
 
     let logical_entity = commands
@@ -134,7 +150,6 @@ fn spawn_player(
             ),
             (CollisionLayers::new(CollisionLayer::Player, LayerMask::ALL),),
         ))
-        //.insert((Walk::default(), InputManagerBundle::with_map(input_map)))
         .insert((Walk::default(), input_map))
         .insert(TnuaSimpleAirActionsCounter::default())
         .insert(AvianPickupActor {
@@ -148,7 +163,7 @@ fn spawn_player(
             },
             ..default()
         })
-        .insert(RayHit(Entity::PLACEHOLDER))
+        .insert(RayHit(None))
         .insert(Name::new("Player"))
         .insert(PlayerState::Grounded)
         .insert(TnuaObstacleRadar::new(1.0, 3.0))
@@ -186,7 +201,8 @@ fn spawn_player(
             RenderPlayer { logical_entity },
             PlayerCamera,
         ))
-        .add_child(gun);
+        .add_child(gun)
+        .add_child(flashlight);
 }
 
 fn player_forward(
