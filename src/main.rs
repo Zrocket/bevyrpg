@@ -85,6 +85,8 @@ pub enum GameState {
     #[default]
     Preload,
     Postload,
+    GameOver,
+    StartMenu,
 }
 
 fn main() {
