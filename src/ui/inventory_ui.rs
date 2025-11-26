@@ -18,7 +18,7 @@ pub fn draw_inventory_ui(
     inventory: Query<&Inventory, With<Player>>,
     _asset_server: Res<AssetServer>,
 ) {
-    trace!("draw_inventory_ui");
+    trace!("SYSTEM: draw_inventory_ui");
     let _inventory_root = commands
         .spawn((
             Node {
