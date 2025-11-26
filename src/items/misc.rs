@@ -1,7 +1,7 @@
 use avian_pickup::{input::{AvianPickupAction, AvianPickupInput}, prop::HeldProp};
-use bevy::prelude::*;
+use bevy::{color::palettes::css::CRIMSON, prelude::*};
 
-use crate::{InspectEvent, Interactable, InteractionEvent};
+use crate::{InspectEvent, Interactable, InteractionEvent, UiInspect, widgets};
 
 #[derive(Component, Reflect, Default)]
 #[reflect(Component)]
@@ -41,8 +41,26 @@ fn misc_interaction_observer(
 fn misc_inspection_observer(
     trigger: On<InspectEvent>,
     name_query: Query<&Name>,
+    mut commands: Commands,
 ) {
     if let Ok(name) = name_query.get(trigger.entity) {
-        println!("{}", name);
+        commands.spawn((
+                Node {
+                    position_type: PositionType::Absolute,
+                    width: Val::Percent(5.),
+                    height: Val::Percent(5.),
+                    left: Val::Percent(55.),
+                    flex_direction: FlexDirection::Column,
+                    justify_content: JustifyContent::Center,
+                    align_self: AlignSelf::Center,
+                    flex_wrap: FlexWrap::Wrap,
+                    ..default()
+                },
+                BackgroundColor(CRIMSON.into()),
+                UiInspect,
+                children![
+                    widgets::label(name),
+                ]
+        ));
     }
 }

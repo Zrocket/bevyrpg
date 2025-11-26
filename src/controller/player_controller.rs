@@ -97,6 +97,7 @@ pub enum Action {
     Interact,
     OpenInventory,
     OpenConsole,
+    Flashlight,
 }
 
 #[derive(Component, Default, Debug)]
