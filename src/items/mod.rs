@@ -2,19 +2,25 @@ mod ammo;
 mod armor;
 mod books;
 mod consume;
+mod container;
 mod misc;
 mod weapons;
 
+use std::iter;
+
 pub use ammo::*;
 pub use armor::*;
+use avian_pickup::prop::HeldProp;
+use avian3d::prelude::CollisionLayers;
 pub use books::*;
 pub use consume::*;
+pub use container::*;
 pub use misc::*;
 pub use weapons::*;
 
 use bevy::{ecs::system::IntoObserverSystem, prelude::*};
 
-use crate::{Interactable, Name};
+use crate::{Interactable, Name, level::CollisionLayer};
 
 #[derive(Component, Reflect, Clone, Default)]
 #[reflect(Component)]
@@ -45,7 +51,9 @@ impl Plugin for ItemPlugin {
  //                   BookPlugin,
                     MiscItemPlugin,
 //                    WeaponPlugin,
-            ));
+            ))
+            .add_observer(disabled_held_prop_collision)
+            .add_observer(enable_dropped_prop_collision);
     }
 }
 
@@ -66,3 +74,31 @@ where
             .insert(Interactable);
     }
 }*/
+
+fn disabled_held_prop_collision(
+    add: On<Add, HeldProp>,
+    children_query: Query<&Children>,
+    mut collision_layers_query: Query<&mut CollisionLayers>,
+) {
+    let rigid_body = add.entity;
+    for child in iter::once(rigid_body).chain(children_query.iter_descendants(rigid_body)) {
+        let Ok(mut collision_layers) = collision_layers_query.get_mut(child) else {
+            continue;
+        };
+        collision_layers.filters.remove(CollisionLayer::Player);
+    }
+}
+
+fn enable_dropped_prop_collision(
+    remove: On<Remove, HeldProp>,
+    children_query: Query<&Children>,
+    mut collision_layers_query: Query<&mut CollisionLayers>,
+) {
+    let rigid_body = remove.entity;
+    for child in iter::once(rigid_body).chain(children_query.iter_descendants(rigid_body)) {
+        let Ok(mut collision_layers) = collision_layers_query.get_mut(child) else {
+            continue;
+        };
+        collision_layers.filters.add(CollisionLayer::Player);
+    }
+}
