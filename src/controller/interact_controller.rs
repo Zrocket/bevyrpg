@@ -1,12 +1,11 @@
 use crate::player::Player;
-use crate::{Action, InspectEvent, InteractionEvent, PlayerFlashlight, RESOLUTION_HEIGHT, RESOLUTION_WIDTH, UnInspectMessage};
+use crate::{InspectEvent, InteractionEvent, PlayerFlashlight, RESOLUTION_HEIGHT, RESOLUTION_WIDTH, UnInspectMessage};
 use avian3d::prelude::*;
 use avian_pickup::{
     input::AvianPickupInput,
     prop::HeldProp,
 };
 use bevy::prelude::*;
-use leafwing_input_manager::prelude::ActionState;
 
 #[derive(Debug, Component, Reflect)]
 #[reflect(Component)]

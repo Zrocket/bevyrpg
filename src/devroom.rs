@@ -5,6 +5,7 @@ use bevy_tnua::prelude::*;
 use bevy_tnua_avian3d::*;
 
 use crate::*;
+use crate::items::*;
 
 #[derive(Debug, Component, Reflect)]
 #[reflect(Component)]
