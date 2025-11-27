@@ -4,7 +4,7 @@ use bevy::{camera::Exposure, pbr::{Atmosphere, AtmosphereSettings}, post_process
 use bevy_egui::PrimaryEguiContext;
 use bevy_tnua::{control_helpers::{TnuaBlipReuseAvoidance, TnuaSimpleAirActionsCounter}, prelude::TnuaController, TnuaObstacleRadar};
 use bevy_tnua_avian3d::TnuaAvian3dSensorShape;
-use leafwing_input_manager::prelude::InputMap;
+use leafwing_input_manager::prelude::{ActionState, InputMap};
 
 use crate::{Action, CameraConfig, CharacterBundle, CollisionLayer, Description, Experience, FloatHeight, GameState, Health, Inventory, Item, Mana, MaxHealth, MaxMana, PlayerController, PlayerControllerConfig, PlayerControllerInput, RayHit, RenderPlayer, Walk, Weight, level::DAGunAssets};
 
@@ -36,6 +36,11 @@ pub struct PlayerSpawner;
 #[derive(Component, Reflect, Default)]
 #[reflect(Component)]
 pub struct PlayerTrigger;
+
+#[derive(EntityEvent)]
+pub struct SpawnPlayer {
+    pub entity: Entity,
+}
 
 pub struct GamePlayerPlugin;
 impl Plugin for GamePlayerPlugin {
@@ -90,7 +95,7 @@ fn spawn_player(
     let flashlight = commands
         .spawn((
             SpotLight {
-                intensity: 1000_000.0,
+                intensity: 1_000_000.0,
                 shadows_enabled: true,
                 ..default()
             },
@@ -203,6 +208,12 @@ fn spawn_player(
         ))
         .add_child(gun)
         .add_child(flashlight);
+}
+
+fn spawn_player_observer(
+    _ : On<SpawnPlayer>,
+    mut commands: Commands,
+) {
 }
 
 fn player_forward(
