@@ -87,12 +87,9 @@ fn add_to_inventory(
     for event in pick_up_events.read() {
         info!("Event Handler: add_to_inventory");
         if item.get_mut(event.target).is_ok() {
-            //commands.entity(item_entity).despawn_recursive();
             commands
                 .entity(event.target)
                 .insert(InInventory(event.actor));
-            //.remove::<PbrBundle>();
-            //.remove::<Collider>();
             if let Ok((_, mut inventory)) = actor.get_mut(event.actor) {
                 inventory.items.push(event.target);
             }
