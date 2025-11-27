@@ -2,6 +2,7 @@ mod interact_controller;
 mod inventory_controller;
 mod player_controller;
 
+use avian_pickup::prelude::*;
 use bevy::input::common_conditions::input_pressed;
 use bevy::prelude::*;
 use bevy_tnua::TnuaUserControlsSystems;
@@ -46,6 +47,8 @@ fn manage_cursor(
     key: Res<ButtonInput<KeyCode>>,
     mut controllers: Query<&mut PlayerController>,
     mut shoot_event_writer: MessageWriter<shoot::ShootEvent>,
+    avian_pickup_actor: Single<Entity, With<AvianPickupActor>>,
+    mut avian_pickup_input_writer: MessageWriter<AvianPickupInput>,
 ) {
     if let Ok(mut window) = windows.single_mut() {
         if window.grab_mode != CursorGrabMode::Locked {
@@ -57,6 +60,7 @@ fn manage_cursor(
                 }
             }
         } else if btn.just_pressed(MouseButton::Left) {
+            avian_pickup_input_writer.write(AvianPickupInput { action: AvianPickupAction::Throw, actor: *avian_pickup_actor });
             shoot_event_writer.write(shoot::ShootEvent);
             commands.trigger(ShootEvent);
         }

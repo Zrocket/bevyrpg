@@ -8,7 +8,7 @@ use bevy_tnua::{
 use bevy_tnua_avian3d::TnuaSpatialExtAvian3d;
 use leafwing_input_manager::prelude::*;
 
-use crate::{Player, PlayerState};
+use crate::{Player, PlayerFlashlight, PlayerState};
 
 // Used as padding by camera pitching (up/down) to avoid spooky math problems
 const ANGLE_EPSILON: f32 = 0.001953125;
@@ -119,6 +119,7 @@ impl Plugin for PlayerControllerPlugin {
                 player_controller_input,
                 player_controller_look,
                 tnua_player_input,
+                toggle_flashlight,
             )
             .chain()
         );
@@ -170,6 +171,21 @@ pub fn player_controller_look(mut query: Query<(&mut PlayerController, &PlayerCo
     for (mut controller, input) in query.iter_mut() {
         controller.pitch = input.pitch;
         controller.yaw = input.yaw;
+    }
+}
+
+fn toggle_flashlight(
+    key_input_query: Query<&ActionState<Action>, With<Player>>,
+    mut flashlight_query: Query<&mut SpotLight, With<PlayerFlashlight>>,
+) {
+    if let Ok(mut flashlight) = flashlight_query.single_mut() && let Ok(key_input) = key_input_query.single() {
+        if key_input.just_pressed(&Action::Flashlight) {
+            if flashlight.intensity == 0. {
+                flashlight.intensity = 1_000_000.0;
+            } else {
+                flashlight.intensity = 0.;
+            }
+        }
     }
 }
 
