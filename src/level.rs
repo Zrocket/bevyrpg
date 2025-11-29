@@ -1,5 +1,6 @@
-use bevy::{input::common_conditions::input_pressed};
+use bevy::{core_pipeline::Skybox, input::common_conditions::input_pressed};
 use bevy_asset_loader::{asset_collection::AssetCollection, loading_state::{config::ConfigureLoadingState, LoadingState, LoadingStateAppExt}, standard_dynamic_asset::StandardDynamicAssetCollection};
+use bevy_sun_move::{SkyCenter, SunMovePlugin, TimedSkyConfig, random_stars::{RandomStarsPlugin, StarSpawner}};
 
 use super::GameState;
 use crate::{LadderComponent, MiscItem, Obstacle, ladder_collision_observer, ladder_decollision_observer};
@@ -81,7 +82,10 @@ pub struct DAGunAssets {
 pub struct BlenderTranslationPlugin;
 impl Plugin for BlenderTranslationPlugin {
     fn build(&self, app: &mut App) {
-        app.register_type::<BlenderCollider>()
+        app
+            .add_plugins(SunMovePlugin)
+            .add_plugins(RandomStarsPlugin)
+            .register_type::<BlenderCollider>()
             .register_type::<BlenderBoxCollider>()
             .register_type::<BlenderAnimationName>()
             .register_type::<BlenderAnimations>()
@@ -129,18 +133,52 @@ fn change_level_message_handler(
             CurrentLevel,
         ));
 
-        commands.spawn((
+        /*commands.spawn((
             DirectionalLight {
-                illuminance: light_consts::lux::OVERCAST_DAY,
+                //illuminance: light_consts::lux::OVERCAST_DAY,
                 shadows_enabled: true,
                 ..default()
             },
             Transform {
-                translation: Vec3::new(0.0, 2.0, 0.0),
+                translation: Vec3::new(0.0, 200.0, 0.0),
                 rotation: Quat::from_rotation_x(-PI / 4.),
                 ..default()
             },
-        ));
+        ));*/
+
+        let sun_id = commands.spawn((
+                DirectionalLight {
+                    shadows_enabled: true,
+                    illuminance: light_consts::lux::RAW_SUNLIGHT, // Adjust illuminance as needed
+                    ..default()
+                },
+                Transform::default(),
+        ))
+        .id();
+
+        let timed_sky_config = TimedSkyConfig {
+            sun_entity: sun_id,
+            day_duration_secs: 10.0, // 10 seconds of dadylight
+            night_duration_secs: 5.0, // 5 seconds of nighttime (15s total cycle)
+            max_sun_height_deg: 60.0, // Sun reaches 60 degrees at noon
+            planet_tilt_degrees: 23.5, // Earth's tilt (default)
+            ..default()
+        };
+
+        // Calculate  and spawn the SkyCenter
+        if let Some(sky_center) = SkyCenter::from_timed_config(&timed_sky_config) {
+            commands.spawn((
+                    sky_center,
+                    // Optional: Add StarSpawner if you want the built-in stars
+                    StarSpawner {
+                        star_count: 1000,
+                        spawn_radius: 5000.0, // Star distance
+                    },
+            ));
+        } else {
+            // Handle case where calculation failed (e.g., impossible parameters)
+            error!("Failed to create SkyCenter from timed config");
+        }
 
     }
 }
