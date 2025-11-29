@@ -143,7 +143,7 @@ impl Plugin for MyConsolePlugin {
                 ..Default::default()
             })
             //.add_console_command::<ExampleCommand, _>(example_command)
-            .add_console_command::<LogCommand, _>(log_command)
+            //.add_console_command::<LogCommand, _>(log_command)
             .add_console_command::<GravityCommand, _>(gravity_command)
             .add_console_command::<LevelCommand, _>(level_command);
             //.add_systems(Update, write_to_console.after(ConsoleSet::ConsoleUI));
