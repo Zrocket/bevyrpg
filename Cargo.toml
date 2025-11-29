@@ -102,6 +102,7 @@ bevy_rerecast = "0.3.0"
 vleue_navigator = { version = "0.14.0", features = ["avian3d"] }
 polyanya = "0.15.1"
 avian_rerecast = "0.3.0"
+bevy_sun_move = { git = "https://github.com/GuillaumeDelorme/bevy_sun_move", branch = "bevy-0.17-update" }
 
 [profile.dev]
 opt-level=3
