@@ -27,7 +27,7 @@ mod player;
 mod render;
 mod rover;
 mod shoot;
-//mod sprites;
+mod sprites;
 //mod tests;
 mod ui;
 mod utils;
@@ -46,7 +46,7 @@ pub use player::*;
 pub use render::*;
 pub use rover::*;
 pub use shoot::*;
-//pub use sprites::*;
+pub use sprites::*;
 pub use ui::*;
 pub use utils::*;
 use level::*;
@@ -145,6 +145,7 @@ fn main() {
             Sprite3dPlugin,
             DialogPlugin,
             NavMeshPlugin,
+            SpritesPlugin,
     ));
     app.add_systems(Update, pause_game);
 
