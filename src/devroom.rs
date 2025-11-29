@@ -1,11 +1,13 @@
 use std::f32::consts::PI;
 use avian3d::collision::collider::Collider;
 use bevy::prelude::*;
+use bevy_sprite3d::Sprite3d;
 use bevy_tnua::prelude::*;
 use bevy_tnua_avian3d::*;
 
 use crate::*;
 use crate::items::*;
+use crate::sprites::ImageAssets;
 
 #[derive(Debug, Component, Reflect)]
 #[reflect(Component)]
@@ -25,7 +27,7 @@ impl Plugin for DevRoomPlugin {
                     spawn_walking_cube,
                 ).chain()
             )*/
-            //.add_systems(OnEnter(GameState::Gameplay), spawn_sprites)
+            .add_systems(OnEnter(GameState::Gameplay), spawn_sprites)
             .register_type::<FirstPassCube>()
             .register_type::<MainPassCube>();
             //.add_plugins(SpritesPlugin);
@@ -67,10 +69,10 @@ fn _spawn_walking_cube(
         .insert(Name::new("Cube"));
 }
 
-/*fn _spawn_sprites(
+fn spawn_sprites(
     mut commands: Commands,
     images: Res<ImageAssets>,
-    mut sprite_params: Sprite3dParams,
+    //mut sprite_params: Sprite3dParams,
     mut sprite_message: MessageWriter<SpriteMessage>,
 ) {
     info!("SYSTEM: spawn_sprites");
@@ -85,13 +87,15 @@ fn _spawn_walking_cube(
     sprite_message.write(SpriteMessage { sprite_type: SpriteType::Character, tile_x: 13, tile_y: 16, x: 4.2, y: -8., height: 2, frames: 1 });
 
     let atlas = TextureAtlas {
-        layout: images.layout.clone(),
+        layout: images.layout2.clone(),
         index: 30 * 32 + 14,
+        //index: 18,
     };
 
     commands.spawn((
         Sprite {
             image: images.tileset.clone(),
+            texture_atlas: Some(atlas),
             ..default()
         },
         Sprite3d {
@@ -99,8 +103,8 @@ fn _spawn_walking_cube(
             emissive: Srgba::rgb(1.0, 0.5, 0.0).into(),
             unlit: true,
             ..default()
-        }
-        .bundle_with_atlas(&mut sprite_params, atlas),
+        },
+        //.bundle_with_atlas(&mut sprite_params, atlas),
         Transform::from_xyz(2.0, 0.5, -5.5),
         Animation {
             frames: vec![30 * 32 + 14, 30 * 32 + 15, 30 * 32 + 16],
@@ -111,20 +115,32 @@ fn _spawn_walking_cube(
     ));
 
     let atlas = TextureAtlas {
-        layout: images.layout.clone(),
+        layout: images.layout2.clone(),
         index: 22 * 30 + 22,
     };
 
     commands.spawn((
-        Sprite3dBuilder {
+        /*Sprite3dBuilder {
             image: images.tileset.clone(),
             pixels_per_metre: 16.,
             emissive: LinearRgba::rgb(165. / 255., 1.0, 160. / 255.),
             unlit: true,
             ..default()
-        }
-        .bundle_with_atlas(&mut sprite_params, atlas),
+        }*/
+        Sprite3d {
+            pixels_per_metre: 16.,
+            double_sided: false,
+            emissive: LinearRgba::rgb(165. / 255., 1.0, 160. / 255.),
+            unlit: true,
+            ..default()
+        },
+        Sprite {
+            image: images.tileset.clone(),
+            texture_atlas: Some(atlas),
+            ..default()
+        },
+        //.bundle_with_atlas(&mut sprite_params, atlas),
         Transform::from_xyz(-5., 0.7, 6.5),
         FaceCamera {},
     ));
-}*/
+}
