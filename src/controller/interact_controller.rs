@@ -1,5 +1,5 @@
 use crate::player::Player;
-use crate::{InspectEvent, InteractionEvent, PlayerFlashlight, RESOLUTION_HEIGHT, RESOLUTION_WIDTH, UnInspectMessage};
+use crate::{InspectEvent, InteractionEvent, PlayerCamera, PlayerFlashlight, RESOLUTION_HEIGHT, RESOLUTION_WIDTH, UnInspectMessage};
 use avian3d::prelude::*;
 use avian_pickup::{
     input::AvianPickupInput,
@@ -12,7 +12,7 @@ use bevy::prelude::*;
 pub struct RayHit(pub Option<Entity>);
 
 pub fn player_raycast(
-    camera_query: Query<(&Camera, &GlobalTransform), Without<HeldProp>>,
+    camera_query: Query<(&Camera, &GlobalTransform), (Without<HeldProp>, With<PlayerCamera>)>,
     ray_caster: SpatialQuery,
     mut player: Query<(Entity, &mut RayHit), With<Player>>,
     mut flashlight: Query<Entity, With<PlayerFlashlight>>,
@@ -54,7 +54,6 @@ pub fn manage_interact(
             return
         }
         if let Some(entity) = ray_hit.0 {
-            println!("AAAAAAAAAAAAAAAAAAAAAAAAAAAAa");
             commands.entity(entity).trigger(|entity| InteractionEvent { entity, actor: player });
         }
     }
