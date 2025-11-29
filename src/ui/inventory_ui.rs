@@ -8,11 +8,11 @@ pub struct InventoryUIPlugin;
 impl Plugin for InventoryUIPlugin {
     fn build(&self, app: &mut App) {
        app
-           .add_systems(OnEnter(GameState::Gameplay), draw_inventory_ui);
+           .add_systems(OnEnter(GameState::Gameplay), spawn_inventory_ui);
     }
 }
 
-pub fn draw_inventory_ui(
+pub fn spawn_inventory_ui(
     mut commands: Commands,
     items: Query<(Entity, &Name, &InInventory)>,
     inventory: Query<&Inventory, With<Player>>,
