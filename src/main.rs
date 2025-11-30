@@ -168,7 +168,7 @@ fn main() {
         .add_loading_state(
             LoadingState::new(GameState::Preload)
                 .continue_to_state(GameState::Loading)
-                .on_failure_continue_to_state(GameState::Gameplay)
+                .on_failure_continue_to_state(GameState::Loading)
         )
         .add_loading_state(
             LoadingState::new(GameState::Loading)
@@ -177,12 +177,12 @@ fn main() {
         )
         .add_loading_state(
             LoadingState::new(GameState::Postload)
-                .continue_to_state(GameState::Gameplay)
-                .on_failure_continue_to_state(GameState::Gameplay)
+                .continue_to_state(GameState::StartMenu)
+                .on_failure_continue_to_state(GameState::StartMenu)
         );
 
         if let Some(level) = args.level {
-            app.world_mut().write_message(ChangeLevelMessage(level.into()));
+            app.world_mut().write_message(ChangeLevelMessage(level));
         } else {
             app.world_mut().write_message(ChangeLevelMessage("levels/World.glb".into()));
         }
