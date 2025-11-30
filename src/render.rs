@@ -22,13 +22,15 @@ impl Plugin for GameRenderPlugin {
         info!("GameRenderPlugin build");
         app.add_systems(
             Update,
-            player_controller_render.run_if(in_state(GameState::Gameplay)),
+            //player_controller_render.run_if(in_state(GameState::Gameplay)),
+            player_controller_render
         );
     }
 }
 
 pub fn player_controller_render(
-    mut render_query: Query<(&mut Transform, &RenderPlayer), With<RenderPlayer>>,
+    //mut render_query: Query<(&mut Transform, &RenderPlayer), With<RenderPlayer>>,
+    mut render_query: Query<(&mut Transform, &RenderPlayer)>,
     logical_query: Query<
         (&Transform, &Collider, &PlayerController, &CameraConfig),
         Without<RenderPlayer>,
