@@ -28,7 +28,7 @@ mod render;
 mod rover;
 mod shoot;
 mod sprites;
-//mod tests;
+mod tests;
 mod ui;
 mod utils;
 
@@ -50,7 +50,7 @@ pub use sprites::*;
 pub use ui::*;
 pub use utils::*;
 use level::*;
-//use tests::TestsPlugin;
+use tests::TestsPlugin;
 
 #[derive(Parser, Debug)]
 struct Args {
@@ -141,7 +141,7 @@ fn main() {
         SkeinPlugin::default(),
     ))
     .add_plugins((
-            //TestsPlugin,
+            TestsPlugin,
             Sprite3dPlugin,
             DialogPlugin,
             NavMeshPlugin,
