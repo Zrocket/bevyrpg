@@ -62,6 +62,7 @@ impl Plugin for UiPlugin {
                     CrosshairPlugin,
                     MenuUiPlugin,
                     GameOverUiPlugin,
+                    StartMenuUiPlugin,
             ))
             //.add_systems(OnEnter(GameState::Gameplay), (
                     //draw_inventory_ui,

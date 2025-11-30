@@ -1,6 +1,6 @@
 use bevy::prelude::*;
 
-use crate::widgets;
+use crate::{GameState, widgets};
 
 #[derive(Component, Reflect)]
 pub struct UiStartMenu;
@@ -8,17 +8,29 @@ pub struct UiStartMenu;
 pub struct StartMenuUiPlugin;
 impl Plugin for StartMenuUiPlugin {
     fn build(&self, app: &mut App) {
-       app; 
+       app
+           .add_systems(OnEnter(GameState::StartMenu), spawn_start_menu); 
     }
 }
 
-fn draw_start_menu(
+fn spawn_start_menu(
     mut commands: Commands,
 ) {
+    println!("AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA");
     commands.spawn((
         widgets::ui_root("Start Menu"),
+        DespawnOnExit(GameState::StartMenu),
         GlobalZIndex(2),
         children![
+            widgets::button("Start Game", start_game),
         ]
     ));
+}
+
+fn start_game(
+    _: On<Pointer<Click>>,
+    mut commands: Commands,
+    mut game_state: ResMut<NextState<GameState>>,
+) {
+    game_state.set(GameState::Gameplay);
 }

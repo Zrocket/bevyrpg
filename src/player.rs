@@ -106,16 +106,6 @@ fn spawn_player_observer(
             ))
             .id();
 
-        let flashlight = commands
-            .spawn((
-                SpotLight {
-                    intensity: 1_000_000.0,
-                    shadows_enabled: true,
-                    ..default()
-                },
-                PlayerFlashlight,
-            ))
-            .id();
 
         // Player
         debug!("Creating Player");
@@ -198,6 +188,16 @@ fn spawn_player_observer(
         if let Ok(mut render_player) = player_camera_query.single_mut() {
             *render_player = RenderPlayer { logical_entity };
         } else {
+            let flashlight = commands
+                .spawn((
+                    SpotLight {
+                        intensity: 1_000_000.0,
+                        shadows_enabled: true,
+                        ..default()
+                    },
+                    PlayerFlashlight,
+                ))
+                .id();
             commands
                 .spawn((
                     Camera {
