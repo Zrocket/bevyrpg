@@ -100,6 +100,7 @@ pub struct DamageMessage {
     pub target: Entity,
     pub ammount: i32,
 }
+
 #[derive(Message)]
 pub struct LevelUpMessage(pub Entity);
 
@@ -108,8 +109,11 @@ pub struct ExperienceMessage {
     pub target: Entity,
     pub ammount: i32,
 }
-#[derive(Message)]
-pub struct DeathMessage(pub Entity);
+
+#[derive(EntityEvent)]
+pub struct DeathEvent{
+    pub entity: Entity,
+}
 
 #[derive(Message)]
 pub struct AttackMessage {
@@ -204,7 +208,8 @@ fn damage_event_handler(
             if event.ammount > health.0 {
                 health.0 = 0;
                 info!("TARGET IS DEAD!!!");
-                commands.entity(event.target).despawn();
+                commands.entity(event.target).trigger(|entity| DeathEvent { entity });
+                //commands.entity(event.target).despawn();
             } else {
                 health.0 -= event.ammount;
             }
