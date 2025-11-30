@@ -10,6 +10,7 @@ pub mod menu;
 pub mod palette;
 pub mod inspect;
 pub mod start_menu;
+pub mod game_over;
 
 use bevy_simple_text_input::TextInputPlugin;
 use crosshair::*;
@@ -19,6 +20,7 @@ use status_bar::*;
 pub use menu::*;
 pub use inspect::*;
 pub use start_menu::*;
+pub use game_over::*;
 
 
 #[derive(AssetCollection, Resource, Reflect, Debug)]
@@ -59,6 +61,7 @@ impl Plugin for UiPlugin {
                     InventoryUIPlugin,
                     CrosshairPlugin,
                     MenuUiPlugin,
+                    GameOverUiPlugin,
             ))
             //.add_systems(OnEnter(GameState::Gameplay), (
                     //draw_inventory_ui,
