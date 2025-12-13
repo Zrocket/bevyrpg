@@ -1,6 +1,27 @@
 use std::borrow::Cow;
 
-use bevy::{color::palettes::css::CRIMSON, ecs::system::IntoObserverSystem, prelude::*};
+use bevy::{color::palettes::css::{CRIMSON, DARK_GREEN}, ecs::system::IntoObserverSystem, prelude::*};
+
+pub mod floating_window_focus;
+pub mod floating_windows;
+pub mod floating_window_ordering;
+pub mod tooltip;
+
+pub fn dragable_test(name: impl Into<Cow<'static, str>>) -> impl Bundle {
+    (
+        Name::new(name),
+    )
+}
+
+pub fn title_bar(name: impl Into<Cow<'static, str>>) -> impl Bundle {
+    (
+        Name::new(name),
+        Node {
+            ..default()
+        },
+        BackgroundColor(DARK_GREEN.into()),
+    )
+}
 
 pub fn ui_root(name: impl Into<Cow<'static, str>>) -> impl Bundle {
     (
@@ -60,6 +81,7 @@ where
                 justify_content: JustifyContent::Center,
                 ..default()
             },
+            BackgroundColor::from(DARK_GREEN),
             BorderRadius::MAX,
         ),
     )

@@ -52,7 +52,6 @@ fn _spawn_walking_cube(
             RigidBody::Dynamic,
             Collider::cuboid(1.0, 1.0, 1.0),
             Item {
-                name: Name::new("Cube"),
                 description: Description("Cube".to_string()),
                 weight: Weight(0),
             },
