@@ -2,6 +2,11 @@ use bevy::prelude::*;
 
 use crate::{Interactable, InteractionEvent};
 
+#[derive(EntityEvent)]
+pub struct OpenBookEvent {
+    entity: Entity,
+}
+
 #[derive(Component, Reflect, Default, Clone, Debug)]
 #[reflect(Component)]
 pub struct Book {

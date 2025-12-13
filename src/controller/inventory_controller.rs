@@ -1,12 +1,40 @@
-use crate::{Player, UiIndex, UiInventory};
+use crate::{GameState, Player, UiIndex, UiInventory};
 use bevy::prelude::*;
 use leafwing_input_manager::prelude::ActionState;
 
 use super::Action;
 
+pub struct InventoryControllerPlugin;
+impl Plugin for InventoryControllerPlugin {
+    fn build(&self, app: &mut App) {
+       app
+           .add_systems(Update, open_inventory.run_if(in_state(GameState::Gameplay)))
+           .add_systems(Update, close_inventory.run_if(in_state(GameState::Inventory))); 
+    }
+}
+
+fn open_inventory(
+    key: Query<&ActionState<Action>, With<Player>>,
+    mut game_state: ResMut<NextState<GameState>>,
+) {
+    if let Ok(key) = key.single() && key.just_pressed(&Action::OpenInventory) {
+        game_state.set(GameState::Inventory);
+    }
+}
+
+fn close_inventory(
+    key: Query<&ActionState<Action>, With<Player>>,
+    mut game_state: ResMut<NextState<GameState>>,
+) {
+    if let Ok(key) = key.single() && key.just_pressed(&Action::OpenInventory) {
+        game_state.set(GameState::Gameplay);
+    }
+}
+
 pub fn manage_inventory(
     key: Query<&ActionState<Action>, With<Player>>,
-    mut inventory_node_query: Query<&mut Node, With<UiInventory>>
+    mut inventory_node_query: Query<&mut Node, With<UiInventory>>,
+    mut game_state: ResMut<NextState<GameState>>,
 ) {
     if let Ok(key) = key.single()
         && key.just_pressed(&Action::OpenInventory)

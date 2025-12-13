@@ -207,7 +207,7 @@ pub fn tnua_player_input(
     spatial_ext: TnuaSpatialExtAvian3d,
 ) {
     // Get player's tnua controller, otherwise return
-    let Ok((player_controller_config,
+    let Ok((_player_controller_config,
             mut tnua_controller,
             mut air_actions_counter,
             mut player_state,

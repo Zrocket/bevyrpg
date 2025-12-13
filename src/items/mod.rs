@@ -36,7 +36,6 @@ pub struct Description(pub String);
 
 #[derive(Component, Clone, Default)]
 pub struct Item {
-    pub name: Name,
     pub description: Description,
     pub weight: Weight,
 }
@@ -50,6 +49,7 @@ impl Plugin for ItemPlugin {
   //                  ArmorPlugin,
  //                   BookPlugin,
                     MiscItemPlugin,
+                    ContainerPlugin,
 //                    WeaponPlugin,
             ))
             .add_observer(disabled_held_prop_collision)

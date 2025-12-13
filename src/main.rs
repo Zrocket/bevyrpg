@@ -10,6 +10,7 @@ use bevy_sprite3d::Sprite3dPlugin;
 use bevy_yoleck::prelude::*;
 use clap::Parser;
 
+mod audio;
 mod character;
 mod console;
 mod controller;
@@ -32,6 +33,7 @@ mod tests;
 mod ui;
 mod utils;
 
+pub use audio::*;
 pub use character::*;
 pub use console::*;
 pub use controller::*;
@@ -114,7 +116,9 @@ fn main() {
                 ..default()
             })
             .set(LogPlugin {
-                level: bevy::log::Level::INFO,
+                level: bevy::log::Level::TRACE,
+                //filter: "info,wgpu=error,bevy_skein=trace,inventory=trace,devroom=trace".into(),
+                filter: "info,wgpu=error,bevyrpg=trace".into(),
                 ..default()
             }),
     )

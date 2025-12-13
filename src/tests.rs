@@ -1,7 +1,7 @@
-use bevy::prelude::*;
+use bevy::{color::palettes::css::{CRIMSON, DARK_CYAN, DARK_GREEN, DARK_VIOLET}, prelude::*};
 use bevy_asset_loader::dynamic_asset::DynamicAssetCollections;
 
-use crate::{new_computer_screen, ChangeScreenEvent, DamageMessage, Description, GameState, Health, Inventory, Item, PickUpMessage, Player, RemoveMessage, };
+use crate::{AddToInventoryEvent, ChangeScreenEvent, DamageMessage, Description, GameState, Health, Inventory, Item, Player, RemoveMessage, display_inventory_event_observer, new_computer_screen, widgets::floating_windows::{FloatingWindow, close_button, floating_window_root, init_floating_window, minimize_button, resizable_borders} };
 use super::Weight;
 
 pub struct TestsPlugin;
@@ -12,12 +12,22 @@ impl Plugin for TestsPlugin {
                     //dynamic_asset_test
                     //computer_test,
                     health_test,
-          //          inventory_add_test,
+                    //inventory_add_test,
+                    inventory_add_test,
                     //inventory_remove_test,
+                    floating_window_test,
             ));
     }
 }
 
+fn floating_window_test(
+    mut commands: Commands,
+    key: Res<ButtonInput<KeyCode>>,
+) {
+    if key.just_pressed(KeyCode::KeyP) {
+        commands.spawn(floating_window_root("TEST WINDOW!".into(), ()));
+    }
+}
 
 fn _dynamic_asset_test(
     dynamic_assets: Res<DynamicAssetCollections<GameState>>,
@@ -57,23 +67,19 @@ fn health_test(
 fn inventory_add_test(
     mut commands: Commands,
     key: Res<ButtonInput<KeyCode>>,
-    mut player: Query<Entity, With<Player>>,
-    mut event_writer: MessageWriter<PickUpMessage>,
+    mut player_query: Query<Entity, With<Player>>,
 ) {
     trace!("SYSTEM: inventory_add_test");
-    let player = player.single_mut().unwrap();
-    if key.just_pressed(KeyCode::KeyJ) {
-        let item = commands
-            .spawn((Item {
-                name: Name::new(format!("Test {}", rand::random::<u8>() as char)),
-                description: Description("Test".to_string()),
-                weight: Weight(0),
-            },))
-            .id();
-        event_writer.write(PickUpMessage {
-            actor: player,
-            target: item,
-        });
+    if let Ok(mut player) = player_query.single_mut() && key.just_pressed(KeyCode::KeyJ) {
+        let item = commands.spawn((
+                Item {
+                    description: Description("Test".to_string()),
+                    weight: Weight(0),
+                },
+                Name::new(format!("Test {}", rand::random::<u8>() as char)),
+        )).id();
+        println!("{:?}", item);
+        commands.entity(player).trigger(|entity| AddToInventoryEvent { entity, item });
     }
 }
 
@@ -84,13 +90,14 @@ fn inventory_remove_test(
     mut event_writer: MessageWriter<RemoveMessage>,
 ) {
     trace!("SYSTEM: inventory_remove_test");
-    let player = player.single_mut().unwrap();
-    if key.just_pressed(KeyCode::KeyL) {
-        let inventory = inventory_query.single_mut().unwrap();
-        let item = inventory.items.last().unwrap();
-        event_writer.write(RemoveMessage {
-            actor: player,
-            target: *item,
-        });
+    if let Ok(mut player) = player.single_mut() {
+        if key.just_pressed(KeyCode::KeyL) {
+            let inventory = inventory_query.single_mut().unwrap();
+            let item = inventory.items.last().unwrap();
+            event_writer.write(RemoveMessage {
+                actor: player,
+                target: *item,
+            });
+        }
     }
 }

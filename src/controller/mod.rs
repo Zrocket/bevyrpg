@@ -3,7 +3,7 @@ mod inventory_controller;
 mod player_controller;
 
 use avian_pickup::prelude::*;
-use bevy::input::common_conditions::input_pressed;
+use bevy::input::common_conditions::{input_just_pressed, input_pressed};
 use bevy::prelude::*;
 use bevy_tnua::TnuaUserControlsSystems;
 pub use interact_controller::*;
@@ -14,7 +14,7 @@ use super::GameState;
 use bevy::window::{CursorGrabMode, CursorOptions};
 use leafwing_input_manager::prelude::*;
 
-use crate::{ShootEvent, shoot};
+use crate::{ShootEvent, shoot, widgets::floating_windows::FloatingWindow};
 
 pub struct ControllerPlugin;
 impl Plugin for ControllerPlugin {
@@ -24,15 +24,16 @@ impl Plugin for ControllerPlugin {
             .add_plugins(InputManagerPlugin::<Action>::default())
             //.add_plugins(MenuControllerPlugin)
             .add_plugins(PlayerControllerPlugin)
+            .add_plugins(InventoryControllerPlugin)
             .register_type::<RayHit>()
             .add_systems(
                 Update,
                 (
                     manage_cursor,
-                    manage_interact.run_if(in_state(GameState::Gameplay)).run_if(input_pressed(KeyCode::KeyE)),
+                    manage_interact.run_if(in_state(GameState::Gameplay)).run_if(input_just_pressed(KeyCode::KeyE)),
                     manage_inspect.run_if(in_state(GameState::Gameplay)),
                     player_raycast.run_if(in_state(GameState::Gameplay)),
-                    manage_inventory.run_if(in_state(GameState::Gameplay)),
+                    //manage_inventory.run_if(in_state(GameState::Gameplay)),
                     inventory_navigation.in_set(TnuaUserControlsSystems),
                 )
             );
@@ -49,10 +50,14 @@ fn manage_cursor(
     mut shoot_event_writer: MessageWriter<shoot::ShootEvent>,
     avian_pickup_actor: Single<Entity, With<AvianPickupActor>>,
     mut avian_pickup_input_writer: MessageWriter<AvianPickupInput>,
+    active_windoow: Query<Entity, With<FloatingWindow>>,
 ) {
     if let Ok(mut window) = windows.single_mut() {
         if window.grab_mode != CursorGrabMode::Locked {
             if btn.just_pressed(MouseButton::Left) {
+                 for _window in active_windoow.iter() {
+                    return;
+                }
                 window.grab_mode = CursorGrabMode::Locked;
                 window.visible = false;
                 for mut controller in &mut controllers {
