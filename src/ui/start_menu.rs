@@ -16,7 +16,6 @@ impl Plugin for StartMenuUiPlugin {
 fn spawn_start_menu(
     mut commands: Commands,
 ) {
-    println!("AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA");
     commands.spawn((
         widgets::ui_root("Start Menu"),
         DespawnOnExit(GameState::StartMenu),

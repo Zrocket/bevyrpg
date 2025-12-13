@@ -40,7 +40,6 @@ fn door_interaction_observer(
     trigger: On<InteractionEvent>,
     mut door: Query<(Entity, &mut AnimationPlayer)>,
 ) {
-    println!("CCCCCCCCCCC");
     trace!("OBSERVER: door_event_observer");
     if let Ok((_door_entity, mut door_animation_player)) = door.single_mut() {
         door_animation_player.play(1.into());
