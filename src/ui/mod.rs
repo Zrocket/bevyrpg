@@ -1,3 +1,5 @@
+use crate::widgets::{floating_window_ordering::FloatingWindowOrderingPlugin, floating_windows::FloatingWindowPlugin};
+
 use super::*;
 
 pub mod book_ui;
@@ -63,6 +65,8 @@ impl Plugin for UiPlugin {
                     MenuUiPlugin,
                     GameOverUiPlugin,
                     StartMenuUiPlugin,
+                    FloatingWindowPlugin,
+                    FloatingWindowOrderingPlugin,
             ))
             //.add_systems(OnEnter(GameState::Gameplay), (
                     //draw_inventory_ui,
