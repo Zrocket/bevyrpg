@@ -36,7 +36,7 @@ fn respawn(
     mut spawn_player_message_writer: MessageWriter<SpawnPlayerMessage>,
     mut game_state: ResMut<NextState<GameState>>,
 ) {
-    if let Ok(player) = player_query.single() {
+    if let Ok(_player) = player_query.single() {
         game_state.set(GameState::Gameplay);
         spawn_player_message_writer.write(SpawnPlayerMessage);
     }

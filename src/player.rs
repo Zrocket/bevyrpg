@@ -4,7 +4,7 @@ use bevy::{camera::Exposure, core_pipeline::tonemapping::Tonemapping, pbr::{Atmo
 use bevy_egui::PrimaryEguiContext;
 use bevy_tnua::{control_helpers::{TnuaBlipReuseAvoidance, TnuaSimpleAirActionsCounter}, prelude::TnuaController, TnuaObstacleRadar};
 use bevy_tnua_avian3d::TnuaAvian3dSensorShape;
-use leafwing_input_manager::prelude::{ActionState, InputMap};
+use leafwing_input_manager::prelude::InputMap;
 
 use crate::{Action, AddToInventoryEvent, CameraConfig, CharacterBundle, CollisionLayer, DeathEvent, Description, Experience, FloatHeight, GameState, Health, Inventory, Item, Mana, MaxHealth, MaxMana, PlayerController, PlayerControllerConfig, PlayerControllerInput, RayHit, RemoveFromInventoryEvent, RenderPlayer, Walk, Weight, display_inventory_event_observer, level::DAGunAssets};
 
@@ -66,6 +66,7 @@ fn init_player(
     spawn_player_message_writer.write(SpawnPlayerMessage);
 }
 
+#[allow(clippy::too_many_arguments)]
 fn spawn_player_observer(
     mut commands: Commands,
     mut spawn_player_message_reader: MessageReader<SpawnPlayerMessage>,
@@ -78,7 +79,7 @@ fn spawn_player_observer(
 ) {
     trace!("SYSTEM: spawn_player");
 
-    for message in spawn_player_message_reader.read() {
+    for _message in spawn_player_message_reader.read() {
         if let Ok(player) = player_query.single_mut() {
             commands.entity(player).despawn();
         }
@@ -272,8 +273,7 @@ fn check_player_triggers(
 }
 
 fn player_death_event_observer(
-    trigger: On<DeathEvent>,
-    mut commands: Commands,
+    _trigger: On<DeathEvent>,
     mut game_state: ResMut<NextState<GameState>>,
 ) {
     game_state.set(GameState::GameOver);
@@ -284,23 +284,20 @@ fn player_add_to_inventory_observer(
     //mut commands: Commands,
     mut player_query: Query<(Entity, &mut Inventory), With<Player>>,
 ) {
-    if let Ok((player_entity, mut player_inventory)) = player_query.single_mut() {
+    if let Ok((_player_entity, mut player_inventory)) = player_query.single_mut() {
         player_inventory.items.push(trigger.item);
-        //commands.entity(player_entity).add_child(trigger.item);
     }
 }
 
 fn player_remove_from_inventory_observer(
     trigger: On<RemoveFromInventoryEvent>,
-    mut commands: Commands,
     mut player_query: Query<(Entity, &mut Inventory), With<Player>>,
 ) {
     trace!("OBSERVER: player_remove_from_inventory_observer");
-    if let Ok((player_entity, mut player_inventory)) = player_query.single_mut() {
+    if let Ok((_player_entity, mut player_inventory)) = player_query.single_mut() {
         let index = player_inventory.items.iter().position(|x| *x == trigger.item).unwrap();
         trace!("Removeing item: {:?} with inded: {:?} in inventory: {:?}", trigger.item, index, player_inventory.items);
         player_inventory.items.remove(index);
         trace!("Inventory after item removal: {:?}", player_inventory.items);
-        //commands.entity(player_entity).add_child(trigger.item);
     }
 }

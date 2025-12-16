@@ -1,7 +1,7 @@
 use bevy::prelude::*;
 use avian3d::collision::collider::Collider;
 
-use crate::{GameState, PlayerController};
+use crate::PlayerController;
 
 pub const RESOLUTION_HEIGHT: u32 = 720;
 pub const RESOLUTION_WIDTH: u32 = 1280;
