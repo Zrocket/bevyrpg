@@ -1,6 +1,4 @@
-use super::GameState;
 use bevy::prelude::*;
-use std::ops::Deref;
 
 use crate::items::*;
 

@@ -117,8 +117,8 @@ fn main() {
             })
             .set(LogPlugin {
                 level: bevy::log::Level::TRACE,
-                //filter: "info,wgpu=error,bevy_skein=trace,inventory=trace,devroom=trace".into(),
-                filter: "info,wgpu=error,bevyrpg=trace".into(),
+                //filter: "info,wgpu=error,bevy_landmass=trace,bevyrpg=trace".into(),
+                filter: "info,wgpu=error".into(),
                 ..default()
             }),
     )

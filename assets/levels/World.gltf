@@ -1851,7 +1851,15 @@
 						"selected_type_path":"bevyrpg::level::BlenderColliderConstructor"
 					}
 				],
-				"active_component_index":2
+				"active_component_index":2,
+				"skein":[
+					{
+						"bevyrpg::level::BlenderColliderConstructor":{}
+					},
+					{
+						"avian3d::dynamics::rigid_body::RigidBody":"Dynamic"
+					}
+				]
 			},
 			"name":"Floor.001",
 			"primitives":[
@@ -1913,6 +1921,9 @@
 				"skein":[
 					{
 						"bevyrpg::player::PlayerTrigger":{}
+					},
+					{
+						"bevyrpg::items::container::Container":{}
 					}
 				]
 			},
@@ -1987,7 +1998,7 @@
 						"bevyrpg::items::container::Container":{}
 					},
 					{
-						"avian3d::dynamics::rigid_body::RigidBody":"Static"
+						"bevyrpg::level::BlenderColliderConstructor":{}
 					}
 				]
 			},

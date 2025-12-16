@@ -1,12 +1,7 @@
-use std::f32::consts::PI;
-use avian3d::collision::collider::Collider;
 use bevy::prelude::*;
 use bevy_sprite3d::Sprite3d;
-use bevy_tnua::prelude::*;
-use bevy_tnua_avian3d::*;
 
 use crate::*;
-use crate::items::*;
 use crate::sprites::ImageAssets;
 
 #[derive(Debug, Component, Reflect)]
@@ -21,51 +16,10 @@ pub struct DevRoomPlugin;
 impl Plugin for DevRoomPlugin {
     fn build(&self, app: &mut App) {
         app
-            /*.add_systems(
-                OnEnter(GameState::Loading),
-                (
-                    spawn_walking_cube,
-                ).chain()
-            )*/
             .add_systems(OnEnter(GameState::Gameplay), spawn_sprites)
             .register_type::<FirstPassCube>()
             .register_type::<MainPassCube>();
-            //.add_plugins(SpritesPlugin);
     }
-}
-
-
-fn _spawn_walking_cube(
-    mut commands: Commands,
-    mut meshes: ResMut<Assets<Mesh>>,
-    mut materials: ResMut<Assets<StandardMaterial>>,
-) {
-    trace!("SYSTEM: spawn_walking_cube");
-
-    // Cube
-    debug!("Creating Cube");
-    commands
-        .spawn((
-            Mesh3d(meshes.add(Cuboid::new(1.0, 1.0, 1.0))),
-            MeshMaterial3d(materials.add(Color::WHITE)),
-            Transform::from_xyz(-0.9, 1.5, -3.2),
-            RigidBody::Dynamic,
-            Collider::cuboid(1.0, 1.0, 1.0),
-            Item {
-                description: Description("Cube".to_string()),
-                weight: Weight(0),
-            },
-        ))
-        .insert(TnuaController::default())
-        .insert(TnuaAvian3dSensorShape(Collider::cuboid(0.5, 0.5, 0.5)))
-        .insert(FloatHeight(0.5))
-        .insert(Walk::default())
-        .insert(DesiredPosition(Vec3 {
-            x: -15.0,
-            y: 5.0,
-            z: -15.0,
-        }))
-        .insert(Name::new("Cube"));
 }
 
 fn spawn_sprites(
