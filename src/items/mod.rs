@@ -20,7 +20,7 @@ pub use weapons::*;
 
 use bevy::{ecs::system::IntoObserverSystem, prelude::*};
 
-use crate::{Interactable, Name, level::CollisionLayer};
+use crate::{level::CollisionLayer};
 
 #[derive(Component, Reflect, Clone, Default)]
 #[reflect(Component)]
@@ -33,6 +33,11 @@ pub struct Weight(pub i32);
 #[derive(Component, Reflect, Clone, Default)]
 #[reflect(Component)]
 pub struct Description(pub String);
+
+#[derive(EntityEvent)]
+pub struct ItemInteractionEvent {
+    entity: Entity,
+}
 
 #[derive(Component, Clone, Default)]
 pub struct Item {
