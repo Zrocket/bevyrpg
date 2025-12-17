@@ -1203,6 +1203,15 @@ dependencies = [
 ]
 
 [[package]]
+name = "bevy_flycam"
+version = "0.17.0"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "2bcf7c519a030ecb02ff62780f086aa57ab1b888997ca04d56dd6e322a359401"
+dependencies = [
+ "bevy",
+]
+
+[[package]]
 name = "bevy_gilrs"
 version = "0.17.3"
 source = "registry+https://github.com/rust-lang/crates.io-index"
@@ -2359,6 +2368,7 @@ dependencies = [
  "bevy_asset_loader",
  "bevy_console",
  "bevy_egui 0.38.0",
+ "bevy_flycam",
  "bevy_landmass",
  "bevy_rerecast",
  "bevy_seedling",
