@@ -58,18 +58,9 @@ impl Plugin for NavMeshPlugin {
             .add_plugins(TnuaAvian3dPlugin::new(FixedUpdate))
             .add_plugins(TnuaControllerPlugin::new(FixedUpdate))
             .add_systems(OnEnter(GameState::Gameplay), landmass_rerecast_setup)
-            .add_systems(Update, agent_velocity_tetst)
             .add_systems(Update, apply_walking)
             .add_systems(Update, toggle_landmass_debug.run_if(input_just_pressed(KeyCode::F12)));
 
-    }
-}
-
-fn agent_velocity_tetst(
-    agent_query: Query<&AgentDesiredVelocity3d>,
-) {
-    for agent in agent_query.iter() {
-        println!("{:?}", agent.velocity());
     }
 }
 
