@@ -1,7 +1,8 @@
 use avian3d::{prelude::{CoefficientCombine, Collider, CollisionLayers, Friction, GravityScale, LayerMask, LockedAxes, RigidBody, SpatialQuery, SpatialQueryFilter}};
 use avian_pickup::actor::{AvianPickupActor, AvianPickupActorHoldConfig};
-use bevy::{camera::Exposure, core_pipeline::tonemapping::Tonemapping, pbr::{Atmosphere, AtmosphereSettings}, post_process::bloom::Bloom, prelude::*, render::view::Hdr};
+use bevy::{camera::{self, Exposure}, core_pipeline::tonemapping::Tonemapping, input::common_conditions::input_just_pressed, pbr::{Atmosphere, AtmosphereSettings}, post_process::bloom::Bloom, prelude::*, render::view::Hdr};
 use bevy_egui::PrimaryEguiContext;
+use bevy_flycam::{FlyCam, NoCameraPlayerPlugin};
 use bevy_tnua::{control_helpers::{TnuaBlipReuseAvoidance, TnuaSimpleAirActionsCounter}, prelude::TnuaController, TnuaObstacleRadar};
 use bevy_tnua_avian3d::TnuaAvian3dSensorShape;
 use leafwing_input_manager::prelude::InputMap;
@@ -15,6 +16,7 @@ pub enum PlayerState {
     Ladder(Entity),
     UnGrounded,
     Sitting,
+    NoClip,
 }
 
 #[derive(Component, Reflect, Default)]
@@ -45,6 +47,12 @@ impl Plugin for GamePlayerPlugin {
     fn build(&self, app: &mut App) {
         info!("GamePlayerPlugin build");
         app.register_type::<Player>()
+            .add_plugins(NoCameraPlayerPlugin)
+            .insert_resource(bevy_flycam::KeyBindings {
+                move_ascend: KeyCode::PageUp,
+                move_descend: KeyCode::PageDown,
+                ..default()
+            })
             .register_type::<PlayerCamera>()
             .register_type::<PlayerSpawner>()
             .register_type::<PlayerTrigger>()
@@ -56,7 +64,8 @@ impl Plugin for GamePlayerPlugin {
                     player_forward.run_if(in_state(GameState::Gameplay)),
                     check_player_triggers.run_if(in_state(GameState::Gameplay)),
                 )
-            );
+            )
+            .add_systems(Update, toggle_player_noclip.run_if(input_just_pressed(KeyCode::KeyB)));
     }
 }
 
@@ -233,6 +242,25 @@ fn spawn_player_observer(
                 ))
                 .add_child(gun)
                 .add_child(flashlight);
+        }
+    }
+}
+
+fn toggle_player_noclip(
+    mut commands: Commands,
+    mut player_query: Query<(Entity, &mut PlayerState), With<Player>>,
+    mut player_camera_query: Query<Entity, With<PlayerCamera>>,
+) {
+    if let Ok((player_entity, mut player_state)) = player_query.single_mut()
+    && let Ok(player_camera) = player_camera_query.single_mut() {
+        if *player_state == PlayerState::NoClip {
+            commands.entity(player_camera).remove::<FlyCam>();
+            commands.entity(player_entity).insert(Collider::capsule(0.1, 0.5));
+            *player_state = PlayerState::Grounded;
+        } else {
+            commands.entity(player_entity).remove::<Collider>();
+            commands.entity(player_camera).insert(FlyCam);
+            *player_state = PlayerState::NoClip;
         }
     }
 }

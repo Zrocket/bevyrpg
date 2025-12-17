@@ -108,6 +108,7 @@ tracing = "0.1.43"
 landmass = "0.9.1"
 bevy_landmass = "0.10.0"
 landmass_rerecast = "0.1.0"
+bevy_flycam = "0.17.0"
 
 [profile.dev]
 opt-level=3
