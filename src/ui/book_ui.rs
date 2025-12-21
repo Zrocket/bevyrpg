@@ -1,6 +1,8 @@
-use bevy::prelude::*;
+use bevy::{color::palettes::css::{DARK_GOLDENROD, DARK_GRAY, DARK_KHAKI, DARK_OLIVEGREEN, DARK_ORCHID, LIGHT_GREEN}, picking::hover::Hovered, prelude::*};
+use nom::number::complete::float;
+use ratatui::symbols::shade::DARK;
 
-use crate::{Book, OpenBookEvent, widgets};
+use crate::{Book, GameState, OpenBookEvent, widgets::{self, floating_windows::floating_window_root}};
 
 #[derive(Debug, Component)]
 pub struct UiBook;
@@ -13,36 +15,142 @@ pub struct SpawnBookUiEvent {
 pub struct BookUiPlugin;
 impl Plugin for BookUiPlugin {
     fn build(&self, app: &mut App) {
-       app; 
+       app
+           .add_systems(Update, spawn_book_ui.run_if(in_state(GameState::Gameplay))); 
     }
 }
 
-fn spawn_book_ui(
+pub fn spawn_book_ui(
+    mut commands: Commands,
+    book: Query<Entity, With<Book>>,
+    _asset_server: Res<AssetServer>,
+) {
+    trace!("SYSTEM: spawn_inventory_ui");
+
+    if let Ok(entity) = book.single() {
+        commands.entity(entity).trigger(|entity| OpenBookEvent { entity });
+    }
+}
+
+pub fn display_book_ui(
     trigger: On<OpenBookEvent>,
     mut commands: Commands,
     book_query: Query<&Book>,
 ) {
-    if let Ok(book) = book_query.get(trigger.observer()) {
+    if let Ok(book) = book_query.get(trigger.entity) {
+        let contents = book.contents.clone();
         commands.spawn((
-                Node {
-                    position_type: PositionType::Absolute,
-                    width: Val::Percent(50.),
-                    height: Val::Percent(70.),
-                    left: Val::Percent(10.),
-                    flex_direction: FlexDirection::Column,
-                    justify_content: JustifyContent::Center,
-                    align_self: AlignSelf::Center,
-                    flex_wrap: FlexWrap::Wrap,
-                    ..default()
-                },
-                GlobalZIndex(2),
-                UiBook,
-        ))
-        .with_children(|page_window| {
-            page_window.spawn((
-                    Text(book.title.to_string()),
-                    Text(book.contents.to_string()),
-            ));
-        });
+                floating_window_root(format!("{} Book", book.title), 
+                    (
+                        BackgroundColor::from(DARK_GRAY),
+                        Children::spawn(SpawnWith(|parent: &mut ChildSpawner| {
+                            parent.spawn(book_page(contents));
+                            parent.spawn(
+                                book_nav_bar()
+                            )
+                            .insert(BackgroundColor::from(DARK_ORCHID));
+                        })),
+                    )),
+        ));
     }
+}
+
+fn book_page(text: String) -> impl Bundle {
+    (
+        Node {
+            width: Val::Percent(100.),
+            flex_grow: 1.,
+            ..default()
+        },
+        BackgroundColor::from(LIGHT_GREEN),
+        Children::spawn(SpawnWith(|parent: &mut ChildSpawner| {
+            parent.spawn(page_margin());
+            parent.spawn((
+                    Node {
+                        flex_grow: 1.,
+                        ..default()
+                    },
+                    Text(text),
+            ));
+            parent.spawn(page_margin());
+        })),
+    )
+}
+
+fn page_margin() -> impl Bundle {
+    (
+        Node {
+            width: Val::Px(40.),
+            ..default()
+        },
+        BackgroundColor::from(DARK_GOLDENROD)
+    )
+}
+
+fn book_nav_bar() -> impl Bundle {
+    (
+        Node {
+            width: Val::Percent(100.),
+            height: Val::Px(30.),
+            ..default()
+        },
+        BackgroundColor::from(DARK_KHAKI),
+        Children::spawn(SpawnWith(|parent: &mut ChildSpawner| {
+            parent.spawn(page_left());
+            parent.spawn(page_count());
+            parent.spawn(page_right());
+        })),
+    )
+}
+
+fn page_count() -> impl Bundle {
+    (
+        Node {
+            flex_grow: 1.,
+            justify_content: JustifyContent::Center,
+            ..default()
+        },
+        BackgroundColor::from(DARK_OLIVEGREEN),
+        Children::spawn(SpawnWith(|parent: &mut ChildSpawner| {
+            parent.spawn(Text("PAGE #: X".into()));
+        }))
+    )
+}
+
+fn page_left() -> impl Bundle {
+    (
+        Node::default(),
+        Children::spawn(SpawnWith(|parent: &mut ChildSpawner| {
+            parent.spawn((
+                    Node {
+                        flex_grow: 0.,
+                        aspect_ratio: Some(1.),
+                        padding: px(4.).into(),
+                        ..default()
+                    },
+                    Button,
+                    Hovered::default(),
+                    children![Text("<-".into())],
+            ));
+        })),
+    )
+}
+
+fn page_right() -> impl Bundle {
+    (
+        Node::default(),
+        Children::spawn(SpawnWith(|parent: &mut ChildSpawner| {
+            parent.spawn((
+                    Node {
+                        flex_grow: 0.,
+                        aspect_ratio: Some(1.),
+                        padding: px(4.).into(),
+                        ..default()
+                    },
+                    Button,
+                    Hovered::default(),
+                    children![Text("->".into())],
+            ));
+        })),
+    )
 }
