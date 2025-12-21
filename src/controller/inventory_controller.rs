@@ -31,22 +31,6 @@ fn close_inventory(
     }
 }
 
-pub fn manage_inventory(
-    key: Query<&ActionState<Action>, With<Player>>,
-    mut inventory_node_query: Query<&mut Node, With<UiInventory>>,
-    mut game_state: ResMut<NextState<GameState>>,
-) {
-    if let Ok(key) = key.single()
-        && key.just_pressed(&Action::OpenInventory)
-        && let Ok(mut inventory_node) = inventory_node_query.single_mut() {
-            info!("Inventory key pressed");
-            match inventory_node.display {
-                Display::None => inventory_node.display = Display::Flex,
-                _ => inventory_node.display = Display::None,
-            }
-    }
-}
-
 pub fn inventory_navigation(
     key: Res<ButtonInput<KeyCode>>,
     mut index_query: Query<&mut UiIndex, With<UiInventory>>,
