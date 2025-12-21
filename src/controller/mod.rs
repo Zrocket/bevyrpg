@@ -20,9 +20,7 @@ pub struct ControllerPlugin;
 impl Plugin for ControllerPlugin {
     fn build(&self, app: &mut App) {
         app
-            //.add_event::<InteractMessage>()
             .add_plugins(InputManagerPlugin::<Action>::default())
-            //.add_plugins(MenuControllerPlugin)
             .add_plugins(PlayerControllerPlugin)
             .add_plugins(InventoryControllerPlugin)
             .register_type::<RayHit>()
@@ -30,10 +28,10 @@ impl Plugin for ControllerPlugin {
                 Update,
                 (
                     manage_cursor,
+                    //manage_interact.run_if(in_state(GameState::Gameplay)).run_if(input_just_pressed(KeyCode::KeyE)),
                     manage_interact.run_if(in_state(GameState::Gameplay)).run_if(input_just_pressed(KeyCode::KeyE)),
                     manage_inspect.run_if(in_state(GameState::Gameplay)),
                     player_raycast.run_if(in_state(GameState::Gameplay)),
-                    //manage_inventory.run_if(in_state(GameState::Gameplay)),
                     inventory_navigation.in_set(TnuaUserControlsSystems),
                 )
             );
@@ -41,6 +39,7 @@ impl Plugin for ControllerPlugin {
     }
 }
 
+#[allow(clippy::too_many_arguments)]
 fn manage_cursor(
     mut windows: Query<&mut CursorOptions>,
     mut commands: Commands,
@@ -55,7 +54,7 @@ fn manage_cursor(
     if let Ok(mut window) = windows.single_mut() {
         if window.grab_mode != CursorGrabMode::Locked {
             if btn.just_pressed(MouseButton::Left) {
-                 for _window in active_windoow.iter() {
+                if !active_windoow.is_empty() {
                     return;
                 }
                 window.grab_mode = CursorGrabMode::Locked;
