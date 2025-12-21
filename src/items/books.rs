@@ -1,10 +1,10 @@
-use bevy::prelude::*;
+use bevy::{prelude::*, state::commands};
 
-use crate::{Interactable, InteractionEvent};
+use crate::{Interactable, InteractionEvent, book_ui::display_book_ui};
 
 #[derive(EntityEvent)]
 pub struct OpenBookEvent {
-    entity: Entity,
+    pub entity: Entity,
 }
 
 #[derive(Component, Reflect, Default, Clone, Debug)]
@@ -28,14 +28,17 @@ fn register_book_items(
     mut unregistered_items_query: Query<Entity, (With<Book>, Without<Interactable>)>,
 ) {
     for unregistered_item in unregistered_items_query.iter_mut() {
-        commands.entity(unregistered_item).observe(book_interaction_observer)
-            .insert(Interactable);
+        commands.entity(unregistered_item)
+            .observe(book_interaction_observer)
+            .insert(Interactable)
+            .observe(display_book_ui);
     }
 }
 
 fn book_interaction_observer(
-    trigger: On<InteractionEvent, Book>
+    trigger: On<InteractionEvent>,
+    mut commands: Commands,
 ) {
-    let _player = trigger.event().actor;
-    let _book = trigger.entity;
+    let book = trigger.entity;
+    commands.entity(book).trigger(|entity| OpenBookEvent { entity });
 }
