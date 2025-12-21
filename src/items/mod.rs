@@ -52,7 +52,7 @@ impl Plugin for ItemPlugin {
             .add_plugins((
    //                 AmmoPlugin,
   //                  ArmorPlugin,
- //                   BookPlugin,
+                    BookPlugin,
                     MiscItemPlugin,
                     ContainerPlugin,
 //                    WeaponPlugin,
