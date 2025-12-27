@@ -23,7 +23,7 @@ pub fn draw_crosshair(mut commands: Commands, asset_server: Res<AssetServer>) {
     commands
         .spawn((
             ImageNode {
-                image: crosshair.clone().into(),
+                image: crosshair.clone(),
                 ..default()
             },
             Node {
@@ -84,7 +84,7 @@ pub fn draw_crosshair(mut commands: Commands, asset_server: Res<AssetServer>) {
 }*/
 
 pub fn cooldown_observer(
-    trigger: On<ShootEvent>,
+    _trigger: On<ShootEvent>,
     _time: Res<Time>,
     mut cooldown_query: Query<&mut Cooldown>,
 ) {

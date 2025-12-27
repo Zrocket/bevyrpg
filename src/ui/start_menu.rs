@@ -9,7 +9,7 @@ pub struct StartMenuUiPlugin;
 impl Plugin for StartMenuUiPlugin {
     fn build(&self, app: &mut App) {
        app
-           .add_systems(OnEnter(GameState::StartMenu), spawn_start_menu); 
+           .add_systems(OnEnter(GameState::StartMenu), spawn_start_menu);
     }
 }
 
@@ -27,8 +27,7 @@ fn spawn_start_menu(
 }
 
 fn start_game(
-    _: On<Pointer<Click>>,
-    mut commands: Commands,
+    _trigger: On<Pointer<Click>>,
     mut game_state: ResMut<NextState<GameState>>,
 ) {
     game_state.set(GameState::Gameplay);
