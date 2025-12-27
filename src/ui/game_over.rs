@@ -31,7 +31,6 @@ fn spawn_gameover_menu(
 
 fn respawn(
     _: On<Pointer<Click>>,
-    mut commands: Commands,
     player_query: Query<Entity, With<Player>>,
     mut spawn_player_message_writer: MessageWriter<SpawnPlayerMessage>,
     mut game_state: ResMut<NextState<GameState>>,

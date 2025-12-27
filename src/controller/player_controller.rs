@@ -1,9 +1,9 @@
 use std::f32::consts::*;
 
 use avian3d::{math::{AdjustPrecision, Vector3}, prelude::RigidBodyDisabled};
-use bevy::{input::mouse, prelude::*, render::view::screenshot};
+use bevy::{input::mouse, prelude::*};
 use bevy_tnua::{
-    TnuaObstacleRadar, builtins::{TnuaBuiltinClimb, TnuaBuiltinCrouch, TnuaBuiltinDash, TnuaBuiltinJump, TnuaBuiltinKnockback, TnuaBuiltinWalk, TnuaBuiltinWallSlide}, control_helpers::{TnuaBlipReuseAvoidance, TnuaSimpleAirActionsCounter}, controller::TnuaController, math::{AsF32, Float}, radar_lens::{TnuaBlipSpatialRelation, TnuaRadarLens}
+    TnuaObstacleRadar, builtins::{TnuaBuiltinClimb, TnuaBuiltinCrouch, TnuaBuiltinDash, TnuaBuiltinJump, TnuaBuiltinKnockback, TnuaBuiltinWalk, TnuaBuiltinWallSlide}, control_helpers::{TnuaBlipReuseAvoidance, TnuaSimpleAirActionsCounter}, controller::TnuaController, math::AsF32, radar_lens::{TnuaBlipSpatialRelation, TnuaRadarLens}
 };
 use bevy_tnua_avian3d::TnuaSpatialExtAvian3d;
 use leafwing_input_manager::prelude::*;
@@ -63,7 +63,7 @@ impl Default for PlayerControllerConfig {
                 ..default()
             },
             air_actions: 1,
-            jump: TnuaBuiltinJump { 
+            jump: TnuaBuiltinJump {
                 height: 4.0,
                 ..default()
             },
@@ -178,13 +178,12 @@ fn toggle_flashlight(
     key_input_query: Query<&ActionState<Action>, With<Player>>,
     mut flashlight_query: Query<&mut SpotLight, With<PlayerFlashlight>>,
 ) {
-    if let Ok(mut flashlight) = flashlight_query.single_mut() && let Ok(key_input) = key_input_query.single() {
-        if key_input.just_pressed(&Action::Flashlight) {
-            if flashlight.intensity == 0. {
-                flashlight.intensity = 1_000_000.0;
-            } else {
-                flashlight.intensity = 0.;
-            }
+    if let Ok(mut flashlight) = flashlight_query.single_mut() && let Ok(key_input) = key_input_query.single()
+    && key_input.just_pressed(&Action::Flashlight) {
+        if flashlight.intensity == 0. {
+            flashlight.intensity = 1_000_000.0;
+        } else {
+            flashlight.intensity = 0.;
         }
     }
 }
@@ -289,7 +288,7 @@ pub fn tnua_player_input(
         ..Default::default()
     });
 
-    let already_climbing_on = 
+    let already_climbing_on =
         tnua_controller
         .concrete_action::<TnuaBuiltinClimb>()
         .and_then(|(action, _)| {
@@ -304,40 +303,38 @@ pub fn tnua_player_input(
     let screen_space_direction = player_controller_input.movement.clamp_length_max(1.0);
 
     'blips_loop: for blip in radar_lens.iter_blips() {
-        if !blip_reuse_avoiodance.should_avoid(blip.entity()) {
-            if let Some((climbable_entity, action)) = already_climbing_on.as_ref() {
-                if *climbable_entity != blip.entity() {
+        if !blip_reuse_avoiodance.should_avoid(blip.entity())
+        && let Some((climbable_entity, action)) = already_climbing_on.as_ref() {
+            if *climbable_entity != blip.entity() {
+                continue 'blips_loop;
+            }
+            let dot_initiation = player_controller_input.movement.dot(action.initiation_direction);
+            let initiation_direction = if 0.5 < dot_initiation {
+                action.initiation_direction
+            } else {
+                Vector3::ZERO
+            };
+            if initiation_direction == Vector3::ZERO {
+                let right_left = screen_space_direction.dot(Vector3::X);
+                if 0.5 <= right_left.abs() {
                     continue 'blips_loop;
-                }
-                let dot_initiation = player_controller_input.movement.dot(action.initiation_direction);
-                let initiation_direction = if 0.5 < dot_initiation {
-                    action.initiation_direction
-                } else {
-                    Vector3::ZERO
-                };
-                if initiation_direction == Vector3::ZERO {
-                    let right_left = screen_space_direction.dot(Vector3::X);
-                    if 0.5 <= right_left.abs() {
-                        continue 'blips_loop;
-                    }
                 }
             }
         }
 
-        if let TnuaBlipSpatialRelation::Aeside(blip_direction) = blip.spatial_relation(0.5) {
-            if 0.5 < player_controller_input.movement.dot(blip_direction.adjust_precision()).abs() {
-                  let direction_to_anchor = blip.normal_from_closest_point().reject_from_normalized(Vector3::Y);
-                  if let PlayerState::Ladder(ladder) = *player_state {
-                      tnua_controller.action(TnuaBuiltinClimb {
-                          climbable_entity: Some(ladder),
-                          anchor: blip.closest_point().get(),
-                          desired_vec_to_anchor: 0.5 * direction_to_anchor,
-                          desired_forward: Dir3::new(direction_to_anchor.f32()).ok(),
-                          initiation_direction: player_controller_input.movement.normalize_or_zero(),
-                          desired_climb_velocity: Vector3::new(0., 10., 0.),
-                          ..default()
-                      });
-                }
+        if let TnuaBlipSpatialRelation::Aeside(blip_direction) = blip.spatial_relation(0.5)
+        && 0.5 < player_controller_input.movement.dot(blip_direction.adjust_precision()).abs() {
+              let direction_to_anchor = blip.normal_from_closest_point().reject_from_normalized(Vector3::Y);
+              if let PlayerState::Ladder(ladder) = *player_state {
+                  tnua_controller.action(TnuaBuiltinClimb {
+                      climbable_entity: Some(ladder),
+                      anchor: blip.closest_point().get(),
+                      desired_vec_to_anchor: 0.5 * direction_to_anchor,
+                      desired_forward: Dir3::new(direction_to_anchor.f32()).ok(),
+                      initiation_direction: player_controller_input.movement.normalize_or_zero(),
+                      desired_climb_velocity: Vector3::new(0., 10., 0.),
+                      ..default()
+                  });
             }
         }
 
