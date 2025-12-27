@@ -37,7 +37,7 @@ fn register_door_interactions(
 }
 
 fn door_interaction_observer(
-    trigger: On<InteractionEvent>,
+    _trigger: On<InteractionEvent>,
     mut door: Query<(Entity, &mut AnimationPlayer)>,
 ) {
     trace!("OBSERVER: door_event_observer");

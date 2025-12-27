@@ -1,6 +1,6 @@
 use avian3d::{prelude::{CoefficientCombine, Collider, CollisionLayers, Friction, GravityScale, LayerMask, LockedAxes, RigidBody, SpatialQuery, SpatialQueryFilter}};
 use avian_pickup::actor::{AvianPickupActor, AvianPickupActorHoldConfig};
-use bevy::{camera::{self, Exposure}, core_pipeline::tonemapping::Tonemapping, input::common_conditions::input_just_pressed, pbr::{Atmosphere, AtmosphereSettings}, post_process::bloom::Bloom, prelude::*, render::view::Hdr};
+use bevy::{camera::Exposure, core_pipeline::tonemapping::Tonemapping, input::common_conditions::input_just_pressed, pbr::{Atmosphere, AtmosphereSettings}, post_process::bloom::Bloom, prelude::*, render::view::Hdr};
 use bevy_egui::PrimaryEguiContext;
 use bevy_flycam::{FlyCam, NoCameraPlayerPlugin};
 use bevy_tnua::{control_helpers::{TnuaBlipReuseAvoidance, TnuaSimpleAirActionsCounter}, prelude::TnuaController, TnuaObstacleRadar};

@@ -11,6 +11,7 @@ use bevy::prelude::*;
 #[reflect(Component)]
 pub struct RayHit(pub Option<Entity>);
 
+#[allow(clippy::type_complexity)]
 pub fn player_raycast(
     camera_query: Query<(&Camera, &GlobalTransform), (Without<HeldProp>, With<PlayerCamera>)>,
     ray_caster: SpatialQuery,
@@ -18,24 +19,23 @@ pub fn player_raycast(
     mut flashlight: Query<Entity, With<PlayerFlashlight>>,
 ) {
     trace!("SYSTEM: player_raycast");
-    if let Ok((player, mut ray_hit)) = player.single_mut() {
-        if let Ok(flashlight) = flashlight.single_mut() { 
-            for (camera, global_transform) in camera_query.iter() {
-                let center_window = camera.viewport_to_world(global_transform, Vec2 { y: (RESOLUTION_HEIGHT / 2) as f32, x: (RESOLUTION_WIDTH / 2) as f32 }).unwrap();
-                let camera_position = global_transform.translation();
-                let camera_direction = global_transform.forward();
-                if let Some(ray_data) = ray_caster.cast_ray(
-                    center_window.origin,
-                    center_window.direction,
-                    5.0,
-                    true,
-                    &SpatialQueryFilter::default().with_excluded_entities([player, flashlight]),
-                ) {
-                    let _ray_hit_point = camera_position + camera_direction * ray_data.distance;
-                    ray_hit.0 = Some(ray_data.entity);
-                } else {
-                    ray_hit.0 = None;
-                }
+    if let Ok((player, mut ray_hit)) = player.single_mut()
+    && let Ok(flashlight) = flashlight.single_mut() {
+        for (camera, global_transform) in camera_query.iter() {
+            let center_window = camera.viewport_to_world(global_transform, Vec2 { y: (RESOLUTION_HEIGHT / 2) as f32, x: (RESOLUTION_WIDTH / 2) as f32 }).unwrap();
+            let camera_position = global_transform.translation();
+            let camera_direction = global_transform.forward();
+            if let Some(ray_data) = ray_caster.cast_ray(
+                center_window.origin,
+                center_window.direction,
+                5.0,
+                true,
+                &SpatialQueryFilter::default().with_excluded_entities([player, flashlight]),
+            ) {
+                let _ray_hit_point = camera_position + camera_direction * ray_data.distance;
+                ray_hit.0 = Some(ray_data.entity);
+            } else {
+                ray_hit.0 = None;
             }
         }
     }
