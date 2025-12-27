@@ -11,7 +11,7 @@ pub struct AudioPlugin;
 impl Plugin for AudioPlugin {
     fn build(&self, app: &mut App) {
        app
-           .register_type::<VolumeSettings>(); 
+           .register_type::<VolumeSettings>();
     }
 }
 
