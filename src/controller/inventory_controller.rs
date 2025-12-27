@@ -9,7 +9,7 @@ impl Plugin for InventoryControllerPlugin {
     fn build(&self, app: &mut App) {
        app
            .add_systems(Update, open_inventory.run_if(in_state(GameState::Gameplay)))
-           .add_systems(Update, close_inventory.run_if(in_state(GameState::Inventory))); 
+           .add_systems(Update, close_inventory.run_if(in_state(GameState::Inventory)));
     }
 }
 

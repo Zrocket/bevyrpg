@@ -1,8 +1,6 @@
 use bevy::{color::palettes::css::{DARK_GOLDENROD, DARK_GRAY, DARK_KHAKI, DARK_OLIVEGREEN, DARK_ORCHID, LIGHT_GREEN}, picking::hover::Hovered, prelude::*};
-use nom::number::complete::float;
-use ratatui::symbols::shade::DARK;
 
-use crate::{Book, GameState, OpenBookEvent, widgets::{self, floating_windows::floating_window_root}};
+use crate::{Book, GameState, OpenBookEvent, widgets::{floating_windows::floating_window_root}};
 
 #[derive(Debug, Component)]
 pub struct UiBook;
@@ -16,7 +14,7 @@ pub struct BookUiPlugin;
 impl Plugin for BookUiPlugin {
     fn build(&self, app: &mut App) {
        app
-           .add_systems(Update, spawn_book_ui.run_if(in_state(GameState::Gameplay))); 
+           .add_systems(Update, spawn_book_ui.run_if(in_state(GameState::Gameplay)));
     }
 }
 
@@ -40,7 +38,7 @@ pub fn display_book_ui(
     if let Ok(book) = book_query.get(trigger.entity) {
         let contents = book.contents.clone();
         commands.spawn((
-                floating_window_root(format!("{} Book", book.title), 
+                floating_window_root(format!("{} Book", book.title),
                     (
                         BackgroundColor::from(DARK_GRAY),
                         Children::spawn(SpawnWith(|parent: &mut ChildSpawner| {

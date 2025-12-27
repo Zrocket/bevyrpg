@@ -1,7 +1,6 @@
-use bevy::{color::palettes::css::{CRIMSON, DARK_CYAN, DARK_GREEN, DARK_VIOLET}, ecs::{reflect, system::{IntoObserverSystem, entity_command::observe}}, feathers::cursor::{self, CursorIconPlugin}, math::{I8Vec2, VectorSpace, bounding::Aabb2d}, picking::hover::Hovered, prelude::*, ui::Pressed, window::{SystemCursorIcon, WindowClosed}};
+use bevy::{color::palettes::css::{CRIMSON, DARK_CYAN, DARK_GREEN, DARK_VIOLET}, feathers::cursor::{self, CursorIconPlugin}, math::{I8Vec2, bounding::Aabb2d}, picking::hover::Hovered, prelude::*, ui::Pressed, window::SystemCursorIcon};
 use rand::Rng;
 
-use crate::widgets::floating_windows;
 use crate::widgets::floating_window_ordering::UiZOrderLayer;
 
 #[derive(EntityEvent)]
@@ -44,7 +43,7 @@ impl Plugin for FloatingWindowPlugin {
         app.insert_resource(FloatingWindowResizeState::default());
         app.add_systems(Update, update_bevy_feathers_cursor);
 
-        app.add_systems(PostUpdate, 
+        app.add_systems(PostUpdate,
             update_floating_window_node);
 
         app.add_systems(

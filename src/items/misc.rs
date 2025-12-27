@@ -1,4 +1,5 @@
 use avian_pickup::{input::{AvianPickupAction, AvianPickupInput}, prop::HeldProp};
+use avian3d::prelude::RigidBodyDisabled;
 use bevy::{color::palettes::css::CRIMSON, prelude::*};
 
 use crate::{InspectEvent, Interactable, InteractionEvent, UiInspect, widgets};
@@ -30,11 +31,13 @@ fn register_misc_items(
 
 fn misc_interaction_observer(
     trigger: On<InteractionEvent>,
+    mut commands: Commands,
     mut avian_pickup_input_writer: MessageWriter<AvianPickupInput>,
     _held_prop_query: Query<&HeldProp>,
 ) {
     info!("Misc Interact event observer");
     let actor = trigger.event().actor;
+    commands.entity(trigger.event().entity).remove::<RigidBodyDisabled>();
     avian_pickup_input_writer.write(AvianPickupInput { actor, action: AvianPickupAction::Pull });
 }
 

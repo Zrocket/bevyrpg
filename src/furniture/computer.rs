@@ -86,7 +86,7 @@ fn register_computer_interactions(
 }
 
 fn change_computer_screen (
-    trigger: On<InteractionEvent>,
+    _trigger: On<InteractionEvent>,
     mut softatui: ResMut<SoftTerminal>,
     proc_material: Res<MyProcGenMaterial>,
     mut images: ResMut<Assets<Image>>,

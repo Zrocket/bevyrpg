@@ -3,7 +3,7 @@ mod inventory_controller;
 mod player_controller;
 
 use avian_pickup::prelude::*;
-use bevy::input::common_conditions::{input_just_pressed, input_pressed};
+use bevy::input::common_conditions::input_just_pressed;
 use bevy::prelude::*;
 use bevy_tnua::TnuaUserControlsSystems;
 pub use interact_controller::*;
