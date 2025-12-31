@@ -1,4 +1,4 @@
-use bevy::prelude::*;
+use bevy::{ecs::relationship::RelationshipSourceCollection, prelude::*};
 
 #[derive(EntityEvent)]
 pub struct AddToInventoryEvent {
@@ -18,10 +18,13 @@ pub struct RemoveMessage {
     pub target: Entity,
 }
 
-#[derive(Component, Default, Debug)]
-pub struct Inventory {
-    pub items: Vec<Entity>,
-}
+#[derive(Component)]
+#[relationship_target(relationship = InInventory, linked_spawn)]
+pub struct Inventory(Vec<Entity>);
+
+#[derive(Component)]
+#[relationship(relationship_target = Inventory)]
+pub struct InInventory(pub Entity);
 
 pub struct InventoryPlugin;
 impl Plugin for InventoryPlugin {
@@ -32,5 +35,27 @@ impl Plugin for InventoryPlugin {
             //    Update,
             //    remove_from_inventory.run_if(in_state(GameState::Gameplay)),
            // )
+    }
+}
+
+pub fn add_to_inventory_observer<T: Component>(
+    trigger: On<AddToInventoryEvent>,
+    mut commands: Commands,
+    query: Query<Entity, With<T>>,
+) {
+    trace!("OBSERVER: add_to_inventory_observer");
+    if let Ok(entity) = query.get(trigger.entity) {
+        commands.entity(trigger.item).insert(InInventory(entity));
+    }
+}
+
+pub fn remove_from_inventory_observer<T: Component>(
+    trigger: On<RemoveFromInventoryEvent>,
+    mut commands: Commands,
+    query: Query<Entity, With<T>>,
+) {
+    trace!("OBSERVER: remove_from_inventory_observer");
+    if query.get(trigger.entity).is_ok() {
+        commands.entity(trigger.item).remove::<InInventory>();
     }
 }
