@@ -32,7 +32,6 @@ impl Plugin for InventoryUIPlugin {
 pub fn spawn_inventory_ui(
     mut commands: Commands,
     inventory: Query<Entity, With<Player>>,
-    _asset_server: Res<AssetServer>,
 ) {
     trace!("SYSTEM: spawn_inventory_ui");
 
@@ -53,10 +52,10 @@ pub fn display_inventory_event_observer(
     };
 
     let mut item_vec = vec![];
+
     if let Ok(inventory_handle) = inventory.get(trigger.entity) {
-        trace!("Got inventory_handle: {:?}", inventory_handle);
-        for item in inventory_handle.items.iter() {
-            if let Ok(item_name) = name_query.get(*item) {
+        for item in inventory_handle.iter() {
+            if let Ok(item_name) = name_query.get(item) {
                 trace!("Pushing item: {:?}, item_name: {:?}, to item_vec", item, item_name);
                 item_vec.push((item_name.clone(), item.clone(), trigger.entity.clone()));
             }
@@ -108,10 +107,10 @@ fn refresh_window_observer(
         }
 
         let mut item_vec = vec![];
-        if let Ok(inventory_handle) = inventory.get(invref.0){
-            trace!("Got inventory_handle: {:?}", inventory_handle);
-            for item in inventory_handle.items.iter() {
-                if let Ok(item_name) = name_query.get(*item) {
+
+        if let Ok(inventory_handle) = inventory.get(invref.0) {
+            for item in inventory_handle.iter() {
+                if let Ok(item_name) = name_query.get(item) {
                     trace!("Pushing item: {:?}, item_name: {:?}, to item_vec", item, item_name);
                     item_vec.push((item_name.clone(), item.clone(), invref.0.clone()));
                 }
