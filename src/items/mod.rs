@@ -2,6 +2,7 @@ mod ammo;
 mod armor;
 mod books;
 mod container;
+mod equip;
 mod misc;
 mod weapons;
 
@@ -13,6 +14,7 @@ use avian_pickup::prop::HeldProp;
 use avian3d::prelude::{CollisionLayers, CollisionStart, Position, RigidBodyDisabled, Rotation};
 pub use books::*;
 pub use container::*;
+pub use equip::*;
 pub use misc::*;
 pub use weapons::*;
 

@@ -1,4 +1,4 @@
-use bevy::{prelude::*, state::commands};
+use bevy::prelude::*;
 
 use crate::{Interactable, InteractionEvent, book_ui::display_book_ui};
 
@@ -12,6 +12,12 @@ pub struct OpenBookEvent {
 pub struct Book {
     pub title: String,
     pub contents: String,
+}
+
+#[derive(Component, Reflect, Default, Clone, Debug)]
+#[reflect(Component)]
+pub struct BookPages {
+    pub pages: Vec<String>,
 }
 
 pub struct BookPlugin;
@@ -28,6 +34,7 @@ fn register_book_items(
     mut unregistered_items_query: Query<Entity, (With<Book>, Without<Interactable>)>,
 ) {
     for unregistered_item in unregistered_items_query.iter_mut() {
+        println!("ASDASD");
         commands.entity(unregistered_item)
             .observe(book_interaction_observer)
             .insert(Interactable)
