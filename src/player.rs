@@ -7,7 +7,7 @@ use bevy_tnua::{control_helpers::{TnuaBlipReuseAvoidance, TnuaSimpleAirActionsCo
 use bevy_tnua_avian3d::TnuaAvian3dSensorShape;
 use leafwing_input_manager::prelude::InputMap;
 
-use crate::{Action, AddToInventoryEvent, CameraConfig, CharacterBundle, CollisionLayer, DeathEvent, Description, Experience, FloatHeight, GameState, Health, Inventory, Item, Mana, MaxHealth, MaxMana, PlayerController, PlayerControllerConfig, PlayerControllerInput, RayHit, RemoveFromInventoryEvent, RenderPlayer, Walk, Weight, display_inventory_event_observer, level::DAGunAssets};
+use crate::{Action, CameraConfig, CharacterBundle, CollisionLayer, DeathEvent, Description, Experience, FloatHeight, GameState, Health, Item, Mana, MaxHealth, MaxMana, PlayerController, PlayerControllerConfig, PlayerControllerInput, RayHit, RenderPlayer, Walk, Weight, add_to_inventory_observer, display_equipt_event_observer, display_inventory_event_observer, level::DAGunAssets, remove_from_inventory_observer};
 
 #[derive(Clone, Component, Hash, Debug, Eq, PartialEq, Default, States)]
 pub enum PlayerState {
@@ -162,7 +162,6 @@ fn spawn_player_observer(
                         experience: Experience(100),
                         ..default()
                     },
-                    Inventory { ..default() },
                     TnuaController::default(),
                     TnuaAvian3dSensorShape(Collider::capsule(0.1, 0.5)),
                     FloatHeight(1.5),
@@ -189,9 +188,10 @@ fn spawn_player_observer(
             .insert(TnuaBlipReuseAvoidance::default())
             .insert(PlayerControllerConfig::default())
             .observe(player_death_event_observer)
-            .observe(player_add_to_inventory_observer)
-            .observe(player_remove_from_inventory_observer)
+            .observe(add_to_inventory_observer::<Player>)
+            .observe(remove_from_inventory_observer::<Player>)
             .observe(display_inventory_event_observer)
+            .observe(display_equipt_event_observer)
             .id();
 
         // Camera
@@ -305,27 +305,4 @@ fn player_death_event_observer(
     mut game_state: ResMut<NextState<GameState>>,
 ) {
     game_state.set(GameState::GameOver);
-}
-
-fn player_add_to_inventory_observer(
-    trigger: On<AddToInventoryEvent>,
-    //mut commands: Commands,
-    mut player_query: Query<(Entity, &mut Inventory), With<Player>>,
-) {
-    if let Ok((_player_entity, mut player_inventory)) = player_query.single_mut() {
-        player_inventory.items.push(trigger.item);
-    }
-}
-
-fn player_remove_from_inventory_observer(
-    trigger: On<RemoveFromInventoryEvent>,
-    mut player_query: Query<(Entity, &mut Inventory), With<Player>>,
-) {
-    trace!("OBSERVER: player_remove_from_inventory_observer");
-    if let Ok((_player_entity, mut player_inventory)) = player_query.single_mut() {
-        let index = player_inventory.items.iter().position(|x| *x == trigger.item).unwrap();
-        trace!("Removeing item: {:?} with inded: {:?} in inventory: {:?}", trigger.item, index, player_inventory.items);
-        player_inventory.items.remove(index);
-        trace!("Inventory after item removal: {:?}", player_inventory.items);
-    }
 }
