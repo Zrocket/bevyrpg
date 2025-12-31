@@ -4,6 +4,7 @@ use super::*;
 
 pub mod book_ui;
 pub mod crosshair;
+pub mod equipt;
 pub mod inventory_ui;
 pub mod status_bar;
 //mod dialog_ui;
@@ -16,6 +17,7 @@ pub mod game_over;
 
 use bevy_simple_text_input::TextInputPlugin;
 use crosshair::*;
+pub use equipt::*;
 pub use inventory_ui::*;
 use status_bar::*;
 //use dialog_ui::*;
@@ -67,6 +69,7 @@ impl Plugin for UiPlugin {
                     StartMenuUiPlugin,
                     FloatingWindowPlugin,
                     FloatingWindowOrderingPlugin,
+                    EquiptUiPlugin,
             ))
             //.add_systems(OnEnter(GameState::Gameplay), (
                     //draw_inventory_ui,
