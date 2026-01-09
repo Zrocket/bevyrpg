@@ -1,4 +1,4 @@
-use bevy::prelude::*;
+use bevy::{ecs::{lifecycle::HookContext, world::DeferredWorld}, prelude::*};
 
 use crate::{Interactable, InteractionEvent, book_ui::display_book_ui};
 
@@ -9,6 +9,7 @@ pub struct OpenBookEvent {
 
 #[derive(Component, Reflect, Default, Clone, Debug)]
 #[reflect(Component)]
+#[component(on_add = on_book_add)]
 pub struct Book {
     pub title: String,
     pub contents: String,
@@ -24,22 +25,19 @@ pub struct BookPlugin;
 
 impl Plugin for BookPlugin {
     fn build(&self, app: &mut App) {
-        app.register_type::<Book>()
-            .add_systems(Update, register_book_items);
+        app.register_type::<Book>();
     }
 }
 
-fn register_book_items(
-    mut commands: Commands,
-    mut unregistered_items_query: Query<Entity, (With<Book>, Without<Interactable>)>,
+fn on_book_add(
+    mut world: DeferredWorld,
+    context: HookContext,
 ) {
-    for unregistered_item in unregistered_items_query.iter_mut() {
-        println!("ASDASD");
-        commands.entity(unregistered_item)
-            .observe(book_interaction_observer)
-            .insert(Interactable)
-            .observe(display_book_ui);
-    }
+    world.commands()
+        .entity(context.entity)
+        .observe(book_interaction_observer)
+        .insert(Interactable)
+        .observe(display_book_ui);
 }
 
 fn book_interaction_observer(

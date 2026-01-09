@@ -1,32 +1,31 @@
 use avian_pickup::{input::{AvianPickupAction, AvianPickupInput}, prop::HeldProp};
 use avian3d::prelude::RigidBodyDisabled;
-use bevy::{color::palettes::css::CRIMSON, prelude::*};
+use bevy::{color::palettes::css::CRIMSON, ecs::{lifecycle::HookContext, world::DeferredWorld}, prelude::*};
 
 use crate::{InspectEvent, Interactable, InteractionEvent, UiInspect, widgets};
 
 #[derive(Component, Reflect, Default)]
 #[reflect(Component)]
+#[component(on_add = on_misc_add)]
 pub struct MiscItem;
 
 pub struct MiscItemPlugin;
 
 impl Plugin for MiscItemPlugin {
     fn build(&self, app: &mut App) {
-        app.register_type::<MiscItem>()
-            .add_systems(Update, register_misc_items);
+        app.register_type::<MiscItem>();
     }
 }
 
-fn register_misc_items(
-    mut commands: Commands,
-    mut unregistered_items_query: Query<Entity, (With<MiscItem>, Without<Interactable>)>,
+fn on_misc_add(
+    mut world: DeferredWorld,
+    context: HookContext,
 ) {
-    for unregistered_item in unregistered_items_query.iter_mut() {
-        commands.entity(unregistered_item)
-            .observe(misc_interaction_observer)
-            .observe(misc_inspection_observer)
-            .insert(Interactable);
-    }
+    world.commands()
+        .entity(context.entity)
+        .observe(misc_interaction_observer)
+        .observe(misc_inspection_observer)
+        .insert(Interactable);
 }
 
 fn misc_interaction_observer(

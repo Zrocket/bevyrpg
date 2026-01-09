@@ -1,4 +1,4 @@
-use bevy::prelude::*;
+use bevy::{ecs::{lifecycle::HookContext, world::DeferredWorld}, prelude::*};
 
 use crate::{Interactable, InteractionEvent};
 
@@ -11,19 +11,28 @@ pub enum WeaponType {
 
 #[derive(Component, Debug, Clone, Reflect, Default)]
 #[reflect(Component)]
+#[component(on_add = on_weapon_add)]
 pub struct Weapon {
     weapon_type: WeaponType,
 }
 
 pub struct WeaponPlugin;
-
 impl Plugin for WeaponPlugin {
     fn build(&self, app: &mut App) {
         app.register_type::<Weapon>();
     }
 }
 
-fn register_weapon_items(
+fn on_weapon_add(
+    mut world: DeferredWorld,
+    context: HookContext,
+) {
+    world.commands()
+        .entity(context.entity)
+        .insert(Interactable);
+}
+
+/*fn register_weapon_items(
     mut commands: Commands,
     mut unregistered_items_query: Query<Entity, (With<Weapon>, Without<Interactable>)>,
 ) {
@@ -31,7 +40,7 @@ fn register_weapon_items(
         commands.entity(unregistered_item).observe(weapon_interaction_observer)
             .insert(Interactable);
     }
-}
+}*/
 
 fn weapon_interaction_observer(
     trigger: On<InteractionEvent, Weapon>

@@ -7,7 +7,7 @@ use bevy_tnua::{control_helpers::{TnuaBlipReuseAvoidance, TnuaSimpleAirActionsCo
 use bevy_tnua_avian3d::TnuaAvian3dSensorShape;
 use leafwing_input_manager::prelude::InputMap;
 
-use crate::{Action, CameraConfig, CharacterBundle, CollisionLayer, DeathEvent, Description, Experience, FloatHeight, GameState, Health, Item, Mana, MaxHealth, MaxMana, PlayerController, PlayerControllerConfig, PlayerControllerInput, RayHit, RenderPlayer, Walk, Weight, add_to_inventory_observer, display_equipt_event_observer, display_inventory_event_observer, level::DAGunAssets, remove_from_inventory_observer};
+use crate::{Action, CameraConfig, CharacterBundle, CollisionLayer, DeathEvent, Description, Experience, FloatHeight, GameState, Health, Item, Mana, MaxHealth, MaxMana, PlayerController, PlayerControllerConfig, PlayerControllerInput, RayHit, RenderPlayer, Walk, Weight, add_to_inventory_observer, display_equip_event_observer, display_inventory_event_observer, display_stats_event_observer, level::DAGunAssets, remove_from_inventory_observer};
 
 #[derive(Clone, Component, Hash, Debug, Eq, PartialEq, Default, States)]
 pub enum PlayerState {
@@ -131,6 +131,8 @@ fn spawn_player_observer(
             (Action::Down, KeyCode::KeyX),
             (Action::Interact, KeyCode::KeyO),
             (Action::OpenInventory, KeyCode::KeyI),
+            (Action::OpenEquip, KeyCode::KeyK),
+            (Action::OpenStats, KeyCode::KeyL),
             (Action::OpenConsole, KeyCode::Backslash),
             (Action::Flashlight, KeyCode::KeyF),
         ]);
@@ -191,7 +193,8 @@ fn spawn_player_observer(
             .observe(add_to_inventory_observer::<Player>)
             .observe(remove_from_inventory_observer::<Player>)
             .observe(display_inventory_event_observer)
-            .observe(display_equipt_event_observer)
+            .observe(display_equip_event_observer)
+            .observe(display_stats_event_observer)
             .id();
 
         // Camera
