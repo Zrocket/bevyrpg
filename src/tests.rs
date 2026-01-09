@@ -1,7 +1,7 @@
 use bevy::{input::common_conditions::input_just_pressed, prelude::*};
 use bevy_asset_loader::dynamic_asset::DynamicAssetCollections;
 
-use crate::{AddToInventoryEvent, DamageMessage, Description, DisplayEquiptEvent, GameState, Health, Item, Player, RemoveMessage, widgets::floating_windows::floating_window_root };
+use crate::{AddToInventoryEvent, DamageMessage, Description, DisplayEquipEvent, GameState, Health, Item, Player, RemoveMessage, widgets::floating_windows::floating_window_root };
 use super::Weight;
 
 pub struct TestsPlugin;
@@ -24,7 +24,7 @@ fn equipt_ui_test(
     player_query: Query<Entity, With<Player>>,
 ) {
     if let Ok(entity) = player_query.single() {
-        commands.entity(entity).trigger(|entity| DisplayEquiptEvent { entity });
+        commands.entity(entity).trigger(|entity| DisplayEquipEvent { entity });
     }
 }
 
