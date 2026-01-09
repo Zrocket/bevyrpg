@@ -1,6 +1,14 @@
 use std::default;
 
-use bevy::{app::Plugin, ecs::{component::Component, observer::On, query::With, resource::Resource, system::{Query, Res, ResMut}}, picking::events::{Out, Over, Pointer}, time::Time};
+use bevy::{app::{Plugin, PostUpdate}, ecs::{component::Component, entity::Entity, observer::On, query::With, resource::Resource, system::{Query, Res, ResMut}}, picking::events::{Out, Over, Pointer}, time::Time};
+
+#[derive(Component)]
+#[relationship(relationship_target = TooltipParent)]
+pub struct TooltipChild(pub Entity);
+
+#[derive(Component)]
+#[relationship_target(relationship = TooltipChild, linked_spawn)]
+pub struct TooltipParent(Vec<Entity>);
 
 /// Marks entity as tooltip source. When hovered.
 ///
@@ -51,7 +59,16 @@ enum TooltipGlobalStateInner {
 pub struct TooltipPlugin;
 impl Plugin for TooltipPlugin {
     fn build(&self, app: &mut bevy::app::App) {
-        app;
+        app
+            .insert_resource(TooltipGlobalSettings {
+                tooltip_delay: 0.5,
+                reset_delay: 0.5,
+                pointer_changed_delay: 0.1,
+            })
+        .insert_resource(TooltipGlobalState::default())
+        .add_observer(on_source)
+        .add_observer(out_source)
+        .add_systems(PostUpdate, update_tooltip_global_state);
     }
 }
 
@@ -62,12 +79,12 @@ impl TooltipGlobalState {
 }
 
 fn on_source(
-    pointer: On<Pointer<Over>>,
-    query: Query<(), With<TooltipSource>>,
+    trigger: On<Pointer<Over>>,
+    tooltip_source_query: Query<(), With<TooltipSource>>,
     mut res: ResMut<TooltipGlobalState>,
     time: Res<Time>,
 ) {
-    if query.contains(pointer.entity) {
+    if tooltip_source_query.contains(trigger.entity) {
         match &res.state {
             TooltipGlobalStateInner::Nothing => {
                 res.state = TooltipGlobalStateInner::Waiting {
@@ -89,12 +106,12 @@ fn on_source(
 }
 
 fn out_source(
-    pointer: On<Pointer<Out>>,
-    query: Query<(), With<TooltipSource>>,
+    trigger: On<Pointer<Out>>,
+    tooltip_source_query: Query<(), With<TooltipSource>>,
     mut res: ResMut<TooltipGlobalState>,
     time: Res<Time>,
 ) {
-    if query.contains(pointer.entity) {
+    if tooltip_source_query.contains(trigger.entity) {
         res.state = match res.state {
             TooltipGlobalStateInner::Nothing | TooltipGlobalStateInner::Waiting { since: _ } => {
                 TooltipGlobalStateInner::Nothing

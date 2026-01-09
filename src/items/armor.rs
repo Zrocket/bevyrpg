@@ -1,4 +1,4 @@
-use bevy::prelude::*;
+use bevy::{ecs::{lifecycle::HookContext, world::DeferredWorld}, prelude::*};
 
 use crate::{Interactable, InteractionEvent};
 
@@ -18,28 +18,26 @@ pub enum ArmorType {
 
 #[derive(Component, Debug, Clone, Reflect, Default)]
 #[reflect(Component)]
+#[component(on_add = on_armor_add)]
 pub struct Armor {
     armor_type: ArmorType,
     defense: i32,
 }
 
 pub struct ArmorPlugin;
-
 impl Plugin for ArmorPlugin {
     fn build(&self, app: &mut App) {
-        app.register_type::<Armor>()
-            .add_systems(Update, register_armor_items);
+        app.register_type::<Armor>();
     }
 }
 
-fn register_armor_items(
-    mut commands: Commands,
-    mut unregistered_items_query: Query<Entity, (With<Armor>, Without<Interactable>)>,
+fn on_armor_add(
+    mut world: DeferredWorld,
+    context: HookContext,
 ) {
-    for unregistered_item in unregistered_items_query.iter_mut() {
-        commands.entity(unregistered_item).observe(armor_interaction_observer)
-            .insert(Interactable);
-    }
+    world.commands()
+        .entity(context.entity)
+        .insert(Interactable);
 }
 
 fn armor_interaction_observer(

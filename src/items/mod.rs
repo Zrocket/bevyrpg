@@ -70,12 +70,12 @@ impl Plugin for ItemPlugin {
             .register_type::<PlugItem>()
             .register_type::<MountPoint>()
             .add_plugins((
-   //                 AmmoPlugin,
-  //                  ArmorPlugin,
+                    AmmoPlugin,
+                    ArmorPlugin,
                     BookPlugin,
                     MiscItemPlugin,
                     ContainerPlugin,
-//                    WeaponPlugin,
+                    WeaponPlugin,
             ))
             .add_observer(disabled_held_prop_collision)
             .add_observer(enable_dropped_prop_collision)

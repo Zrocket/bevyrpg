@@ -40,6 +40,12 @@ pub fn display_book_ui(
         commands.spawn((
                 floating_window_root(format!("{} Book", book.title),
                     (
+                        Node {
+                            flex_grow: 1.,
+                            flex_direction: FlexDirection::Column,
+                            overflow: Overflow { x: OverflowAxis::Hidden, y: OverflowAxis::Hidden },
+                            ..default()
+                        },
                         BackgroundColor::from(DARK_GRAY),
                         Children::spawn(SpawnWith(|parent: &mut ChildSpawner| {
                             parent.spawn(book_page(contents));
@@ -48,7 +54,8 @@ pub fn display_book_ui(
                             )
                             .insert(BackgroundColor::from(DARK_ORCHID));
                         })),
-                    )),
+                    ),
+                    ),
         ));
     }
 }

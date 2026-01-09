@@ -1,8 +1,16 @@
-use bevy::{color::palettes::css::{DARK_GRAY, DARK_GREEN}, ui_widgets::observe};
+use bevy::{app::{HierarchyPropagatePlugin, Propagate}, color::palettes::css::{DARK_BLUE, DARK_GRAY, DARK_GREEN, DARK_KHAKI, DARK_RED}, ecs::system::SystemId, ui_widgets::observe};
 
-use crate::widgets::floating_windows::floating_window_root;
+use crate::widgets::{anchored::{Anchor, AnchorDirection, AnchorOption, AnchorTarget, DropdownMenu}, floating_window_focus::{FocusDetectShouldClose, FocusParernt}, floating_window_ordering::UiZOrderLayer, floating_windows::floating_window_root, tooltip::{TooltipChild, TooltipParent, TooltipSource}};
 
 use super::*;
+
+#[derive(Component)]
+#[relationship_target(relationship = ChildMenu, linked_spawn)]
+pub struct ParentMenu(Vec<Entity>);
+
+#[derive(Component)]
+#[relationship(relationship_target = ParentMenu)]
+pub struct ChildMenu(pub Entity);
 
 #[derive(Component, Reflect)]
 pub struct UiInventory;
@@ -12,7 +20,11 @@ pub struct DisplayInventoryEvent {
     pub entity: Entity,
 }
 
-#[derive(Component, Debug)]
+#[derive(Component)]
+pub struct RightClickMenuItems(pub Vec<SystemId>);
+
+#[derive(Component, Reflect, Debug, Clone, Copy, PartialEq, Eq)]
+#[reflect(Component)]
 pub struct Owner {
     item_owner: Entity,
     inv_owner: Entity,
@@ -25,18 +37,8 @@ pub struct InventoryUIPlugin;
 impl Plugin for InventoryUIPlugin {
     fn build(&self, app: &mut App) {
        app
-           .add_systems(OnEnter(GameState::Inventory), spawn_inventory_ui);
-    }
-}
-
-pub fn spawn_inventory_ui(
-    mut commands: Commands,
-    inventory: Query<Entity, With<Player>>,
-) {
-    trace!("SYSTEM: spawn_inventory_ui");
-
-    if let Ok(entity) = inventory.single() {
-        commands.entity(entity).trigger(|entity| DisplayInventoryEvent { entity });
+           .add_plugins(HierarchyPropagatePlugin::<Owner, (), ChildMenu>::new(Update))
+           .register_type::<Owner>();
     }
 }
 
@@ -63,14 +65,48 @@ pub fn display_inventory_event_observer(
     }
 
     commands.spawn((
-        floating_window_root(format!("{} Inventory", name),
+        floating_window_root(
+            format!("{} Inventory", name),
         (
             Children::spawn(SpawnWith(|parent: &mut ChildSpawner| {
                 for (item, entity, inv) in item_vec {
-                    parent.spawn((Text(item.to_string()), BackgroundColor::from(DARK_GREEN), Owner { item_owner: entity, inv_owner: inv }))
-                        .observe(item_hover_test);
+                    parent.spawn(
+                (
+                            Node {
+                                //height: Val::Percent(100.),
+                                //width: Val::Percent(100.),
+                                ..default()
+                            },
+                            Text(item.to_string()),
+                            BackgroundColor::from(DARK_GREEN),
+                            Owner { item_owner: entity, inv_owner: inv },
+                            Propagate( Owner { item_owner: entity, inv_owner: inv }),
+                            TooltipSource,
+                        ))
+                        .observe(inventory_tooltip_observer)
+                        .observe(inventory_tooltip_unhover_observer)
+                        .observe(inventory_item_drowpdown_observer);
                 }
             })),
+            Node {
+                flex_grow: 1.,
+                //flex_direction: FlexDirection::Column,
+                display: Display::Grid,
+                //grid_auto_flow: GridAutoFlow::Column,
+                grid_template_columns: vec![
+                    GridTrack::auto(),
+                    GridTrack::auto(),
+                    GridTrack::auto(),
+                    GridTrack::auto(),
+                    GridTrack::auto(),
+                ],
+                //aspect_ratio: Some(1.0),
+                padding: UiRect::all(px(24)),
+                row_gap: px(12),
+                column_gap: px(12),
+                overflow: Overflow { x: OverflowAxis::Hidden, y: OverflowAxis::Hidden },
+                ..default()
+            },
             BackgroundColor::from(DARK_GRAY),
             InvRef(trigger.entity),
             observe(transfer_item_observer),
@@ -78,12 +114,6 @@ pub fn display_inventory_event_observer(
         ),
         ),
     ));
-}
-
-fn item_hover_test(
-    trigger: On<Pointer<DragStart>>,
-) {
-    println!("MOVING OVER: {:?}", trigger.entity);
 }
 
 #[derive(EntityEvent)]
@@ -94,16 +124,19 @@ pub struct RefreshInventory {
 fn refresh_window_observer(
     trigger: On<RefreshInventory>,
     mut commands: Commands,
-    mut children_query: Query<(&mut Children, &mut InvRef)>,
+    mut children_query: Query<(Entity, Option<&mut Children>, &mut InvRef)>,
     name_query: Query<&Name>,
     inventory: Query<&Inventory>,
 ) {
     trace!("OBSERVER: refresh_window_observer");
-    if let Ok((children, invref)) = children_query.get_mut(trigger.entity) {
+    if let Ok((parent_entity, children, invref)) = children_query.get_mut(trigger.entity) {
         trace!("Got children: {:?}, invref: {:?}", children, invref);
-        for child in children.iter() {
-            trace!("Despawning child: {:?}", child);
-            commands.entity(child).despawn();
+
+        if let Some(children) = children {
+            for child in children.iter() {
+                trace!("Despawning child: {:?}", child);
+                commands.entity(child).despawn();
+            }
         }
 
         let mut item_vec = vec![];
@@ -118,10 +151,23 @@ fn refresh_window_observer(
         }
 
         for (item, entity, inv) in item_vec {
-            let child = commands.spawn((Text(item.to_string()), BackgroundColor::from(DARK_GREEN), Owner { item_owner: entity, inv_owner: inv })).id();
-            commands.entity(trigger.entity).add_child(child).observe(item_hover_test);
+            let child = commands.spawn((
+                    Node {
+                        //height: Val::Percent(100.),
+                        //width: Val::Percent(100.),
+                        ..default()
+                    },
+                    Text(item.to_string()),
+                    BackgroundColor::from(DARK_GREEN),
+                    Owner { item_owner: entity, inv_owner: inv },
+                    Propagate( Owner { item_owner: entity, inv_owner: inv }),
+                    TooltipSource)).id();
+            commands.entity(parent_entity)
+                .add_child(child)
+                .observe(inventory_tooltip_observer)
+                .observe(inventory_tooltip_unhover_observer)
+                .observe(inventory_item_drowpdown_observer);
         }
-
     }
 }
 
@@ -132,6 +178,9 @@ fn transfer_item_observer(
     invref_query: Query<&InvRef>,
     childof_query: Query<&ChildOf>,
 ) {
+    if trigger.event().button == PointerButton::Secondary {
+        return;
+    }
     trace!("OBSERVER: transfer_item_observer");
     if let Ok(invref) = invref_query.get(trigger.entity)
     && let Ok(item) = owner_query.get(trigger.dropped)
@@ -144,5 +193,130 @@ fn transfer_item_observer(
         commands.entity(trigger.entity).trigger(|entity| RefreshInventory { entity });
         trace!("Refreshing old inventory window: {:?}", childof.0);
         commands.entity(childof.0).trigger(|entity| RefreshInventory { entity });
+    }
+}
+
+fn inventory_tooltip_observer(
+    trigger: On<Pointer<Over>>,
+    mut commands: Commands,
+    item_query: Query<&Item>,
+    owner_query: Query<&Owner>,
+) {
+    if let Ok(owner) = owner_query.get(trigger.entity)
+    && let Ok(item) = item_query.get(owner.item_owner) {
+        commands.spawn((
+                Node {
+                    position_type: PositionType::Absolute,
+                    width: Val::Px(100.),
+                    height: Val::Px(100.),
+                    ..default()
+                },
+                Text::new(item.description.0.to_string()),
+                BackgroundColor::from(DARK_RED),
+                AnchorTarget::Cursor,
+                UiZOrderLayer::Tooltip,
+                FocusParernt(trigger.entity),
+                Propagate(Pickable {
+                    should_block_lower: false,
+                    is_hoverable: false,
+                }),
+                Pickable {
+                    should_block_lower: false,
+                    is_hoverable: false,
+                },
+                TooltipChild(trigger.entity),
+        ));
+    }
+}
+
+fn inventory_tooltip_unhover_observer(
+    trigger: On<Pointer<Out>>,
+    mut commands: Commands
+) {
+    commands.entity(trigger.entity).despawn_related::<TooltipParent>();
+}
+
+fn inventory_item_drowpdown_observer(
+    trigger: On<Pointer<Click>>,
+    mut commands: Commands,
+    dropdown_query: Query<Entity, With<DropdownMenu>>,
+) {
+    for entity in dropdown_query.iter() {
+        commands.entity(entity).despawn();
+    }
+    if trigger.event().button == PointerButton::Secondary {
+        commands.spawn((
+                ChildMenu(trigger.entity),
+                DropdownMenu,
+                Node {
+                    position_type: PositionType::Absolute,
+                    flex_direction: FlexDirection::Column,
+                    width: Val::Px(100.),
+                    height: Val::Px(100.),
+                    ..default()
+                },
+                UiZOrderLayer::Dropdown,
+                AnchorTarget::Entity(trigger.entity),
+                FocusParernt(trigger.entity),
+                FocusDetectShouldClose,
+                BackgroundColor::from(DARK_BLUE),
+                AnchorOption {
+                    anchor: AnchorDirection {
+                        x: Anchor::Middle,
+                        y: Anchor::Start,
+                    },
+                    target_anchor: AnchorDirection {
+                        x: Anchor::Middle,
+                        y: Anchor::End,
+                    },
+                    ..default()
+                },
+                Children::spawn(SpawnWith(|parent: &mut ChildSpawner| {
+                    parent.spawn((
+                            Node {
+                                ..default()
+                            },
+                            Text::new("Drop"),
+                            BackgroundColor::from(DARK_KHAKI),
+                    ))
+                    .observe(drop_item_button_observer);
+                    parent.spawn((
+                            Node {
+                                ..default()
+                            },
+                            Text::new("Use"),
+                            BackgroundColor::from(DARK_KHAKI),
+                    ))
+                    .observe(use_item_button_observer);
+                }))
+            ));
+    }
+}
+
+fn drop_item_button_observer(
+    trigger: On<Pointer<Click>>,
+    mut commands: Commands,
+    parent_query: Query<&ChildOf>,
+    owner_query: Query<&Owner>,
+    inv_query: Query<Entity, With<Inventory>>,
+) {
+    if let Ok(parent) = parent_query.get(trigger.entity) 
+    && let Ok(owner) = owner_query.get(parent.0)
+    && let Ok(actor) = inv_query.get(owner.inv_owner) {
+        commands.entity(owner.item_owner).trigger(|entity| DropEvent { entity, actor });
+    }
+}
+
+fn use_item_button_observer(
+    trigger: On<Pointer<Click>>,
+    mut commands: Commands,
+    parent_query: Query<&ChildOf>,
+    owner_query: Query<&Owner>,
+    inv_query: Query<Entity, With<Inventory>>,
+) {
+    if let Ok(parent) = parent_query.get(trigger.entity) 
+    && let Ok(owner) = owner_query.get(parent.0)
+    && let Ok(actor) = inv_query.get(owner.inv_owner) {
+        commands.entity(owner.item_owner).trigger(|entity| UseEvent { entity, actor });
     }
 }

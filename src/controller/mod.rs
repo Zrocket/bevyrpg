@@ -1,7 +1,10 @@
+mod equip_controller;
 mod interact_controller;
 mod inventory_controller;
 mod player_controller;
+mod stats_controller;
 
+use equip_controller::*;
 use avian_pickup::prelude::*;
 use bevy::input::common_conditions::input_just_pressed;
 use bevy::prelude::*;
@@ -9,6 +12,7 @@ use bevy_tnua::TnuaUserControlsSystems;
 pub use interact_controller::*;
 use inventory_controller::*;
 pub use player_controller::*;
+pub use stats_controller::*;
 
 use super::GameState;
 use bevy::window::{CursorGrabMode, CursorOptions};
@@ -23,6 +27,8 @@ impl Plugin for ControllerPlugin {
             .add_plugins(InputManagerPlugin::<Action>::default())
             .add_plugins(PlayerControllerPlugin)
             .add_plugins(InventoryControllerPlugin)
+            .add_plugins(EquipControllerPlugin)
+            .add_plugins(StatsControllerPlugin)
             .register_type::<RayHit>()
             .add_systems(
                 Update,

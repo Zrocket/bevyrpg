@@ -28,6 +28,12 @@ pub struct UseEvent {
     pub actor: Entity,
 }
 
+#[derive(EntityEvent)]
+pub struct DropEvent {
+    pub entity: Entity,
+    pub actor: Entity,
+}
+
 #[derive(Message)]
 pub struct UnInspectMessage;
 

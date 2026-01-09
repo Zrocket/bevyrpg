@@ -80,7 +80,7 @@ pub enum PauseMenuState {
 pub enum GameState {
     Console,
     Gameplay,
-    Inventory,
+    //Inventory,
     Loading,
     MainMenu,
     Paused,
