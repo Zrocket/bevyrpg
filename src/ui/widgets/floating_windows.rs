@@ -787,7 +787,7 @@ pub fn floating_window_root(title: String, contents_bundle: impl Bundle) -> impl
         Children::spawn( SpawnWith(|parent: &mut ChildSpawner| {
             parent.spawn((resizable_borders(5., BackgroundColor::from(DARK_GREEN)), WindowResize));
             parent.spawn(title_bar(title));
-            parent.spawn((contents_bundle, Node {flex_grow: 1., flex_direction: FlexDirection::Column, overflow: Overflow { x: OverflowAxis::Hidden, y: OverflowAxis::Hidden }, ..default() }))
+            parent.spawn(contents_bundle)
                 .observe(block_pointer_events);
         })),
         bevy::ui_widgets::observe(|trigger: On<CloseWindowEvent>, mut commands: Commands| {
