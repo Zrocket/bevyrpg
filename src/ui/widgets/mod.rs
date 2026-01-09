@@ -2,10 +2,12 @@ use std::borrow::Cow;
 
 use bevy::{color::palettes::css::{CRIMSON, DARK_GREEN}, ecs::system::IntoObserverSystem, prelude::*};
 
+pub mod anchored;
 pub mod floating_window_focus;
 pub mod floating_windows;
 pub mod floating_window_ordering;
 pub mod tooltip;
+pub mod utils;
 
 pub fn dragable_test(name: impl Into<Cow<'static, str>>) -> impl Bundle {
     (

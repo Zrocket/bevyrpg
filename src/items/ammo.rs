@@ -1,6 +1,6 @@
-use bevy::prelude::*;
+use bevy::{ecs::{lifecycle::HookContext, world::DeferredWorld}, prelude::*, state::commands};
 
-use crate::{Interactable, InteractionEvent};
+use crate::{Interactable, InteractionEvent, UseEvent};
 
 #[derive(Debug, Clone, Reflect, Default)]
 pub enum AmmoType {
@@ -10,6 +10,7 @@ pub enum AmmoType {
 
 #[derive(Debug, Clone, Component,  Reflect, Default)]
 #[reflect(Component)]
+#[component(on_add = on_ammo_add)]
 pub struct Ammo;
 
 #[derive(Debug, Clone, Component,  Reflect, Default)]
@@ -21,24 +22,31 @@ pub struct AmmoPlugin;
 impl Plugin for AmmoPlugin {
     fn build(&self, app: &mut App) {
         app.register_type::<Ammo>()
-            .register_type::<AmmoPouch>()
-            .add_systems(Update, register_ammo_items);
+            .register_type::<AmmoPouch>();
     }
 }
 
-fn register_ammo_items(
-    mut commands: Commands,
-    mut unregistered_items_query: Query<Entity, (With<Ammo>, Without<Interactable>)>,
+fn on_ammo_add(
+    mut world: DeferredWorld,
+    context: HookContext,
 ) {
-    for unregistered_item in unregistered_items_query.iter_mut() {
-        commands.entity(unregistered_item).observe(ammo_interaction_observer)
-            .insert(Interactable);
-    }
+    world.commands()
+        .entity(context.entity)
+        .observe(ammo_interaction_observer)
+        .observe(ammo_use_observer)
+        .insert(Interactable);
 }
 
 fn ammo_interaction_observer(
-        trigger: On<InteractionEvent, Ammo>
+        trigger: On<InteractionEvent>
 ) {
     let _player = trigger.event().actor;
     let _ammo = trigger.entity;
+}
+
+fn ammo_use_observer(
+    trigger: On<UseEvent>,
+    mut commands: Commands,
+) {
+    commands.entity(trigger.entity).despawn();
 }

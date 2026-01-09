@@ -96,6 +96,8 @@ pub enum Action {
     Down,
     Interact,
     OpenInventory,
+    OpenEquip,
+    OpenStats,
     OpenConsole,
     Flashlight,
 }

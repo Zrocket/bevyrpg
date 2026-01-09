@@ -1,33 +1,32 @@
-use bevy::{color::palettes::css::CRIMSON, prelude::*};
+use bevy::{color::palettes::css::CRIMSON, ecs::{lifecycle::HookContext, world::DeferredWorld}, prelude::*};
 
 use crate::{DisplayInventoryEvent, InspectEvent, Interactable, InteractionEvent, UiInspect, add_to_inventory_observer, display_inventory_event_observer, remove_from_inventory_observer, widgets};
 
 #[derive(Component, Debug, Clone, Reflect, Default)]
 #[reflect(Component)]
+#[component(on_add = on_container_add)]
 pub struct Container;
 
 pub struct ContainerPlugin;
 impl Plugin for ContainerPlugin {
     fn build(&self, app: &mut App) {
        app
-           .register_type::<Container>()
-           .add_systems(Update, register_container_items);
+           .register_type::<Container>();
     }
 }
 
-fn register_container_items(
-    mut commands: Commands,
-    mut unregistered_items_query: Query<Entity, (With<Container>, Without<Interactable>)>,
+fn on_container_add(
+    mut world: DeferredWorld,
+    context: HookContext,
 ) {
-    for unregistered_item in unregistered_items_query.iter_mut() {
-        commands.entity(unregistered_item)
+    world.commands()
+        .entity(context.entity)
             .observe(container_interaction_observer)
             .observe(container_inspection_observer)
             .observe(display_inventory_event_observer)
             .observe(add_to_inventory_observer::<Container>)
             .observe(remove_from_inventory_observer::<Container>)
             .insert(Interactable);
-    }
 }
 
 fn container_interaction_observer(
