@@ -1,4 +1,4 @@
-use bevy::prelude::*;
+use bevy::{ecs::{lifecycle::HookContext, world::DeferredWorld}, prelude::*};
 
 use crate::{Interactable, InteractionEvent};
 
@@ -16,24 +16,25 @@ pub struct DoorGraph(pub Handle<AnimationGraph>);
 
 #[derive(Debug, Default, Component, Reflect)]
 #[reflect(Component)]
+#[component(on_add = on_door_add)]
 pub struct DoorComponent;
 
 pub struct DoorPlugin;
 impl Plugin for DoorPlugin {
     fn build(&self, app: &mut App) {
-        app.register_type::<DoorComponent>()
-            .add_systems(Update, register_door_interactions);
+        app.register_type::<DoorComponent>();
     }
 }
 
-fn register_door_interactions(
-    mut commands: Commands,
-    mut doors_query: Query<Entity, (With<DoorComponent>, Without<Interactable>)>,
+fn on_door_add(
+    mut world: DeferredWorld,
+    context: HookContext,
 ) {
-    for door in doors_query.iter_mut() {
-        commands.entity(door).observe(door_interaction_observer)
-            .insert(Interactable);
-    }
+    trace!("HOOK: on_door_add");
+    world.commands()
+        .entity(context.entity)
+        .observe(door_interaction_observer)
+        .insert(Interactable);
 }
 
 fn door_interaction_observer(

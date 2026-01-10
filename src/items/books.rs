@@ -1,6 +1,6 @@
 use bevy::{ecs::{lifecycle::HookContext, world::DeferredWorld}, prelude::*};
 
-use crate::{Interactable, InteractionEvent, book_ui::display_book_ui};
+use crate::{Interactable, InteractionEvent, UseEvent, book_ui::display_book_ui};
 
 #[derive(EntityEvent)]
 pub struct OpenBookEvent {
@@ -33,6 +33,7 @@ fn on_book_add(
     mut world: DeferredWorld,
     context: HookContext,
 ) {
+    trace!("HOOK: on_book_add");
     world.commands()
         .entity(context.entity)
         .observe(book_interaction_observer)
@@ -44,6 +45,14 @@ fn book_interaction_observer(
     trigger: On<InteractionEvent>,
     mut commands: Commands,
 ) {
-    let book = trigger.entity;
-    commands.entity(book).trigger(|entity| OpenBookEvent { entity });
+    trace!("OBSERVER: book_interaction_observer");
+    commands.entity(trigger.entity).trigger(|entity| OpenBookEvent { entity });
+}
+
+fn book_use_observer(
+    trigger: On<UseEvent>,
+    mut commands: Commands,
+) {
+    trace!("OBSERVER: book_use_observer");
+    commands.entity(trigger.entity).trigger(|entity| OpenBookEvent { entity });
 }
