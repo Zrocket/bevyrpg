@@ -1,9 +1,10 @@
-use bevy::prelude::*;
+use bevy::{ecs::{lifecycle::HookContext, world::DeferredWorld}, prelude::*};
 
 use crate::{Interactable, InteractionEvent};
 
 #[derive(Debug, Default, Component, Reflect)]
 #[reflect(Component)]
+#[component(on_add = on_lever_add)]
 pub struct LeverComponent;
 
 #[derive(Debug, Default, Component, Reflect)]
@@ -22,19 +23,19 @@ pub struct ActivatableEvent {
 pub struct LeverPlugin;
 impl Plugin for LeverPlugin {
     fn build(&self, app: &mut App) {
-        app.register_type::<LeverComponent>()
-            .add_systems(Update, register_lever_interactions);
+        app.register_type::<LeverComponent>();
     }
 }
 
-fn register_lever_interactions(
-    mut commands: Commands,
-    mut doors_query: Query<Entity, (With<LeverComponent>, Without<Interactable>)>,
+fn on_lever_add(
+    mut world: DeferredWorld,
+    context: HookContext,
 ) {
-    for door in doors_query.iter_mut() {
-        commands.entity(door).observe(lever_interaction_observer)
-            .insert(Interactable);
-    }
+    trace!("HOOK: on_lever_add");
+    world.commands()
+        .entity(context.entity)
+        .observe(lever_interaction_observer)
+        .insert(Interactable);
 }
 
 fn lever_interaction_observer(

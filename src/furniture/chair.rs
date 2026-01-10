@@ -1,29 +1,30 @@
 use avian3d::prelude::RigidBodyDisabled;
-use bevy::prelude::*;
+use bevy::{ecs::{lifecycle::HookContext, world::DeferredWorld}, prelude::*};
 
 use crate::{Interactable, InteractionEvent, Player, PlayerState};
 
 #[derive(Debug, Default, Component, Reflect)]
 #[reflect(Component)]
+#[component(on_add = on_chair_add)]
 pub struct Chair;
 
 pub struct ChairPlugin;
 
 impl Plugin for ChairPlugin {
     fn build(&self, app: &mut App) {
-        app.register_type::<Chair>()
-            .add_systems(Update, register_chair_interactions);
+        app.register_type::<Chair>();
     }
 }
 
-fn register_chair_interactions(
-    mut commands: Commands,
-    mut chairs_query: Query<Entity, (With<Chair>, Without<Interactable>)>,
+fn on_chair_add(
+    mut world: DeferredWorld,
+    context: HookContext,
 ) {
-    for chair in chairs_query.iter_mut() {
-        commands.entity(chair).observe(chair_interaction_observer)
-            .insert(Interactable);
-    }
+    trace!("HOOK: on_chair_add");
+    world.commands()
+        .entity(context.entity)
+        .observe(chair_interaction_observer)
+        .insert(Interactable);
 }
 
 fn chair_interaction_observer(
@@ -32,6 +33,7 @@ fn chair_interaction_observer(
     mut player_query: Query<(&mut Transform, &mut PlayerState, Entity), With<Player>>,
     transform_query: Query<&GlobalTransform, Without<Player>>,
 ) {
+    trace!("OBSERVER: chair_interaction_observer");
     if let Ok((mut player_transform, mut player_state, player_entity)) = player_query.single_mut()
         && let Ok(chair_transform) = transform_query.get(trigger.entity) {
             *player_transform = Transform {

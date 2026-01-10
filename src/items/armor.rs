@@ -35,6 +35,7 @@ fn on_armor_add(
     mut world: DeferredWorld,
     context: HookContext,
 ) {
+    trace!("HOOK: on_armor_add");
     world.commands()
         .entity(context.entity)
         .insert(Interactable);
@@ -43,6 +44,7 @@ fn on_armor_add(
 fn armor_interaction_observer(
         trigger: On<InteractionEvent, Armor>
 ) {
+    trace!("OBSERVER: armor_interaction_observer");
     let _player = trigger.event().actor;
     let _armor = trigger.entity;
 }

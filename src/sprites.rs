@@ -23,6 +23,13 @@ pub struct Talkable;
     }
 }*/
 
+fn sprite_interaction_observer(
+    trigger: On<InteractionEvent>,
+    mut commands: Commands,
+) {
+    commands.trigger(DialogMessage { actor: trigger.entity });
+}
+
 #[derive(Component, Clone, Hash, Debug, Eq, PartialEq, Default)]
 pub enum SpriteType {
     #[default]
@@ -165,6 +172,7 @@ fn sprite_handler(
                         timer: timer.clone(),
                     });
                 }
+                c.observe(sprite_interaction_observer);
             }
             SpriteType::Item => {
                 let atlas = TextureAtlas {
