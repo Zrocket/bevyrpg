@@ -27,24 +27,17 @@ fn on_weapon_add(
     mut world: DeferredWorld,
     context: HookContext,
 ) {
+    trace!("HOOK: on_weapon_add");
     world.commands()
         .entity(context.entity)
+        .observe(weapon_interaction_observer)
         .insert(Interactable);
 }
-
-/*fn register_weapon_items(
-    mut commands: Commands,
-    mut unregistered_items_query: Query<Entity, (With<Weapon>, Without<Interactable>)>,
-) {
-    for unregistered_item in unregistered_items_query.iter_mut() {
-        commands.entity(unregistered_item).observe(weapon_interaction_observer)
-            .insert(Interactable);
-    }
-}*/
 
 fn weapon_interaction_observer(
     trigger: On<InteractionEvent, Weapon>
 ) {
+    trace!("OBSERVER: weapon_interaction_observer");
     let _actor = trigger.event().actor;
     let _weapon = trigger.entity;
 }

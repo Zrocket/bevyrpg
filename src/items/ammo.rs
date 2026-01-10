@@ -30,6 +30,7 @@ fn on_ammo_add(
     mut world: DeferredWorld,
     context: HookContext,
 ) {
+    trace!("HOOK: on_ammo_add");
     world.commands()
         .entity(context.entity)
         .observe(ammo_interaction_observer)
@@ -40,6 +41,7 @@ fn on_ammo_add(
 fn ammo_interaction_observer(
         trigger: On<InteractionEvent>
 ) {
+    trace!("OBSERVER: ammo_interaction_observer");
     let _player = trigger.event().actor;
     let _ammo = trigger.entity;
 }
@@ -48,5 +50,6 @@ fn ammo_use_observer(
     trigger: On<UseEvent>,
     mut commands: Commands,
 ) {
+    trace!("OBSERVER: ammo_use_observer");
     commands.entity(trigger.entity).despawn();
 }

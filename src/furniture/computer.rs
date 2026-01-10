@@ -1,4 +1,6 @@
 use avian3d::prelude::{Collider, RigidBody};
+use bevy::ecs::lifecycle::HookContext;
+use bevy::ecs::world::DeferredWorld;
 use bevy::prelude::*;
 use bevy::render::render_resource::{Extent3d, TextureFormat, TextureUsages};
 use bevy::color::palettes::css::GOLD;
@@ -31,7 +33,6 @@ impl Plugin for ComputerPlugin {
         app.init_resource::<SoftTerminal>()
             .register_type::<ComputerCube>()
             .register_type::<ComputerTextureCam>()
-            .add_systems(Update, register_computer_interactions)
             .add_systems(OnEnter(GameState::Loading), spawn_computer);
     }
 }
@@ -40,6 +41,7 @@ static FONT_DATA: &[u8] = include_bytes!("../../assets/iosevka.ttf");
 
 #[derive(Debug, Clone, Component, Reflect)]
 #[reflect(Component)]
+#[component(on_add = on_computer_add)]
 pub struct ComputerCube;
 
 #[derive(Debug, Clone, Component, Reflect)]
@@ -75,14 +77,15 @@ impl Default for SoftTerminal {
     }
 }
 
-fn register_computer_interactions(
-    mut commands: Commands,
-    mut doors_query: Query<Entity, (With<ComputerCube>, Without<Interactable>)>,
+fn on_computer_add(
+    mut world: DeferredWorld,
+    context: HookContext,
 ) {
-    for door in doors_query.iter_mut() {
-        commands.entity(door).observe(change_computer_screen)
-            .insert(Interactable);
-    }
+    trace!("HOOK: on_computer_add");
+    world.commands()
+        .entity(context.entity)
+        .observe(change_computer_screen)
+        .insert(Interactable);
 }
 
 fn change_computer_screen (
@@ -132,6 +135,7 @@ fn spawn_computer(
     mut softatui: ResMut<SoftTerminal>,
     mut images: ResMut<Assets<Image>>,
 ) {
+    trace!("SYSTEM: spawn_computer");
     softatui
         .draw(draw_computer_screen)
         .expect("epic fail");

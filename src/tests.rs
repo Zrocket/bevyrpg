@@ -1,7 +1,7 @@
 use bevy::{input::common_conditions::input_just_pressed, prelude::*};
 use bevy_asset_loader::dynamic_asset::DynamicAssetCollections;
 
-use crate::{AddToInventoryEvent, DamageMessage, Description, DisplayEquipEvent, GameState, Health, Item, Player, RemoveMessage, widgets::floating_windows::floating_window_root };
+use crate::{AddToInventoryEvent, DamageMessage, Description, DisplayEquipEvent, Equiptable, GameState, Health, Item, Player, RemoveMessage, widgets::floating_windows::floating_window_root };
 use super::Weight;
 
 pub struct TestsPlugin;
@@ -64,6 +64,10 @@ fn inventory_add_test(
                     weight: Weight(0),
                 },
                 Name::new(format!("Test {}", rand::random::<u8>() as char)),
+                Equiptable {
+                    slot: crate::EquipSlot::Arm,
+                    defense: 1,
+                }
         )).id();
         println!("{:?}", item);
         commands.entity(player).trigger(|entity| AddToInventoryEvent { entity, item });
