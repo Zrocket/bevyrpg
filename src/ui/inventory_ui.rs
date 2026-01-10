@@ -178,10 +178,10 @@ fn transfer_item_observer(
     invref_query: Query<&InvRef>,
     childof_query: Query<&ChildOf>,
 ) {
+    trace!("OBSERVER: transfer_item_observer");
     if trigger.event().button == PointerButton::Secondary {
         return;
     }
-    trace!("OBSERVER: transfer_item_observer");
     if let Ok(invref) = invref_query.get(trigger.entity)
     && let Ok(item) = owner_query.get(trigger.dropped)
     && let Ok(childof) = childof_query.get(trigger.dropped) {
@@ -202,6 +202,7 @@ fn inventory_tooltip_observer(
     item_query: Query<&Item>,
     owner_query: Query<&Owner>,
 ) {
+    trace!("OBSERVER: inventory_tooltip_observer");
     if let Ok(owner) = owner_query.get(trigger.entity)
     && let Ok(item) = item_query.get(owner.item_owner) {
         commands.spawn((
@@ -233,6 +234,7 @@ fn inventory_tooltip_unhover_observer(
     trigger: On<Pointer<Out>>,
     mut commands: Commands
 ) {
+    trace!("OBSERVER: inventory_tooltip_unhover_observer");
     commands.entity(trigger.entity).despawn_related::<TooltipParent>();
 }
 
@@ -241,6 +243,7 @@ fn inventory_item_drowpdown_observer(
     mut commands: Commands,
     dropdown_query: Query<Entity, With<DropdownMenu>>,
 ) {
+    trace!("OBSERVER: inventory_item_drowpdown_observer");
     for entity in dropdown_query.iter() {
         commands.entity(entity).despawn();
     }
@@ -300,6 +303,7 @@ fn drop_item_button_observer(
     owner_query: Query<&Owner>,
     inv_query: Query<Entity, With<Inventory>>,
 ) {
+    trace!("OBSERVER: drop_item_button_observer");
     if let Ok(parent) = parent_query.get(trigger.entity) 
     && let Ok(owner) = owner_query.get(parent.0)
     && let Ok(actor) = inv_query.get(owner.inv_owner) {
@@ -314,6 +318,7 @@ fn use_item_button_observer(
     owner_query: Query<&Owner>,
     inv_query: Query<Entity, With<Inventory>>,
 ) {
+    trace!("OBSERVER: use_item_button_observer");
     if let Ok(parent) = parent_query.get(trigger.entity) 
     && let Ok(owner) = owner_query.get(parent.0)
     && let Ok(actor) = inv_query.get(owner.inv_owner) {

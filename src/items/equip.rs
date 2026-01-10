@@ -1,4 +1,6 @@
-use bevy::{ecs::{component::Component, entity::Entity, relationship}, prelude::Plugin};
+use bevy::{ecs::{component::Component, entity::Entity, lifecycle::HookContext, observer::On, relationship, system::Commands, world::DeferredWorld}, prelude::Plugin, prelude::trace};
+
+use crate::UseEvent;
 
 pub enum EquipSlot {
     Arm,
@@ -12,6 +14,7 @@ pub enum EquipSlot {
 }
 
 #[derive(Component)]
+#[component(on_add = on_equiptable_add)]
 pub struct Equiptable {
     pub slot: EquipSlot,
     pub defense: i32,
@@ -30,4 +33,23 @@ impl Plugin for EquipItemPlugin {
     fn build(&self, app: &mut bevy::app::App) {
        app; 
     }
+}
+
+fn on_equiptable_add(
+    mut world: DeferredWorld,
+    context: HookContext,
+) {
+    trace!("HOOK: on_equiptable_add");
+    world.commands()
+        .entity(context.entity)
+        .observe(equip_use_event_observer);
+}
+
+fn equip_use_event_observer(
+    trigger: On<UseEvent>,
+    mut commands: Commands,
+) {
+    trace!("OBSERVER: equip_use_event_observer");
+    commands.entity(trigger.entity)
+        .insert(InEquiptment(trigger.actor));
 }

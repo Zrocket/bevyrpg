@@ -19,6 +19,7 @@ fn on_container_add(
     mut world: DeferredWorld,
     context: HookContext,
 ) {
+    trace!("HOOK: on_container_add");
     world.commands()
         .entity(context.entity)
             .observe(container_interaction_observer)
@@ -33,6 +34,7 @@ fn container_interaction_observer(
     trigger: On<InteractionEvent>,
     mut commands: Commands,
 ) {
+    trace!("OBSERVER: container_interaction_observer");
     commands.entity(trigger.entity).trigger(|entity| DisplayInventoryEvent { entity });
 }
 
@@ -41,6 +43,7 @@ fn container_inspection_observer(
     name_query: Query<&Name>,
     mut commands: Commands,
 ) {
+    trace!("OBSERVER: container_inspection_observer");
     if let Ok(name) = name_query.get(trigger.entity) {
         commands.spawn((
                 Node {

@@ -21,6 +21,7 @@ fn on_misc_add(
     mut world: DeferredWorld,
     context: HookContext,
 ) {
+    trace!("HOOK: on_misc_add");
     world.commands()
         .entity(context.entity)
         .observe(misc_interaction_observer)
@@ -34,7 +35,7 @@ fn misc_interaction_observer(
     mut avian_pickup_input_writer: MessageWriter<AvianPickupInput>,
     _held_prop_query: Query<&HeldProp>,
 ) {
-    info!("Misc Interact event observer");
+    trace!("OBSERVER: misc_interaction_observer");
     let actor = trigger.event().actor;
     commands.entity(trigger.event().entity).remove::<RigidBodyDisabled>();
     avian_pickup_input_writer.write(AvianPickupInput { actor, action: AvianPickupAction::Pull });
@@ -45,6 +46,7 @@ fn misc_inspection_observer(
     name_query: Query<&Name>,
     mut commands: Commands,
 ) {
+    trace!("OBSERVER: misc_inspection_observer");
     if let Ok(name) = name_query.get(trigger.entity) {
         commands.spawn((
                 Node {
