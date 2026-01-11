@@ -5,7 +5,6 @@ use super::GameState;
 use crate::{LadderComponent, MiscItem, Obstacle, ladder_collision_observer, ladder_decollision_observer};
 use avian3d::{prelude::{ColliderConstructor, CollidingEntities, CollisionEventsEnabled, CollisionLayers, LayerMask, PhysicsLayer, RigidBody}};
 use bevy::{gltf::Gltf, prelude::*};
-
 #[derive(Debug, PhysicsLayer, Default, Component, Reflect)]
 #[reflect(Component)]
 pub enum CollisionLayer {
@@ -97,7 +96,7 @@ impl Plugin for BlenderTranslationPlugin {
             .add_message::<ChangeLevelMessage>()
             .add_systems(Update, translate_components)
             .add_systems(Update, change_level_message_handler)
-            //.add_systems(OnExit(GameState::Loading), animation_preload)
+            .add_systems(OnExit(GameState::Loading), animation_preload.run_if(resource_added::<LevelGltf>))
             .add_loading_state(
                 LoadingState::new(GameState::Preload)
                     .with_dynamic_assets_file::<StandardDynamicAssetCollection>("gunassets.ron")
@@ -120,8 +119,8 @@ fn change_level_message_handler(
         if let Ok(current_level) = current_level_query.single() {
             commands.entity(current_level).despawn();
         }
-        //let level_gltf: Handle<Gltf> = asset_server.load(&message.0);
-        //commands.insert_resource(LevelGltf(level_gltf));
+        let level_gltf: Handle<Gltf> = asset_server.load(&message.0);
+        commands.insert_resource(LevelGltf(level_gltf));
 
         let temp = message.0.clone();
 
