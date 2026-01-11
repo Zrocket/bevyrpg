@@ -85,9 +85,11 @@ bevy_seedling = "0.6"
 soft_ratatui = { git = "https://github.com/gold-silver-copper/soft_ratatui.git", branch ="togit", features = ["embedded-graphics", "unicodefonts"] }
 ratatui = { version = "0.30.0", default-features = false }
 avian_pickup = "0.3"
-bevy-tnua-avian3d = "0.7"
-bevy-tnua = "0.26"
-bevy-tnua-physics-integration-layer = "0.10"
+#bevy-tnua-avian3d = "0.7"
+bevy-tnua-avian3d = "0.9"
+bevy-tnua = "0.28"
+#bevy-tnua-physics-integration-layer = "0.10"
+bevy-tnua-physics-integration-layer = "0.11"
 avian3d = { version = "0.4", features = ["collider-from-mesh"] }
 bevy_sprite3d = "7.0"
 big-brain = { git = "https://codeberg.org/zkat/big-brain.git" }
