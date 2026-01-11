@@ -8,7 +8,7 @@ use landmass::{ArchipelagoOptions, FromAgentRadius, PointSampleDistance3d};
 use landmass_rerecast::{Island3dBundle, LandmassRerecastPlugin, NavMeshHandle3d};
 use bevy_rerecast::prelude::*;
 
-use crate::{GameState, Player};
+use crate::{GameState, Player, PlayerControlScheme};
 
 //#[derive(Resource)]
 //struct NavMeshHandle(Handle<Navmesh>);
@@ -55,16 +55,16 @@ impl Plugin for NavMeshPlugin {
             .register_type::<Walk>()
             .register_type::<FloatHeight>()
             .register_type::<DesiredPosition>()
-            .add_plugins(TnuaAvian3dPlugin::new(FixedUpdate))
-            .add_plugins(TnuaControllerPlugin::new(FixedUpdate))
-            .add_systems(OnEnter(GameState::Gameplay), landmass_rerecast_setup)
-            .add_systems(Update, apply_walking)
+            //.add_plugins(TnuaAvian3dPlugin::new(FixedUpdate))
+            //.add_plugins(TnuaControllerPlugin::<PlayerControlScheme>::new(FixedUpdate))
+            //.add_systems(OnEnter(GameState::Gameplay), landmass_rerecast_setup)
+            //.add_systems(Update, apply_walking)
             .add_systems(Update, toggle_landmass_debug.run_if(input_just_pressed(KeyCode::F12)));
 
     }
 }
 
-fn landmass_rerecast_setup(
+/*fn landmass_rerecast_setup(
     mut commands: Commands,
     mut generator: NavmeshGenerator,
     mut meshes: ResMut<Assets<Mesh>>,
@@ -113,13 +113,13 @@ fn landmass_rerecast_setup(
     .insert(FloatHeight(0.5))
     .insert(Walk::default())
     .insert(Name::new("Walking Cube"));
-}
+}*/
 
 fn toggle_landmass_debug(mut debug: ResMut<EnableLandmassDebug>) {
     **debug = !**debug;
 }
 
-fn apply_walking(
+/*fn apply_walking(
     mut character_query: Query<(&mut TnuaController, &mut Walk, &FloatHeight, &AgentDesiredVelocity3d), Without<Player>>,
 ) {
     trace!("SYSTEM: apply_walking");
@@ -136,4 +136,4 @@ fn apply_walking(
         });
         walking.direction = None;
     }
-}
+}*/

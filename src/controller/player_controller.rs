@@ -3,9 +3,9 @@ use std::f32::consts::*;
 use avian3d::{math::{AdjustPrecision, Vector3}, prelude::RigidBodyDisabled};
 use bevy::{input::mouse, prelude::*};
 use bevy_tnua::{
-    TnuaObstacleRadar, builtins::{TnuaBuiltinClimb, TnuaBuiltinCrouch, TnuaBuiltinDash, TnuaBuiltinJump, TnuaBuiltinKnockback, TnuaBuiltinWalk, TnuaBuiltinWallSlide}, control_helpers::{TnuaBlipReuseAvoidance, TnuaSimpleAirActionsCounter}, controller::TnuaController, math::AsF32, radar_lens::{TnuaBlipSpatialRelation, TnuaRadarLens}
+    TnuaControllerPlugin, TnuaObstacleRadar, TnuaScheme, TnuaUserControlsSystems, builtins::{TnuaBuiltinClimb, TnuaBuiltinCrouch, TnuaBuiltinDash, TnuaBuiltinJump, TnuaBuiltinKnockback, TnuaBuiltinWalk, TnuaBuiltinWallSlide}, control_helpers::{TnuaBlipReuseAvoidance, TnuaSimpleAirActionsCounter}, controller::TnuaController, math::AsF32, radar_lens::{TnuaBlipSpatialRelation, TnuaRadarLens}
 };
-use bevy_tnua_avian3d::TnuaSpatialExtAvian3d;
+use bevy_tnua_avian3d::{TnuaAvian3dPlugin, TnuaSpatialExtAvian3d};
 use leafwing_input_manager::prelude::*;
 
 use crate::{Player, PlayerFlashlight, PlayerState};
@@ -37,18 +37,26 @@ impl Default for PlayerController {
     }
 }
 
+#[derive(TnuaScheme)]
+#[scheme(basis = TnuaBuiltinWalk)]
+pub enum PlayerControlScheme {
+    Jump(TnuaBuiltinJump),
+    Crouch(TnuaBuiltinCrouch),
+    Dash(TnuaBuiltinDash),
+}
+
 #[derive(Component)]
 pub struct PlayerControllerConfig {
     pub speed: f32,
-    pub walk: TnuaBuiltinWalk,
+    //pub walk: TnuaBuiltinWalk,
     pub air_actions: usize,
-    pub jump: TnuaBuiltinJump,
-    pub crouch: TnuaBuiltinCrouch,
+    //pub jump: TnuaBuiltinJump,
+    //pub crouch: TnuaBuiltinCrouch,
     pub run_distance: f32,
     pub run: TnuaBuiltinDash,
     pub one_way_platforms_min_proximity: f32,
-    pub knockback: TnuaBuiltinKnockback,
-    pub wall_slide: TnuaBuiltinWallSlide,
+    //pub knockback: TnuaBuiltinKnockback,
+    //pub wall_slide: TnuaBuiltinWallSlide,
     pub climb_speed: f32,
     pub climb: TnuaBuiltinClimb,
 }
@@ -57,25 +65,25 @@ impl Default for PlayerControllerConfig {
     fn default() -> Self {
         Self {
             speed: 20.,
-            walk: TnuaBuiltinWalk {
+            /*walk: TnuaBuiltinWalk {
                 float_height: 2.0,
                 max_slope: FRAC_PI_4,
                 ..default()
-            },
+            },*/
             air_actions: 1,
-            jump: TnuaBuiltinJump {
+            /*jump: TnuaBuiltinJump {
                 height: 4.0,
                 ..default()
-            },
-            crouch: TnuaBuiltinCrouch {
+            },*/
+            /*crouch: TnuaBuiltinCrouch {
                 float_offset: -0.9,
                 ..default()
-            },
+            },*/
             run_distance: 10.0,
             run: TnuaBuiltinDash::default(),
             one_way_platforms_min_proximity: 1.0,
-            knockback: TnuaBuiltinKnockback::default(),
-            wall_slide: TnuaBuiltinWallSlide::default(),
+            //knockback: TnuaBuiltinKnockback::default(),
+            //wall_slide: TnuaBuiltinWallSlide::default(),
             climb_speed: 10.0,
             climb: TnuaBuiltinClimb::default(),
         }
@@ -115,16 +123,21 @@ pub struct PlayerControllerInput {
 pub struct PlayerControllerPlugin;
 impl Plugin for PlayerControllerPlugin {
     fn build(&self, app: &mut App) {
-        app.add_systems(
+        app
+            .add_plugins(TnuaAvian3dPlugin::new(FixedUpdate))
+            .add_plugins(TnuaControllerPlugin::<PlayerControlScheme>::new(FixedUpdate))
+            .add_systems(
             Update,
             (
                 player_controller_input,
                 player_controller_look,
-                tnua_player_input,
+                //tnua_player_input,
                 toggle_flashlight,
             )
+            //.in_set(TnuaUserControlsSystems)
             .chain()
-        );
+        )
+        .add_systems(Update, tnua_player_input.in_set(TnuaUserControlsSystems));
     }
 }
 
@@ -195,31 +208,33 @@ fn toggle_flashlight(
 pub fn tnua_player_input(
     mut commands: Commands,
     mut tnua_query: Query<(
-        &PlayerControllerConfig,
-        &mut TnuaController,
-        &mut TnuaSimpleAirActionsCounter,
+        //&PlayerControllerConfig,
+        &mut TnuaController<PlayerControlScheme>,
+        //&mut TnuaSimpleAirActionsCounter,
         &mut PlayerState,
         &ActionState<Action>,
         &PlayerControllerInput,
-        &TnuaObstacleRadar,
-        &mut TnuaBlipReuseAvoidance,
+        //&TnuaObstacleRadar,
+        //&mut TnuaBlipReuseAvoidance,
         Entity,
         ), With<Player>>,
-    spatial_ext: TnuaSpatialExtAvian3d,
+    //spatial_ext: TnuaSpatialExtAvian3d,
 ) {
     // Get player's tnua controller, otherwise return
-    let Ok((_player_controller_config,
+    let Ok((//_player_controller_config,
             mut tnua_controller,
-            mut air_actions_counter,
+            //mut air_actions_counter,
             mut player_state,
             action_state,
             player_controller_input,
-            obstacle_radar,
-            mut blip_reuse_avoiodance,
+            //obstacle_radar,
+            //mut blip_reuse_avoiodance,
             player_entity
             )) = tnua_query.single_mut() else {
         return;
     };
+
+    tnua_controller.initiate_action_feeding();
 
     // Creates a 3D rotation matrix from a normalized rotation axis and angle (in radians).
     // returns a 3x3 column major matrix.
@@ -228,12 +243,12 @@ pub fn tnua_player_input(
     move_to_world.y_axis = Vec3::Y; // Vertical movement aligned with world up
     let movement_direction = move_to_world * player_controller_input.movement;
 
-    air_actions_counter.update(tnua_controller.as_mut());
+    //air_actions_counter.update(tnua_controller.as_mut());
 
     // This also needs to be called once per frame. It checks which obstacles needs to be
     // blocked - e.g. because we've just finished an action on them and we don't want to
     // reinitiate that action.
-    blip_reuse_avoiodance.update(tnua_controller.as_ref(), obstacle_radar);
+    //blip_reuse_avoiodance.update(tnua_controller.as_ref(), obstacle_radar);
 
     // Each action has a button-like state of its own that you can check
     //println!(
@@ -243,34 +258,27 @@ pub fn tnua_player_input(
     //println!("Action State: {}", action_state.just_pressed(&Action::Jump));
     //if action_state.just_pressed(&Action::Jump) && air_actions_counter.air_count_for(TnuaBuiltinJump::NAME) == 0 {
     if action_state.pressed(&Action::Jump) {
-        tnua_controller.action(TnuaBuiltinJump {
-            allow_in_air: false,
-            // The height is the only mandatory field of the jump button.
-            height: 1.5,
-            // `TnuaBuiltinJump` also has customization fields with sensible defaults.
-            ..Default::default()
-        });
+        tnua_controller.action(PlayerControlScheme::Jump(Default::default()));
         if *player_state == PlayerState::Sitting {
             *player_state = PlayerState::Grounded;
             commands.entity(player_entity).remove::<RigidBodyDisabled>();
         }
     }
 
-    if action_state.pressed(&Action::Crouch) {
-        tnua_controller.action(TnuaBuiltinCrouch {
+    if action_state.just_pressed(&Action::Crouch) {
+        tnua_controller.action_start(PlayerControlScheme::Crouch(Default::default()));
+        /*tnua_controller.action(TnuaBuiltinCrouch {
             float_offset: -1.5,
             height_change_impulse_for_duration: 0.1,
             height_change_impulse_limit: 0.3,
             uncancellable: false,
-        });
+        });*/
     }
+    if action_state.just_released(&Action::Crouch) {
+        tnua_controller.action_end(PlayerControlSchemeActionDiscriminant::Crouch);
+    }
+
     //air_actions_counter.update(tnua_controller.as_mut());
-
-    let mut acceleration = 10.0;
-
-    if player_controller_input.sprint {
-        acceleration = 15.0;
-    }
 
     if *player_state == PlayerState::Sitting {
         return;
@@ -279,18 +287,19 @@ pub fn tnua_player_input(
     // Feed the basis every frame. Even if the player doesn't move - just use `desired_velocity:
     // Vec3::ZERO`. `TnuaController` starts without a basis, which will make the character collider
     // just fall.
-    tnua_controller.basis(TnuaBuiltinWalk {
-        // The `desired_velocity` determines how the character will move.
-        desired_velocity: movement_direction.normalize_or_zero() * acceleration,
-        // The `float_height` must be greater (even if by little) from the distance between the
-        // character's center and the lowest point of its collider.
-        float_height: 1.5,
-        // `TnuaBuiltinWalk` has many other fields for customizing the movement - but they have
-        // sensible defaults. Refer to the `TnuaBuiltinWalk`'s documentation to learn what they do.
-        ..Default::default()
-    });
+    tnua_controller.basis = TnuaBuiltinWalk {
+        desired_motion: movement_direction.normalize_or_zero(),
+        ..default()
+    };
 
-    let already_climbing_on =
+    if action_state.just_pressed(&Action::Run) {
+        tnua_controller.action_trigger(PlayerControlScheme::Dash(TnuaBuiltinDash {
+            displacement: movement_direction.normalize_or_zero(),
+            ..default()
+            }));
+    }
+
+    /*let already_climbing_on =
         tnua_controller
         .concrete_action::<TnuaBuiltinClimb>()
         .and_then(|(action, _)| {
@@ -298,13 +307,13 @@ pub fn tnua_player_input(
                 .climbable_entity
                 .filter(|entity| obstacle_radar.has_blip(*entity))?;
             Some((entity, action.clone()))
-        });
+        });*/
 
-    let radar_lens = TnuaRadarLens::new(obstacle_radar, &spatial_ext);
+    //let radar_lens = TnuaRadarLens::new(obstacle_radar, &spatial_ext);
 
-    let screen_space_direction = player_controller_input.movement.clamp_length_max(1.0);
+    //let screen_space_direction = player_controller_input.movement.clamp_length_max(1.0);
 
-    'blips_loop: for blip in radar_lens.iter_blips() {
+    /*'blips_loop: for blip in radar_lens.iter_blips() {
         if !blip_reuse_avoiodance.should_avoid(blip.entity())
         && let Some((climbable_entity, action)) = already_climbing_on.as_ref() {
             if *climbable_entity != blip.entity() {
@@ -340,5 +349,5 @@ pub fn tnua_player_input(
             }
         }
 
-    }
+    }*/
 }
