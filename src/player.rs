@@ -3,11 +3,11 @@ use avian_pickup::actor::{AvianPickupActor, AvianPickupActorHoldConfig};
 use bevy::{camera::Exposure, core_pipeline::tonemapping::Tonemapping, input::common_conditions::input_just_pressed, pbr::{Atmosphere, AtmosphereSettings}, post_process::bloom::Bloom, prelude::*, render::view::Hdr};
 use bevy_egui::PrimaryEguiContext;
 use bevy_flycam::{FlyCam, NoCameraPlayerPlugin};
-use bevy_tnua::{control_helpers::{TnuaBlipReuseAvoidance, TnuaSimpleAirActionsCounter}, prelude::TnuaController, TnuaObstacleRadar};
+use bevy_tnua::{TnuaConfig, TnuaObstacleRadar, builtins::{TnuaBuiltinCrouchConfig, TnuaBuiltinDashConfig, TnuaBuiltinJumpConfig, TnuaBuiltinWalkConfig}, control_helpers::{TnuaBlipReuseAvoidance, TnuaSimpleAirActionsCounter}, prelude::TnuaController};
 use bevy_tnua_avian3d::TnuaAvian3dSensorShape;
 use leafwing_input_manager::prelude::InputMap;
 
-use crate::{Action, CameraConfig, CharacterBundle, CollisionLayer, DeathEvent, Description, Experience, FloatHeight, GameState, Health, Item, Mana, MaxHealth, MaxMana, PlayerController, PlayerControllerConfig, PlayerControllerInput, RayHit, RenderPlayer, Walk, Weight, add_to_inventory_observer, display_equip_event_observer, display_inventory_event_observer, display_stats_event_observer, level::DAGunAssets, remove_from_inventory_observer};
+use crate::{Action, CameraConfig, CharacterBundle, CollisionLayer, DeathEvent, Description, Experience, FloatHeight, GameState, Health, Item, Mana, MaxHealth, MaxMana, PlayerControlScheme, PlayerControlSchemeConfig, PlayerController, PlayerControllerConfig, PlayerControllerInput, RayHit, RenderPlayer, Walk, Weight, add_to_inventory_observer, display_equip_event_observer, display_inventory_event_observer, display_stats_event_observer, level::DAGunAssets, remove_from_inventory_observer};
 
 #[derive(Clone, Component, Hash, Debug, Eq, PartialEq, Default, States)]
 pub enum PlayerState {
@@ -85,6 +85,7 @@ fn spawn_player_observer(
     player_spawner_query: Query<&GlobalTransform, With<PlayerSpawner>>,
     mut player_camera_query: Query<&mut RenderPlayer, With<PlayerCamera>>,
     mut player_query: Query<Entity, With<Player>>,
+    mut control_scheme_configs: ResMut<Assets<PlayerControlSchemeConfig>>,
 ) {
     trace!("SYSTEM: spawn_player");
 
@@ -164,14 +165,33 @@ fn spawn_player_observer(
                         experience: Experience(100),
                         ..default()
                     },
-                    TnuaController::default(),
+                    TnuaController::<PlayerControlScheme>::default(),
+                    TnuaConfig::<PlayerControlScheme>(control_scheme_configs.add(PlayerControlSchemeConfig {
+                        basis: TnuaBuiltinWalkConfig {
+                            speed: 10.0,
+                            float_height: 1.5,
+                            ..default()
+                        },
+                        jump: TnuaBuiltinJumpConfig {
+                            height: 2.0,
+                            ..default()
+                        },
+                        crouch: TnuaBuiltinCrouchConfig {
+                            float_offset: -0.7,
+                            ..default()
+                        },
+                        dash: TnuaBuiltinDashConfig {
+                            horizontal_distance: 5.0,
+                            ..default()
+                        }
+                    })),
                     TnuaAvian3dSensorShape(Collider::capsule(0.1, 0.5)),
                     FloatHeight(1.5),
                 ),
                 (CollisionLayers::new(CollisionLayer::Player, LayerMask::ALL),),
             ))
             .insert((Walk::default(), input_map))
-            .insert(TnuaSimpleAirActionsCounter::default())
+            //.insert(TnuaSimpleAirActionsCounter::default())
             .insert(AvianPickupActor {
                 prop_filter: SpatialQueryFilter::from_mask(CollisionLayer::Prop),
                 actor_filter: SpatialQueryFilter::from_mask(CollisionLayer::Player),
@@ -187,7 +207,7 @@ fn spawn_player_observer(
             .insert(Name::new("Player"))
             .insert(PlayerState::Grounded)
             .insert(TnuaObstacleRadar::new(1.0, 3.0))
-            .insert(TnuaBlipReuseAvoidance::default())
+            //.insert(TnuaBlipReuseAvoidance::default())
             .insert(PlayerControllerConfig::default())
             .observe(player_death_event_observer)
             .observe(add_to_inventory_observer::<Player>)
