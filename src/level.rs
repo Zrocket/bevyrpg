@@ -2,7 +2,7 @@ use bevy_asset_loader::{asset_collection::AssetCollection, loading_state::{confi
 use bevy_sun_move::{SkyCenter, SunMovePlugin, TimedSkyConfig, random_stars::{RandomStarsPlugin, StarSpawner}};
 
 use super::GameState;
-use crate::{LadderComponent, MiscItem, Obstacle, ladder_collision_observer, ladder_decollision_observer};
+use crate::{Climbable, LadderComponent, MiscItem, Obstacle, ladder_collision_observer, ladder_decollision_observer};
 use avian3d::{prelude::{ColliderConstructor, CollidingEntities, CollisionEventsEnabled, CollisionLayers, LayerMask, PhysicsLayer, RigidBody}};
 use bevy::{gltf::Gltf, prelude::*};
 #[derive(Debug, PhysicsLayer, Default, Component, Reflect)]
@@ -223,6 +223,7 @@ fn translate_components(
                     .insert(CollidingEntities::default())
                     .insert(CollisionEventsEnabled)
                     .insert(BlenderTranslationComplete)
+                    .insert(Climbable)
                     .observe(ladder_collision_observer)
                     .observe(ladder_decollision_observer);
             });
