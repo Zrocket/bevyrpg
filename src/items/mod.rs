@@ -1,29 +1,63 @@
 mod ammo;
 mod armor;
 mod books;
-mod consume;
+mod container;
+mod equip;
 mod misc;
 mod weapons;
 
+use std::iter;
+
 pub use ammo::*;
 pub use armor::*;
+use avian_pickup::prop::HeldProp;
+use avian3d::prelude::{CollisionLayers, CollisionStart, Position, RigidBodyDisabled, Rotation};
 pub use books::*;
-pub use consume::*;
+pub use container::*;
+pub use equip::*;
 pub use misc::*;
 pub use weapons::*;
 
 use bevy::prelude::*;
 
-use crate::Name;
+use crate::{level::CollisionLayer};
 
 #[derive(Component, Reflect, Clone, Default)]
-pub struct Weight(pub i32);
+#[reflect(Component)]
+pub struct RegisteredItem;
+
 #[derive(Component, Reflect, Clone, Default)]
+#[reflect(Component)]
+pub struct Weight(pub i32);
+
+#[derive(Component, Reflect, Clone, Default)]
+#[reflect(Component)]
 pub struct Description(pub String);
+
+#[derive(EntityEvent)]
+pub struct ItemInteractionEvent {
+    entity: Entity,
+}
+
+#[derive(Component, Reflect, Clone, Default)]
+#[reflect(Component)]
+pub struct SocketItem;
+
+#[derive(Component, Reflect, Clone, Default)]
+#[reflect(Component)]
+pub struct PlugItem;
+
+#[derive(Component, Reflect, Clone, Default)]
+#[reflect(Component)]
+pub struct MountPoint;
+
+#[derive(EntityEvent)]
+pub struct PlugSocketEvent {
+    entity: Entity,
+}
 
 #[derive(Component, Clone, Default)]
 pub struct Item {
-    pub name: Name,
     pub description: Description,
     pub weight: Weight,
 }
@@ -32,12 +66,72 @@ pub struct ItemPlugin;
 impl Plugin for ItemPlugin {
     fn build(&self, app: &mut App) {
         app
+            .register_type::<SocketItem>()
+            .register_type::<PlugItem>()
+            .register_type::<MountPoint>()
             .add_plugins((
-   //                 AmmoPlugin,
-  //                  ArmorPlugin,
- //                   BookPlugin,
+                    AmmoPlugin,
+                    ArmorPlugin,
+                    BookPlugin,
                     MiscItemPlugin,
-//                    WeaponPlugin,
-            ));
+                    ContainerPlugin,
+                    WeaponPlugin,
+            ))
+            .add_observer(disabled_held_prop_collision)
+            .add_observer(enable_dropped_prop_collision)
+            .add_systems(Update, register_socket_items);
+    }
+}
+
+fn disabled_held_prop_collision(
+    add: On<Add, HeldProp>,
+    children_query: Query<&Children>,
+    mut collision_layers_query: Query<&mut CollisionLayers>,
+) {
+    let rigid_body = add.entity;
+    for child in iter::once(rigid_body).chain(children_query.iter_descendants(rigid_body)) {
+        let Ok(mut collision_layers) = collision_layers_query.get_mut(child) else {
+            continue;
+        };
+        collision_layers.filters.remove(CollisionLayer::Player);
+    }
+}
+
+fn enable_dropped_prop_collision(
+    remove: On<Remove, HeldProp>,
+    children_query: Query<&Children>,
+    mut collision_layers_query: Query<&mut CollisionLayers>,
+) {
+    let rigid_body = remove.entity;
+    for child in iter::once(rigid_body).chain(children_query.iter_descendants(rigid_body)) {
+        let Ok(mut collision_layers) = collision_layers_query.get_mut(child) else {
+            continue;
+        };
+        collision_layers.filters.add(CollisionLayer::Player);
+    }
+}
+
+fn register_socket_items(
+    mut commands: Commands,
+    mut socket_query: Query<Entity, (With<SocketItem>, Without<RegisteredItem>)>
+) {
+    for socket in socket_query.iter_mut() {
+        commands.entity(socket)
+            .observe(socket_test)
+            .insert(RegisteredItem);
+    }
+}
+
+fn socket_test(
+    trigger: On<CollisionStart>,
+    mut commands: Commands,
+    mut plug_query: Query<(Entity, &mut Position, &mut Rotation), With<PlugItem>>,
+    mount_query: Query<(&Position, &Rotation), (With<MountPoint>, Without<PlugItem>)>,
+) {
+    if let Ok((plug_entity, mut plug_position, mut plug_rotation)) = plug_query.get_mut(trigger.event().collider2)
+    && let Ok((mount_position, mount_rotation)) = mount_query.single() {
+        *plug_position = mount_position.clone();
+        *plug_rotation = mount_rotation.clone();
+        commands.entity(plug_entity).insert(RigidBodyDisabled);
     }
 }

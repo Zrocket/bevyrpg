@@ -1,11 +1,10 @@
-use bevy::{asset::AssetPath, input::common_conditions::input_pressed};
 use bevy_asset_loader::{asset_collection::AssetCollection, loading_state::{config::ConfigureLoadingState, LoadingState, LoadingStateAppExt}, standard_dynamic_asset::StandardDynamicAssetCollection};
+use bevy_sun_move::{SkyCenter, SunMovePlugin, TimedSkyConfig, random_stars::{RandomStarsPlugin, StarSpawner}};
 
 use super::GameState;
-use crate::{ladder_decollision_observer, ladder_collision_observer, LadderComponent, MiscItem};
-use avian3d::prelude::{ColliderConstructor, CollidingEntities, CollisionEventsEnabled, CollisionLayers, LayerMask, Physics, PhysicsLayer, RigidBody};
+use crate::{Climbable, LadderComponent, MiscItem, Obstacle, ladder_collision_observer, ladder_decollision_observer};
+use avian3d::{prelude::{ColliderConstructor, CollidingEntities, CollisionEventsEnabled, CollisionLayers, LayerMask, PhysicsLayer, RigidBody}};
 use bevy::{gltf::Gltf, prelude::*};
-
 #[derive(Debug, PhysicsLayer, Default, Component, Reflect)]
 #[reflect(Component)]
 pub enum CollisionLayer {
@@ -51,19 +50,23 @@ pub struct BlenderColliderConstructor;
 #[reflect(Component)]
 pub struct BlenderNavmesh;
 
-#[derive(Event)]
-pub struct ChangeLevelEvent(String);
+#[derive(Debug, Default, Component, Reflect)]
+#[reflect(Component)]
+pub struct BlenderTranslationComplete;
+
+#[derive(Message)]
+pub struct ChangeLevelMessage(pub String);
 
 #[derive(AssetCollection, Reflect, Resource, Debug)]
 #[reflect(Resource)]
-pub struct DA_LevelAsset {
+pub struct DALevelAsset {
     #[asset(key = "level")]
     level: Handle<Gltf>,
 }
 
 #[derive(AssetCollection, Reflect, Resource, Debug)]
 #[reflect(Resource)]
-pub struct DA_GunAssets {
+pub struct DAGunAssets {
     #[asset(key = "uzi")]
     pub uzi: Handle<Gltf>,
     #[asset(key = "shotgun")]
@@ -77,122 +80,156 @@ pub struct DA_GunAssets {
 pub struct BlenderTranslationPlugin;
 impl Plugin for BlenderTranslationPlugin {
     fn build(&self, app: &mut App) {
-        app.register_type::<BlenderCollider>()
+        app
+            .add_plugins(SunMovePlugin)
+            .add_plugins(RandomStarsPlugin)
+            .register_type::<BlenderCollider>()
             .register_type::<BlenderBoxCollider>()
             .register_type::<BlenderAnimationName>()
             .register_type::<BlenderAnimations>()
             .register_type::<BlenderColliderConstructor>()
             .register_type::<BlenderProp>()
             .register_type::<BlenderNavmesh>()
-            .register_type::<DA_LevelAsset>()
-            .register_type::<DA_GunAssets>()
+            .register_type::<DALevelAsset>()
+            .register_type::<DAGunAssets>()
             .register_type::<CollisionLayer>()
-            .add_event::<ChangeLevelEvent>()
-            .add_systems(OnEnter(GameState::Gameplay), translate_components)
-            .add_systems(OnEnter(GameState::Preload),gltf_preload)
-            .add_systems(Update, test_reload.run_if(input_pressed(KeyCode::KeyR)))
-            .add_systems(Update, change_level_event_handler)
-            //.add_systems(Update, wait_for_level_load)
-            .add_systems(OnExit(GameState::Loading), animation_preload)
+            .add_message::<ChangeLevelMessage>()
+            .add_systems(Update, translate_components)
+            .add_systems(Update, change_level_message_handler)
+            .add_systems(OnExit(GameState::Loading), animation_preload.run_if(resource_added::<LevelGltf>))
             .add_loading_state(
                 LoadingState::new(GameState::Preload)
                     .with_dynamic_assets_file::<StandardDynamicAssetCollection>("gunassets.ron")
                     .with_dynamic_assets_file::<StandardDynamicAssetCollection>("devroom.ron")
                     //.with_dynamic_assets_file::<StandardDynamicAssetCollection>("fpslevel.ron")
-                    .load_collection::<DA_GunAssets>()
-                    .load_collection::<DA_LevelAsset>()
+                    .load_collection::<DAGunAssets>()
+                    .load_collection::<DALevelAsset>()
             );
     }
 }
 
-fn wait_for_level_load(
+fn change_level_message_handler(
     mut commands: Commands,
     asset_server: Res<AssetServer>,
-    mut time: ResMut<Time<Physics>>,
-    //level_gltf: Res<LevelGltf>,
-    level_gltf: Res<DA_LevelAsset>,
-    gltf_assets: Res<Assets<Gltf>>,
-    mut loaded: Local<bool>,
-) {
-    trace!("SYSTEM: wait_for_level_load");
-    if *loaded {
-        return;
-    }
-    let Some(gltf) = gltf_assets.get(&level_gltf.level) else {
-        return;
-    };
-    commands.spawn(
-(
-            CurrentLevel,
-            SceneRoot(gltf.named_scenes["World"].clone())
-        )
-    );
-    *loaded = true;
-}
-
-fn change_level_event_handler(
-    mut commands: Commands,
-    asset_server: Res<AssetServer>,
-    mut time: ResMut<Time<Physics>>,
-    mut change_level_events: EventReader<ChangeLevelEvent>,
+    mut change_level_messages: MessageReader<ChangeLevelMessage>,
     current_level_query: Query<Entity, With<CurrentLevel>>,
 ) {
-    trace!("SYSTEM: change_level_event_handler");
-    for event in change_level_events.read() {
+    trace!("SYSTEM: change_level_message_handler");
+    for message in change_level_messages.read() {
         if let Ok(current_level) = current_level_query.single() {
             commands.entity(current_level).despawn();
         }
-        let level_gltf: Handle<Gltf> = asset_server.load(&event.0);
+        let level_gltf: Handle<Gltf> = asset_server.load(&message.0);
         commands.insert_resource(LevelGltf(level_gltf));
+
+        let temp = message.0.clone();
+
+        commands.spawn((
+            SceneRoot(asset_server.load(
+                    GltfAssetLabel::Scene(0).from_asset(temp),
+            )),
+            CurrentLevel,
+        ));
+
+        /*commands.spawn((
+            DirectionalLight {
+                //illuminance: light_consts::lux::OVERCAST_DAY,
+                shadows_enabled: true,
+                ..default()
+            },
+            Transform {
+                translation: Vec3::new(0.0, 200.0, 0.0),
+                rotation: Quat::from_rotation_x(-PI / 4.),
+                ..default()
+            },
+        ));*/
+
+        let sun_id = commands.spawn((
+                DirectionalLight {
+                    shadows_enabled: true,
+                    illuminance: light_consts::lux::RAW_SUNLIGHT, // Adjust illuminance as needed
+                    ..default()
+                },
+                Transform::default(),
+        ))
+        .id();
+
+        let timed_sky_config = TimedSkyConfig {
+            sun_entity: sun_id,
+            day_duration_secs: 10.0, // 10 seconds of dadylight
+            night_duration_secs: 5.0, // 5 seconds of nighttime (15s total cycle)
+            max_sun_height_deg: 60.0, // Sun reaches 60 degrees at noon
+            planet_tilt_degrees: 23.5, // Earth's tilt (default)
+            ..default()
+        };
+
+        // Calculate  and spawn the SkyCenter
+        if let Some(sky_center) = SkyCenter::from_timed_config(&timed_sky_config) {
+            commands.spawn((
+                    sky_center,
+                    // Optional: Add StarSpawner if you want the built-in stars
+                    StarSpawner {
+                        star_count: 1000,
+                        spawn_radius: 5000.0, // Star distance
+                    },
+            ));
+        } else {
+            // Handle case where calculation failed (e.g., impossible parameters)
+            error!("Failed to create SkyCenter from timed config");
+        }
+
     }
 }
 
 fn translate_components(
     mut commands: Commands,
-    prop_query: Query<Entity, With<BlenderProp>>,
-    collider_query: Query<Entity, (With<BlenderColliderConstructor>, Without<BlenderProp>)>,
-    ladder_query: Query<Entity, With<LadderComponent>>,
+    prop_query: Query<Entity, (With<BlenderProp>, Without<BlenderTranslationComplete>)>,
+    collider_query: Query<Entity, (With<BlenderColliderConstructor>, Without<BlenderProp>, Without<BlenderTranslationComplete>)>,
+    ladder_query: Query<Entity, (With<LadderComponent>, Without<BlenderTranslationComplete>)>,
+    mut loaded: Local<bool>,
 ) {
     trace!("SYSTEM: translate_blender_components");
+
+    //if *loaded {
+    //    return;
+   // }
 
     for entity in prop_query.iter() {
         commands
             .entity(entity)
-            .insert(CollisionLayers::new(CollisionLayer::Prop, LayerMask::ALL))
-            .insert(RigidBody::Dynamic)
-            .insert(MiscItem)
-            .insert(ColliderConstructor::ConvexHullFromMesh);
+            .queue_silenced(|mut entity: EntityWorldMut| {
+                entity
+                    .insert(CollisionLayers::new(CollisionLayer::Prop, LayerMask::ALL))
+                    .insert(RigidBody::Dynamic)
+                    .insert(MiscItem)
+                    .insert(ColliderConstructor::ConvexHullFromMesh)
+                    .insert(BlenderTranslationComplete);
+            });
     }
     for entity in collider_query.iter() {
         commands.entity(entity)
-            .insert(RigidBody::Static)
-            .insert(ColliderConstructor::ConvexHullFromMesh);
+            .queue_silenced(|mut entity: EntityWorldMut| {
+                entity
+                    .insert(RigidBody::Static)
+                    .insert(Obstacle)
+                    .insert(ColliderConstructor::ConvexHullFromMesh)
+                    .insert(BlenderTranslationComplete);
+            });
     }
     for entity in ladder_query.iter() {
         commands.entity(entity)
-            .insert(CollidingEntities::default())
-            .insert(CollisionEventsEnabled)
-            .observe(ladder_collision_observer)
-            .observe(ladder_decollision_observer);
+            .queue_silenced(|mut entity: EntityWorldMut| {
+                entity
+                    .insert(CollidingEntities::default())
+                    .insert(CollisionEventsEnabled)
+                    .insert(BlenderTranslationComplete)
+                    .insert(Climbable)
+                    .observe(ladder_collision_observer)
+                    .observe(ladder_decollision_observer);
+            });
     }
-}
 
-fn gltf_preload(
-    mut change_level_event_wriiter: EventWriter<ChangeLevelEvent>,
-    //level_asset: Res<DA_LevelAsset>,
-    //gltf_assets: Res<Assets<Gltf>>,
-) {
-    trace!("SYSTEM: gltf_preload");
-    //let level = gltf_assets.get(&level_asset.level).unwrap();
-    //change_level_event_wriiter.write(ChangeLevelEvent("levels/World.glb".into()));
-    change_level_event_wriiter.write(ChangeLevelEvent("levels/World.glb".into()));
-}
-
-fn test_reload(
-    mut change_level_event_wriiter: EventWriter<ChangeLevelEvent>,
-) {
-    trace!("SYSTEM: test_reload");
-    change_level_event_wriiter.write(ChangeLevelEvent("levels/fps.glb".into()));
+    *loaded = true;
 }
 
 fn animation_preload(
@@ -206,7 +243,7 @@ fn animation_preload(
     if let Some(gltf) = gltf_assets.get(&level_gltf.0) {
         for (entity, animation_name) in blender_animation_query.iter() {
             let animation_clip_handle = gltf.named_animations[animation_name.0.as_str()].clone();
-            let animation_clip = animation_clip_handle.clone_weak();
+            let animation_clip = animation_clip_handle.clone();
             let (animation_graph, _index) = AnimationGraph::from_clip(animation_clip);
             commands.entity(entity).insert(AnimationGraphHandle(animation_graphs.add(animation_graph)));
         }

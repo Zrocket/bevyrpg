@@ -1,7 +1,6 @@
-use bevy::prelude::*;
-use bevy_trait_query::RegisterExt;
+use bevy::{ecs::{lifecycle::HookContext, world::DeferredWorld}, prelude::*};
 
-use crate::interact::Interaction;
+use crate::{Interactable, InteractionEvent};
 
 #[derive(Clone, Hash, Debug, Eq, PartialEq, Default)]
 pub enum DoorState {
@@ -15,38 +14,35 @@ pub struct DoorAnimation(pub Handle<AnimationClip>);
 #[derive(Resource)]
 pub struct DoorGraph(pub Handle<AnimationGraph>);
 
-#[derive(Event)]
-pub struct DoorEvent {
-    actor: Entity,
-    target: Entity,
-}
-
 #[derive(Debug, Default, Component, Reflect)]
 #[reflect(Component)]
+#[component(on_add = on_door_add)]
 pub struct DoorComponent;
-impl Interaction for DoorComponent {
-    fn interact(&self,commands: &mut Commands,entity:Entity,prop:Entity,) {
-        println!("Door Interaction");
-        commands.trigger_targets(DoorEvent {actor: entity, target: prop}, entity);
-    }
-}
 
 pub struct DoorPlugin;
 impl Plugin for DoorPlugin {
     fn build(&self, app: &mut App) {
-        app.register_type::<DoorComponent>()
-            .register_component_as::<dyn Interaction, DoorComponent>()
-            .add_event::<DoorEvent>()
-            .add_observer(door_event_observer);
+        app.register_type::<DoorComponent>();
     }
 }
 
-fn door_event_observer(
-    trigger: Trigger<DoorEvent>,
+fn on_door_add(
+    mut world: DeferredWorld,
+    context: HookContext,
+) {
+    trace!("HOOK: on_door_add");
+    world.commands()
+        .entity(context.entity)
+        .observe(door_interaction_observer)
+        .insert(Interactable);
+}
+
+fn door_interaction_observer(
+    _trigger: On<InteractionEvent>,
     mut door: Query<(Entity, &mut AnimationPlayer)>,
 ) {
     trace!("OBSERVER: door_event_observer");
-    if let Ok((door_entity, mut door_animation_player)) = door.single_mut() {
+    if let Ok((_door_entity, mut door_animation_player)) = door.single_mut() {
         door_animation_player.play(1.into());
     }
 }

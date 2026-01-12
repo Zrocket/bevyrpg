@@ -1,39 +1,48 @@
-use bevy::prelude::*;
-use bevy_trait_query::RegisterExt;
+use bevy::{ecs::{lifecycle::HookContext, world::DeferredWorld}, prelude::*};
 
-use crate::interact::Interaction;
-
-#[derive(Event)]
-pub struct LeverEvent {
-    actor: Entity,
-    target: Entity,
-}
+use crate::{Interactable, InteractionEvent};
 
 #[derive(Debug, Default, Component, Reflect)]
 #[reflect(Component)]
+#[component(on_add = on_lever_add)]
 pub struct LeverComponent;
-impl Interaction for LeverComponent {
-    fn interact(&self,commands: &mut Commands,entity:Entity,prop:Entity,) {
-        println!("Lever Interaction");
-        commands.trigger_targets(LeverEvent {actor: entity, target: prop}, entity);
-    }
+
+#[derive(Debug, Default, Component, Reflect)]
+#[reflect(Component)]
+pub struct ActivationTargets(Vec<Entity>);
+
+#[derive(Debug, Default, Component, Reflect)]
+#[reflect(Component)]
+pub struct Activatable;
+
+#[derive(Debug, EntityEvent)]
+pub struct ActivatableEvent {
+    entity: Entity,
 }
 
 pub struct LeverPlugin;
 impl Plugin for LeverPlugin {
     fn build(&self, app: &mut App) {
-        app.register_type::<LeverComponent>()
-            .register_component_as::<dyn Interaction, LeverComponent>()
-            .add_event::<LeverEvent>()
-            .add_observer(lever_event_observer);
+        app.register_type::<LeverComponent>();
     }
 }
 
-fn lever_event_observer(
-    trigger: Trigger<LeverEvent>,
+fn on_lever_add(
+    mut world: DeferredWorld,
+    context: HookContext,
+) {
+    trace!("HOOK: on_lever_add");
+    world.commands()
+        .entity(context.entity)
+        .observe(lever_interaction_observer)
+        .insert(Interactable);
+}
+
+fn lever_interaction_observer(
+    _trigger: On<InteractionEvent>,
     lever: Query<Entity, With<LeverComponent>>,
 ) {
     trace!("OBSERVER: lever_event_observer");
-    if let Ok(lever_entity) = lever.single() {
+    if let Ok(_lever_entity) = lever.single() {
     }
 }
