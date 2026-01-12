@@ -1,119 +1,61 @@
-use super::GameState;
-use bevy::prelude::*;
-use std::ops::Deref;
+use bevy::{ecs::relationship::RelationshipSourceCollection, prelude::*};
 
-use crate::items::*;
+#[derive(EntityEvent)]
+pub struct AddToInventoryEvent {
+    pub entity: Entity,
+    pub item: Entity,
+}
 
-#[derive(Event)]
-pub struct PickUpEvent {
+#[derive(EntityEvent)]
+pub struct RemoveFromInventoryEvent {
+    pub entity: Entity,
+    pub item: Entity,
+}
+
+#[derive(Message)]
+pub struct RemoveMessage {
     pub actor: Entity,
     pub target: Entity,
 }
 
-#[derive(Event)]
-pub struct RemoveEvent {
-    pub actor: Entity,
-    pub target: Entity,
-}
+#[derive(Component)]
+#[relationship_target(relationship = InInventory, linked_spawn)]
+pub struct Inventory(Vec<Entity>);
 
-#[derive(Component, Default)]
-pub struct Inventory {
-    pub items: Vec<Entity>,
-    pub ui_index: usize,
-    pub ui_active: bool,
-}
-
-#[derive(Component, Clone, Reflect)]
-#[reflect(Component)]
+#[derive(Component)]
+#[relationship(relationship_target = Inventory)]
 pub struct InInventory(pub Entity);
-
-impl From<InInventory> for Entity {
-    fn from(in_inventory: InInventory) -> Entity {
-        in_inventory.0
-    }
-}
-
-impl From<&InInventory> for Entity {
-    fn from(in_inventory: &InInventory) -> Entity {
-        in_inventory.0
-    }
-}
-
-impl From<Entity> for InInventory {
-    fn from(entity: Entity) -> InInventory {
-        InInventory(entity)
-    }
-}
-
-impl AsRef<Entity> for InInventory {
-    fn as_ref(&self) -> &Entity {
-        &self.0
-    }
-}
-
-impl Deref for InInventory {
-    type Target = Entity;
-
-    fn deref(&self) -> &Self::Target {
-        self.as_ref()
-    }
-}
 
 pub struct InventoryPlugin;
 impl Plugin for InventoryPlugin {
     fn build(&self, app: &mut App) {
-        app.add_event::<PickUpEvent>()
-            .add_event::<RemoveEvent>()
-            .add_systems(
-                Update,
-                add_to_inventory.run_if(in_state(GameState::Gameplay)),
-            )
-            .add_systems(
-                Update,
-                remove_from_inventory.run_if(in_state(GameState::Gameplay)),
-            )
-            .register_type::<InInventory>();
+        app
+            .add_message::<RemoveMessage>();
+            //.add_systems(
+            //    Update,
+            //    remove_from_inventory.run_if(in_state(GameState::Gameplay)),
+           // )
     }
 }
 
-fn add_to_inventory(
+pub fn add_to_inventory_observer<T: Component>(
+    trigger: On<AddToInventoryEvent>,
     mut commands: Commands,
-    mut pick_up_events: EventReader<PickUpEvent>,
-    mut item: Query<Entity>,
-    mut actor: Query<(Entity, &mut Inventory)>,
+    query: Query<Entity, With<T>>,
 ) {
-    trace!("SYSTEM: add_to_inventory");
-
-    for event in pick_up_events.read() {
-        info!("Event Handler: add_to_inventory");
-        if item.get_mut(event.target).is_ok() {
-            //commands.entity(item_entity).despawn_recursive();
-            commands
-                .entity(event.target)
-                .insert(InInventory(event.actor));
-            //.remove::<PbrBundle>();
-            //.remove::<Collider>();
-            if let Ok((_, mut inventory)) = actor.get_mut(event.actor) {
-                inventory.items.push(event.target);
-            }
-        }
+    trace!("OBSERVER: add_to_inventory_observer");
+    if let Ok(entity) = query.get(trigger.entity) {
+        commands.entity(trigger.item).insert(InInventory(entity));
     }
 }
 
-fn remove_from_inventory(
+pub fn remove_from_inventory_observer<T: Component>(
+    trigger: On<RemoveFromInventoryEvent>,
     mut commands: Commands,
-    mut remove_events: EventReader<RemoveEvent>,
-    item_query: Query<Entity, With<Item>>,
-    mut actor: Query<(Entity, &mut Inventory)>,
+    query: Query<Entity, With<T>>,
 ) {
-    trace!("SYSTEM: remove_from_inventory");
-
-    for event in remove_events.read() {
-        if let Ok((_, mut inventory)) = actor.get_mut(event.actor) {
-            inventory.items.retain(|item| *item != event.target);
-            if let Ok(item) = item_query.get(event.target) {
-                commands.entity(item).remove::<InInventory>();
-            }
-        }
+    trace!("OBSERVER: remove_from_inventory_observer");
+    if query.get(trigger.entity).is_ok() {
+        commands.entity(trigger.item).remove::<InInventory>();
     }
 }

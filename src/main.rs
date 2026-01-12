@@ -3,12 +3,14 @@ use bevy::{
     log::LogPlugin, prelude::*, window::{ CursorGrabMode, CursorOptions, WindowResolution,}
 };
 use bevy_asset_loader::prelude::*;
+use bevy_egui::EguiGlobalSettings;
 use bevy_inspector_egui::quick::WorldInspectorPlugin;
 use bevy_skein::SkeinPlugin;
 use bevy_sprite3d::Sprite3dPlugin;
 use bevy_yoleck::prelude::*;
 use clap::Parser;
 
+mod audio;
 mod character;
 mod console;
 mod controller;
@@ -27,10 +29,11 @@ mod render;
 mod rover;
 mod shoot;
 mod sprites;
-//mod tests;
+mod tests;
 mod ui;
 mod utils;
 
+pub use audio::*;
 pub use character::*;
 pub use console::*;
 pub use controller::*;
@@ -49,7 +52,7 @@ pub use sprites::*;
 pub use ui::*;
 pub use utils::*;
 use level::*;
-//use tests::TestsPlugin;
+use tests::TestsPlugin;
 
 #[derive(Parser, Debug)]
 struct Args {
@@ -77,36 +80,45 @@ pub enum PauseMenuState {
 pub enum GameState {
     Console,
     Gameplay,
-    Inventory,
+    //Inventory,
     Loading,
     MainMenu,
     Paused,
     #[default]
     Preload,
     Postload,
+    GameOver,
+    StartMenu,
 }
 
 fn main() {
     trace!("MAIN");
     let args = Args::parse();
     let mut app = App::new();
-    app.add_plugins(
+    app
+    .insert_resource(EguiGlobalSettings {
+        auto_create_primary_context: false,
+        ..default()
+    })
+    .add_plugins(
         DefaultPlugins .set(WindowPlugin {
                 primary_window: Some(Window {
-                    cursor_options: CursorOptions {
-                        grab_mode: CursorGrabMode::Locked,
-                        ..default()
-                    },
                     resolution: WindowResolution::new(RESOLUTION_WIDTH, RESOLUTION_HEIGHT),
                     title: "Bevy RPG".to_string(),
                     resizable: false,
                     focused: true,
                     ..default()
                 }),
+                primary_cursor_options: Some(CursorOptions {
+                    grab_mode: CursorGrabMode::Locked,
+                    ..default()
+                }),
                 ..default()
             })
             .set(LogPlugin {
-                level: bevy::log::Level::INFO,
+                level: bevy::log::Level::TRACE,
+                //filter: "info,wgpu=error,bevy_landmass=trace,bevyrpg=trace".into(),
+                filter: "info,wgpu=error".into(),
                 ..default()
             }),
     )
@@ -133,10 +145,11 @@ fn main() {
         SkeinPlugin::default(),
     ))
     .add_plugins((
-            //TestsPlugin,
+            TestsPlugin,
             Sprite3dPlugin,
             DialogPlugin,
             NavMeshPlugin,
+            SpritesPlugin,
     ));
     app.add_systems(Update, pause_game);
 
@@ -159,7 +172,7 @@ fn main() {
         .add_loading_state(
             LoadingState::new(GameState::Preload)
                 .continue_to_state(GameState::Loading)
-                .on_failure_continue_to_state(GameState::Gameplay)
+                .on_failure_continue_to_state(GameState::Loading)
         )
         .add_loading_state(
             LoadingState::new(GameState::Loading)
@@ -168,9 +181,16 @@ fn main() {
         )
         .add_loading_state(
             LoadingState::new(GameState::Postload)
-                .continue_to_state(GameState::Gameplay)
-                .on_failure_continue_to_state(GameState::Gameplay)
+                .continue_to_state(GameState::StartMenu)
+                .on_failure_continue_to_state(GameState::StartMenu)
         );
+
+        if let Some(level) = args.level {
+            app.world_mut().write_message(ChangeLevelMessage(level));
+        } else {
+            app.world_mut().write_message(ChangeLevelMessage("levels/World.glb".into()));
+        }
+
         app.run();
 }
 

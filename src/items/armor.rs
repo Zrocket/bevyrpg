@@ -1,6 +1,6 @@
-use bevy::prelude::*;
+use bevy::{ecs::{lifecycle::HookContext, world::DeferredWorld}, prelude::*};
 
-use crate::{interact::Interaction, InteractEvent};
+use crate::{Interactable, InteractionEvent};
 
 #[derive(Component, Debug, Clone, Reflect, Default)]
 #[reflect(Component)]
@@ -18,34 +18,33 @@ pub enum ArmorType {
 
 #[derive(Component, Debug, Clone, Reflect, Default)]
 #[reflect(Component)]
+#[component(on_add = on_armor_add)]
 pub struct Armor {
     armor_type: ArmorType,
     defense: i32,
 }
 
-impl Interaction for Armor {
-    fn interact(
-        &self,
-        commands: &mut Commands,
-        _actor: Entity,
-        prop: Entity,
-    ) {
-        commands.entity(prop).despawn();
-    }
-}
-
 pub struct ArmorPlugin;
-
 impl Plugin for ArmorPlugin {
     fn build(&self, app: &mut App) {
-        app.register_type::<Armor>()
-            .add_observer(armor_event_observer);
+        app.register_type::<Armor>();
     }
 }
 
-fn armor_event_observer(
-        trigger: Trigger<InteractEvent, Armor>
+fn on_armor_add(
+    mut world: DeferredWorld,
+    context: HookContext,
 ) {
+    trace!("HOOK: on_armor_add");
+    world.commands()
+        .entity(context.entity)
+        .insert(Interactable);
+}
+
+fn armor_interaction_observer(
+        trigger: On<InteractionEvent, Armor>
+) {
+    trace!("OBSERVER: armor_interaction_observer");
     let _player = trigger.event().actor;
-    let _armor = trigger.target();
+    let _armor = trigger.entity;
 }

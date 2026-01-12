@@ -13,8 +13,8 @@ impl Default for YarnNode {
     }
 }
 
-#[derive(Event)]
-pub struct DialogEvent {
+#[derive(Message, Event)]
+pub struct DialogMessage {
     pub actor: Entity,
 }
 
@@ -27,8 +27,8 @@ impl Plugin for DialogPlugin {
                     ExampleYarnSpinnerDialogueViewPlugin::new(),
                     ))
             .register_type::<YarnNode>()
-            .add_event::<DialogEvent>()
-            .add_observer(dialog_event_observer)
+            .add_message::<DialogMessage>()
+            .add_observer(dialog_message_observer)
             .add_systems(Update, spawn_dialog_runner.run_if(resource_added::<YarnProject>));
             //.add_systems(Update, read_dialog.run_if(in_state(GameState::Gameplay)));
     }
@@ -43,8 +43,8 @@ fn spawn_dialog_runner(
     commands.spawn(dialog_runner);
 }
 
-fn dialog_event_observer(
-    trigger: Trigger<DialogEvent>,
+fn dialog_message_observer(
+    trigger: On<DialogMessage>,
     //mut dialog_events: EventReader<DialogEvent>,
     mut dialog_runner: Query<&mut DialogueRunner>,
     dialog_caller_query: Query<(Entity, &YarnNode)>,
