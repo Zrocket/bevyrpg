@@ -1,4 +1,4 @@
-use crate::{AmmoPouch, DamageEvent, Player, PlayerCamera};
+use crate::{AmmoPouch, DamageMessage, Player, PlayerCamera};
 use avian3d::prelude::*;
 use bevy::prelude::*;
 
@@ -7,7 +7,7 @@ use super::GameState;
 const GRENADE_SIZE: f32 = 0.1;
 const ROCKET_SIZE: f32 = 0.1;
 
-#[derive(Event)]
+#[derive(Event, Message)]
 pub struct ShootEvent;
 
 #[derive(Debug, Component, Reflect)]
@@ -28,7 +28,8 @@ pub struct Rocket; /*{
 pub struct ShootPlugin;
 impl Plugin for ShootPlugin {
     fn build(&self, app: &mut App) {
-        app.add_event::<ShootEvent>()
+        app
+            .add_message::<ShootEvent>()
             .register_type::<Grenade>()
             .register_type::<Rocket>()
             .register_type::<Cooldown>()
@@ -43,15 +44,15 @@ impl Plugin for ShootPlugin {
 }
 
 pub fn shoot(
-    mut shoot_events: EventReader<ShootEvent>,
-    mut damage_event: EventWriter<DamageEvent>,
+    mut shoot_messages: MessageReader<ShootEvent>,
+    mut damage_message: MessageWriter<DamageMessage>,
     ray_caster: SpatialQuery,
     player: Query<Entity, With<Player>>,
         query: Query<&GlobalTransform, With<Camera>>,
 ) {
-    trace!("Event Handler: shoot");
+    trace!("Message Handler: shoot");
     let player = player.single().unwrap();
-    for _event in shoot_events.read() {
+    for _message in shoot_messages.read() {
         for global_transform in query.iter() {
             let camera_position = global_transform.translation();
             let direction = global_transform.forward();
@@ -68,7 +69,7 @@ pub fn shoot(
                     "SHOOT Entity {:?} hit at point {}",
                     ray_data.entity, hit_point
                 );
-                damage_event.write(DamageEvent {
+                damage_message.write(DamageMessage {
                     target: ray_data.entity,
                     ammount: 10,
                 });
@@ -85,7 +86,7 @@ pub fn grenade_fuse(
     for (entity, mut grenade) in grenade_query.iter_mut() {
         grenade.0.tick(time.delta());
 
-        if grenade.0.finished() {
+        if grenade.0.is_finished() {
             commands.entity(entity).despawn();
         }
     }
@@ -93,13 +94,13 @@ pub fn grenade_fuse(
 
 pub fn shoot_grenade(
     mut commands: Commands,
-    mut shoot_events: EventReader<ShootEvent>,
+    mut shoot_messages: MessageReader<ShootEvent>,
     camera_transform_query: Query<&GlobalTransform, With<PlayerCamera>>,
     mut meshes: ResMut<Assets<Mesh>>,
     mut materials: ResMut<Assets<StandardMaterial>>,
 ) {
-    trace!("Event Handler: shoot_grenade");
-    for _event in shoot_events.read() {
+    trace!("Message Handler: shoot_grenade");
+    for _message in shoot_messages.read() {
         for global_transform in camera_transform_query.iter() {
             let camera_position = global_transform.translation();
             let grenade_position = camera_position + (global_transform.forward() * 3.);
@@ -123,15 +124,15 @@ pub fn shoot_grenade(
 
 pub fn shoot_rocket(
     mut commands: Commands,
-    mut shoot_events: EventReader<ShootEvent>,
-    mut _damage_event: EventWriter<DamageEvent>,
+    mut shoot_messages: MessageReader<ShootEvent>,
+    mut _damage_message: MessageWriter<DamageMessage>,
     mut player_query: Query<&mut AmmoPouch, With<Player>>,
     camera_transform_query: Query<&GlobalTransform, With<PlayerCamera>>,
     mut meshes: ResMut<Assets<Mesh>>,
     mut materials: ResMut<Assets<StandardMaterial>>,
 ) {
-    trace!("Event Handler: shoot_rocket");
-    for _event in shoot_events.read() {
+    trace!("Message Handler: shoot_rocket");
+    for _message in shoot_messages.read() {
         if let Ok(mut player_ammo) = player_query.single_mut() && player_ammo.0 > 0 {
             player_ammo.0 -= 1;
             println!("player_ammo: {:?}", player_ammo);
@@ -161,7 +162,7 @@ pub fn shoot_rocket(
 }
 
 pub fn explode_rocket(
-    trigger: Trigger<OnCollisionStart>,
+    trigger: On<CollisionStart>,
     mut commands: Commands,
 ) {
     commands.entity(trigger.observer()).despawn();

@@ -1,43 +1,48 @@
 use bevy::prelude::*;
 use avian_pickup::prelude::*;
 
-#[bevy_trait_query::queryable]
-pub trait Interaction {
-    fn interact( &self,
-        commands: &mut Commands,
-        entity: Entity,
-        prop: Entity,
-    );
-}
+#[derive(Component)]
+pub struct Interactable;
 
-#[bevy_trait_query::queryable]
-pub trait Inspectable {
-    fn inspect( &self,
-        commands: &mut Commands,
-        entity: Entity,
-        prop: Entity,
-    );
-}
-
-#[derive(Event)]
-pub struct InteractEvent {
+#[derive(EntityEvent)]
+pub struct InteractionEvent {
+    pub entity: Entity,
     pub actor: Entity,
-    pub target: Entity,
 }
 
-#[derive(Event)]
+#[derive(EntityEvent)]
 pub struct InspectEvent {
+    pub entity: Entity,
     pub actor: Entity,
-    pub target: Entity,
 }
+
+#[derive(EntityEvent)]
+pub struct EquiptEvent {
+    pub entity: Entity,
+    pub actor: Entity,
+}
+
+#[derive(EntityEvent)]
+pub struct UseEvent {
+    pub entity: Entity,
+    pub actor: Entity,
+}
+
+#[derive(EntityEvent)]
+pub struct DropEvent {
+    pub entity: Entity,
+    pub actor: Entity,
+}
+
+#[derive(Message)]
+pub struct UnInspectMessage;
 
 pub struct InteractPlugin;
 impl Plugin for InteractPlugin {
     fn build(&self, app: &mut App) {
         trace!("InteractPlugin build");
-        app.add_plugins(AvianPickupPlugin::default())
-            .add_event::<InteractEvent>()
-            .add_event::<InspectEvent>();
+        app
+            .add_plugins(AvianPickupPlugin::default())
+            .add_message::<UnInspectMessage>();
     }
 }
-

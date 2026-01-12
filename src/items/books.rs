@@ -1,36 +1,58 @@
-use bevy::prelude::*;
+use bevy::{ecs::{lifecycle::HookContext, world::DeferredWorld}, prelude::*};
 
-use crate::{interact::Interaction, InteractEvent};
+use crate::{Interactable, InteractionEvent, UseEvent, book_ui::display_book_ui};
+
+#[derive(EntityEvent)]
+pub struct OpenBookEvent {
+    pub entity: Entity,
+}
 
 #[derive(Component, Reflect, Default, Clone, Debug)]
 #[reflect(Component)]
+#[component(on_add = on_book_add)]
 pub struct Book {
     pub title: String,
     pub contents: String,
 }
 
-impl Interaction for Book {
-    fn interact(
-        &self,
-        _commands: &mut Commands,
-        _actor: Entity,
-        _prop: Entity,
-    ) {
-    }
+#[derive(Component, Reflect, Default, Clone, Debug)]
+#[reflect(Component)]
+pub struct BookPages {
+    pub pages: Vec<String>,
 }
 
 pub struct BookPlugin;
 
 impl Plugin for BookPlugin {
     fn build(&self, app: &mut App) {
-        app.register_type::<Book>()
-            .add_observer(book_event_observer);
+        app.register_type::<Book>();
     }
 }
 
-fn book_event_observer(
-    trigger: Trigger<InteractEvent, Book>
+fn on_book_add(
+    mut world: DeferredWorld,
+    context: HookContext,
 ) {
-    let _player = trigger.event().actor;
-    let _book = trigger.target();
+    trace!("HOOK: on_book_add");
+    world.commands()
+        .entity(context.entity)
+        .observe(book_interaction_observer)
+        .insert(Interactable)
+        .observe(display_book_ui);
+}
+
+fn book_interaction_observer(
+    trigger: On<InteractionEvent>,
+    mut commands: Commands,
+) {
+    trace!("OBSERVER: book_interaction_observer");
+    commands.entity(trigger.entity).trigger(|entity| OpenBookEvent { entity });
+}
+
+fn book_use_observer(
+    trigger: On<UseEvent>,
+    mut commands: Commands,
+) {
+    trace!("OBSERVER: book_use_observer");
+    commands.entity(trigger.entity).trigger(|entity| OpenBookEvent { entity });
 }

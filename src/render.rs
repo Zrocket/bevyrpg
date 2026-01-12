@@ -1,10 +1,10 @@
 use bevy::prelude::*;
 use avian3d::collision::collider::Collider;
 
-use crate::{GameState, PlayerController};
+use crate::PlayerController;
 
-pub const RESOLUTION_HEIGHT: f32 = 720.0;
-pub const RESOLUTION_WIDTH: f32 = 1280.0;
+pub const RESOLUTION_HEIGHT: u32 = 720;
+pub const RESOLUTION_WIDTH: u32 = 1280;
 
 #[derive(Component)]
 pub struct CameraConfig {
@@ -22,13 +22,15 @@ impl Plugin for GameRenderPlugin {
         info!("GameRenderPlugin build");
         app.add_systems(
             Update,
-            player_controller_render.run_if(in_state(GameState::Gameplay)),
+            //player_controller_render.run_if(in_state(GameState::Gameplay)),
+            player_controller_render
         );
     }
 }
 
 pub fn player_controller_render(
-    mut render_query: Query<(&mut Transform, &RenderPlayer), With<RenderPlayer>>,
+    //mut render_query: Query<(&mut Transform, &RenderPlayer), With<RenderPlayer>>,
+    mut render_query: Query<(&mut Transform, &RenderPlayer)>,
     logical_query: Query<
         (&Transform, &Collider, &PlayerController, &CameraConfig),
         Without<RenderPlayer>,

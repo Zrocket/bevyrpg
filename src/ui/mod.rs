@@ -1,23 +1,37 @@
+use crate::{widgets::{anchored::AnchoredUiPlugin, floating_window_ordering::FloatingWindowOrderingPlugin, floating_windows::FloatingWindowPlugin}};
+
 use super::*;
 
-mod crosshair;
-mod inventory_ui;
-mod status_bar;
+pub mod book_ui;
+pub mod crosshair;
+pub mod equip_ui;
+pub mod inventory_ui;
+pub mod status_bar;
 //mod dialog_ui;
-mod settings;
+pub mod widgets;
+pub mod menu;
+pub mod palette;
+pub mod inspect;
+pub mod start_menu;
+pub mod game_over;
+pub mod stats_ui;
 
 use bevy_simple_text_input::TextInputPlugin;
-use jonmo::prelude::*;
 use crosshair::*;
-use inventory_ui::*;
+pub use equip_ui::*;
+pub use inventory_ui::*;
 use status_bar::*;
 //use dialog_ui::*;
-pub use settings::*;
+pub use menu::*;
+pub use inspect::*;
+pub use start_menu::*;
+pub use game_over::*;
+pub use stats_ui::*;
 
 
 #[derive(AssetCollection, Resource, Reflect, Debug)]
 #[reflect(Resource)]
-pub struct DA_UiAssets {
+pub struct DAUiAssets {
     #[asset(key = "health_1")]
     health_1: Handle<Image>,
     #[asset(key = "health_2")]
@@ -41,42 +55,29 @@ pub struct UiEntity(pub Entity);
 #[derive(Component, Reflect)]
 pub struct UiConsole;
 
-#[derive(Component, Reflect)]
-pub struct UiCrosshair;
-
-#[derive(Component, Reflect)]
-pub struct UiStatus;
-
-#[derive(Component, Reflect)]
-pub struct UiInventory;
-
 pub struct UiPlugin;
 impl Plugin for UiPlugin {
     fn build(&self, app: &mut App) {
         app
             .add_plugins(TextInputPlugin)
-            .add_plugins(JonmoPlugin)
-            .register_type::<DA_UiAssets>()
+            .register_type::<DAUiAssets>()
             .add_plugins((
+                    AnchoredUiPlugin,
                     StatusUIPlugin,
+                    InspectUiPlugin,
                     InventoryUIPlugin,
                     CrosshairPlugin,
                     MenuUiPlugin,
+                    GameOverUiPlugin,
+                    StartMenuUiPlugin,
+                    FloatingWindowPlugin,
+                    FloatingWindowOrderingPlugin,
+                    EquipUiPlugin,
             ))
-            //.add_systems(OnEnter(GameState::Gameplay), (
-                    //draw_inventory_ui,
-                    //jonmo_draw_inventory_ui,
-                    //draw_status_ui,
-                    //jonmo_draw_status_ui,
-                    //draw_crosshair,
-                    //jonmo_draw_crosshair,
-                    //draw_menu_ui,
-            //        jonmo_draw_menu_ui,
-            //))
             .add_loading_state(
                 LoadingState::new(GameState::Preload)
                     .with_dynamic_assets_file::<StandardDynamicAssetCollection>("uiassets.ron")
-                    .load_collection::<DA_UiAssets>()
+                    .load_collection::<DAUiAssets>()
             );
     }
 }
