@@ -1,11 +1,11 @@
 use avian3d::prelude::{CollidingEntities, CollisionEnd, CollisionEventsEnabled, CollisionStart};
 use bevy::{ecs::{lifecycle::HookContext, world::DeferredWorld}, prelude::*};
 
-use crate::{Player, PlayerState, level::BlenderTranslationComplete};
+use crate::{Climbable, Player, PlayerState, level::BlenderTranslationComplete};
 
 #[derive(Debug, Default, Component, Reflect)]
 #[reflect(Component)]
-#[component(on_add = on_ladder_add)]
+//#[component(on_add = on_ladder_add)]
 pub struct LadderComponent;
 
 pub struct LadderPlugin;
@@ -19,6 +19,7 @@ fn on_ladder_add(
     mut world: DeferredWorld,
     context: HookContext,
 ) {
+    println!("QQQQQQQQQQQQQQQQq");
     world.commands()
         .entity(context.entity)
         .queue_silenced(|mut entity: EntityWorldMut| {
@@ -26,6 +27,7 @@ fn on_ladder_add(
                 .insert(CollidingEntities::default())
                 .insert(CollisionEventsEnabled)
                 .insert(BlenderTranslationComplete)
+                .insert(Climbable)
                 .observe(ladder_collision_observer)
                 .observe(ladder_decollision_observer);
         });

@@ -3,7 +3,7 @@ use avian_pickup::actor::{AvianPickupActor, AvianPickupActorHoldConfig};
 use bevy::{camera::Exposure, core_pipeline::tonemapping::Tonemapping, input::common_conditions::input_just_pressed, pbr::{Atmosphere, AtmosphereSettings}, post_process::bloom::Bloom, prelude::*, render::view::Hdr};
 use bevy_egui::PrimaryEguiContext;
 use bevy_flycam::{FlyCam, NoCameraPlayerPlugin};
-use bevy_tnua::{TnuaConfig, TnuaObstacleRadar, builtins::{TnuaBuiltinCrouchConfig, TnuaBuiltinDashConfig, TnuaBuiltinJumpConfig, TnuaBuiltinWalkConfig}, control_helpers::{TnuaBlipReuseAvoidance, TnuaSimpleAirActionsCounter}, prelude::TnuaController};
+use bevy_tnua::{TnuaConfig, TnuaObstacleRadar, builtins::{TnuaBuiltinClimbConfig, TnuaBuiltinCrouchConfig, TnuaBuiltinDashConfig, TnuaBuiltinJumpConfig, TnuaBuiltinWalkConfig, TnuaBuiltinWallSlideConfig}, control_helpers::{TnuaBlipReuseAvoidance, TnuaSimpleAirActionsCounter}, prelude::TnuaController};
 use bevy_tnua_avian3d::TnuaAvian3dSensorShape;
 use leafwing_input_manager::prelude::InputMap;
 
@@ -183,7 +183,23 @@ fn spawn_player_observer(
                         dash: TnuaBuiltinDashConfig {
                             horizontal_distance: 5.0,
                             ..default()
-                        }
+                        },
+                        knockback: Default::default(),
+                        wall_slide: TnuaBuiltinWallSlideConfig {
+                            maintain_distance: Some(0.7),
+                            ..default()
+                        },
+                        wall_jump: TnuaBuiltinJumpConfig {
+                            height: 4.0,
+                            takeoff_extra_gravity: 90.0, // 3 times the default
+                            takeoff_above_velocity: 0.0,
+                            horizontal_distance: 2.0,
+                            ..default()
+                        },
+                        climb: TnuaBuiltinClimbConfig {
+                            climb_speed: 10.0,
+                            ..default()
+                        },
                     })),
                     TnuaAvian3dSensorShape(Collider::capsule(0.1, 0.5)),
                     FloatHeight(1.5),
@@ -191,7 +207,7 @@ fn spawn_player_observer(
                 (CollisionLayers::new(CollisionLayer::Player, LayerMask::ALL),),
             ))
             .insert((Walk::default(), input_map))
-            //.insert(TnuaSimpleAirActionsCounter::default())
+            .insert(TnuaSimpleAirActionsCounter::<PlayerControlScheme>::default())
             .insert(AvianPickupActor {
                 prop_filter: SpatialQueryFilter::from_mask(CollisionLayer::Prop),
                 actor_filter: SpatialQueryFilter::from_mask(CollisionLayer::Player),
@@ -207,7 +223,7 @@ fn spawn_player_observer(
             .insert(Name::new("Player"))
             .insert(PlayerState::Grounded)
             .insert(TnuaObstacleRadar::new(1.0, 3.0))
-            //.insert(TnuaBlipReuseAvoidance::default())
+            .insert(TnuaBlipReuseAvoidance::<PlayerControlScheme>::default())
             .insert(PlayerControllerConfig::default())
             .observe(player_death_event_observer)
             .observe(add_to_inventory_observer::<Player>)
