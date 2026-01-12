@@ -1,4 +1,4 @@
-use bevy::prelude::*;
+use bevy::{ecs::query::QueryData, prelude::*};
 
 mod chair;
 mod computer;
@@ -11,6 +11,14 @@ pub use computer::*;
 pub use door::*;
 pub use ladder::*;
 pub use lever::*;
+
+#[derive(QueryData)]
+pub struct ObstacleQueryHelper {
+    pub climbable: Has<Climbable>,
+}
+
+#[derive(Component)]
+pub struct Climbable;
 
 pub struct FurniturePlugin;
 impl Plugin for FurniturePlugin {
