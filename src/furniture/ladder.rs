@@ -1,10 +1,11 @@
-use avian3d::prelude::{OnCollisionEnd, OnCollisionStart};
-use bevy::prelude::*;
+use avian3d::prelude::{CollidingEntities, CollisionEnd, CollisionEventsEnabled, CollisionStart};
+use bevy::{ecs::{lifecycle::HookContext, world::DeferredWorld}, prelude::*};
 
-use crate::{Player, PlayerState};
+use crate::{Climbable, Player, PlayerState, level::BlenderTranslationComplete};
 
 #[derive(Debug, Default, Component, Reflect)]
 #[reflect(Component)]
+//#[component(on_add = on_ladder_add)]
 pub struct LadderComponent;
 
 pub struct LadderPlugin;
@@ -14,20 +15,40 @@ impl Plugin for LadderPlugin {
     }
 }
 
+fn on_ladder_add(
+    mut world: DeferredWorld,
+    context: HookContext,
+) {
+    println!("QQQQQQQQQQQQQQQQq");
+    world.commands()
+        .entity(context.entity)
+        .queue_silenced(|mut entity: EntityWorldMut| {
+            entity
+                .insert(CollidingEntities::default())
+                .insert(CollisionEventsEnabled)
+                .insert(BlenderTranslationComplete)
+                .insert(Climbable)
+                .observe(ladder_collision_observer)
+                .observe(ladder_decollision_observer);
+        });
+}
+
 pub fn ladder_collision_observer(
-    trigger: Trigger<OnCollisionStart>,
+    trigger: On<CollisionStart>,
     mut player_query: Query<&mut PlayerState, With<Player>>,
 ) {
-    if player_query.contains(trigger.collider) && let Ok(mut player) = player_query.single_mut() {
-        *player = PlayerState::Ladder(trigger.body.unwrap());
+    trace!("OBSERVER: ladder_collision_observer");
+    if player_query.contains(trigger.event().collider2) && let Ok(mut player) = player_query.single_mut() {
+        *player = PlayerState::Ladder(trigger.event().body1.unwrap());
     }
 }
 
 pub fn ladder_decollision_observer(
-    trigger: Trigger<OnCollisionEnd>,
+    trigger: On<CollisionEnd>,
     mut player_query: Query<&mut PlayerState, With<Player>>,
 ) {
-    if player_query.contains(trigger.collider) && let Ok(mut player) = player_query.single_mut() {
+    trace!("OBSERVER: ladder_decollision_observer");
+    if player_query.contains(trigger.event().collider2) && let Ok(mut player) = player_query.single_mut() {
         *player = PlayerState::Grounded;
     }
 }

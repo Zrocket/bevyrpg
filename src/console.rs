@@ -1,6 +1,9 @@
+use avian3d::prelude::GravityScale;
 use bevy::prelude::*;
-use bevy_console::{ConsolePlugin, ConsoleConfiguration, reply, ConsoleCommand, PrintConsoleLine};
+use bevy_console::{AddConsoleCommand, ConsoleCommand, ConsoleConfiguration, ConsolePlugin, PrintConsoleLine, reply};
 use clap::Parser;
+
+use crate::{Player, level::ChangeLevelMessage};
 
 /// Prints given arguments to the console
 #[derive(Parser, ConsoleCommand)]
@@ -64,7 +67,7 @@ struct SpeedCommand {
 #[derive(Parser, ConsoleCommand)]
 #[command(name = "gravity")]
 struct GravityCommand {
-    value: u8,
+    value: f32,
 }
 
 #[derive(Parser, ConsoleCommand)]
@@ -123,6 +126,13 @@ struct EventCommand {
     event: String,
 }
 
+/// Loads the specified level
+#[derive(Parser, ConsoleCommand)]
+#[command(name = "level")]
+struct LevelCommand {
+    level: String,
+}
+
 pub struct MyConsolePlugin;
 impl Plugin for MyConsolePlugin {
     fn build(&self, app: &mut App) {
@@ -131,9 +141,11 @@ impl Plugin for MyConsolePlugin {
             .insert_resource(ConsoleConfiguration {
                 // override config here
                 ..Default::default()
-            });
+            })
             //.add_console_command::<ExampleCommand, _>(example_command)
-            //.add_console_command::<LogCommand, _>(log_command);
+            //.add_console_command::<LogCommand, _>(log_command)
+            .add_console_command::<GravityCommand, _>(gravity_command)
+            .add_console_command::<LevelCommand, _>(level_command);
             //.add_systems(Update, write_to_console.after(ConsoleSet::ConsoleUI));
     }
 }
@@ -158,6 +170,24 @@ fn log_command(mut log: ConsoleCommand<LogCommand>) {
     }
 }
 
-fn _write_to_console(mut console_line: EventWriter<PrintConsoleLine>) {
+fn gravity_command(
+    mut console_command: ConsoleCommand<GravityCommand>,
+    mut player_gravity_query: Query<&mut GravityScale, With<Player>>,
+) {
+    if let Some(Ok(GravityCommand { value })) = console_command.take()  && let Ok(mut player_gravity) = player_gravity_query.single_mut() {
+        player_gravity.0 = value;
+    }
+}
+
+fn level_command(
+    mut console_command: ConsoleCommand<LevelCommand>,
+    mut change_level_message_writer: MessageWriter<ChangeLevelMessage>,
+) {
+    if let Some(Ok(LevelCommand { level })) = console_command.take() {
+        change_level_message_writer.write(ChangeLevelMessage(level));
+    }
+}
+
+fn _write_to_console(mut console_line: MessageWriter<PrintConsoleLine>) {
     console_line.write(PrintConsoleLine::new("Hello".into()));
 }

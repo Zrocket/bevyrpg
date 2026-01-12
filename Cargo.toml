@@ -8,38 +8,58 @@ edition = "2024"
 [dependencies]
 anyhow = "1.0.98"
 #bevy = { version = "0.15.0", features = ["jpeg"] }
-bevy = { version = "0.16.0", default-features = false, features = [
-    "jpeg",
-    "animation",
-    "bevy_asset",
-    "bevy_color",
-    "bevy_core_pipeline",
-    "bevy_gilrs",
-    "bevy_gizmos",
-    "bevy_gltf",
-    "bevy_mesh_picking_backend",
-    "bevy_pbr",
-    "bevy_picking",
-    "bevy_render",
-    "bevy_scene",
-    "bevy_sprite",
-    "bevy_sprite_picking_backend",
-    "bevy_state",
-    "bevy_text",
-    "bevy_ui",
-    "bevy_ui_picking_backend",
-    "bevy_window",
-    "bevy_winit",
-    "custom_cursor",
-    "default_font",
-    "hdr",
-    "multi_threaded",
-    "png",
-    "smaa_luts",
-    "sysinfo_plugin",
-    "tonemapping_luts",
-    "webgl2",
-    "x11",
+bevy = { version = "0.17", default-features = false, features = [
+  "std",
+  "async_executor",
+  "android-game-activity",
+  "android_shared_stdcxx",
+  "animation",
+  "bevy_asset",
+  "bevy_color",
+  "bevy_core_pipeline",
+  "bevy_post_process",
+  "bevy_anti_alias",
+  "bevy_gilrs",
+  "bevy_gizmos",
+  "bevy_gltf",
+  "bevy_input_focus",
+  "bevy_log",
+  "bevy_mesh_picking_backend",
+  "bevy_pbr",
+  "bevy_picking",
+  "bevy_render",
+  "bevy_scene",
+  "bevy_image",
+  "experimental_bevy_feathers",
+  "bevy_mesh",
+  "bevy_camera",
+  "bevy_light",
+  "bevy_shader",
+  "bevy_sprite",
+  "bevy_sprite_picking_backend",
+  "bevy_sprite_render",
+  "bevy_state",
+  "bevy_text",
+  "bevy_ui",
+  "bevy_ui_picking_backend",
+  "bevy_ui_render",
+  "bevy_window",
+  "bevy_winit",
+  "custom_cursor",
+  "default_font",
+  "hdr",
+  "ktx2",
+  "multi_threaded",
+  "png",
+  "reflect_auto_register",
+  "smaa_luts",
+  "sysinfo_plugin",
+  "tonemapping_luts",
+  "webgl2",
+  "x11",
+  "wayland",
+  "debug",
+  "zstd_rust",
 ] }
 clap = { version = "*", features = ["derive"] }
 lazy_static = "*"
@@ -54,37 +74,43 @@ nom = "*"
 #
 #bevy_mod_picking = "*"
 #bevy_mod_ui_texture_atlas_image = "0.4.1"
-# bevy 0.16 ready
-oxidized_navigation = { git = "https://github.com/janhohenheim/oxidized_navigation.git", branch = "bevy-0.16", default-features = false, features = ["debug_draw", "avian"] }
-jonmo = "0.2.2"
-bevy_seedling = "0.5.5"
-
-soft_ratatui = { git = "https://github.com/gold-silver-copper/soft_ratatui.git" }
-ratatui = { version = "0.29.0", default-features = false }
 
 # bevy 0.17 in progress
-bevy_sprite3d = "5.0"
-bevy_yarnspinner = "0.5"
-bevy_yarnspinner_example_dialogue_view = "0.5.0"
+bevy_yarnspinner = "0.6"
+bevy_yarnspinner_example_dialogue_view = "0.6.0"
+bevy_asset_loader = {version = "0.24.0-rc.1", features = ["2d", "standard_dynamic_assets"]}
 
 # bevy 0.17 ready
-bevy_atmosphere = "0.13"
-bevy-tnua-physics-integration-layer = "0.8"
-bevy-tnua-avian3d = "0.5.0"
-bevy-tnua = "0.24"
-big-brain = "0.22.0"
-moonshine-kind = "0.2.3"
-bevy_console = { git = "https://github.com/Katsutoshii/bevy-console.git", branch = "bevy-0.16.0" }
-bevy_asset_loader = {version = "0.23", features = ["2d", "standard_dynamic_assets"]}
-bevy-yoleck = "0.26"
-bevy-inspector-egui = "0.31"
-bevy_egui = "0.34"
-avian_pickup = "0.2"
-leafwing-input-manager = "0.17"
-avian3d = { version = "0.3.0", features = ["collider-from-mesh"] }
-bevy_skein = "0.2.1"
-bevy_simple_text_input = "0.11"
-bevy-trait-query = "0.16"
+bevy_seedling = "0.6"
+soft_ratatui = { git = "https://github.com/gold-silver-copper/soft_ratatui.git", branch ="togit", features = ["embedded-graphics", "unicodefonts"] }
+ratatui = { version = "0.30.0", default-features = false }
+avian_pickup = "0.3"
+#bevy-tnua-avian3d = "0.7"
+bevy-tnua-avian3d = "0.9"
+bevy-tnua = "0.28"
+#bevy-tnua-physics-integration-layer = "0.10"
+bevy-tnua-physics-integration-layer = "0.11"
+avian3d = { version = "0.4", features = ["collider-from-mesh"] }
+bevy_sprite3d = "7.0"
+big-brain = { git = "https://codeberg.org/zkat/big-brain.git" }
+moonshine-kind = "0.4.1"
+bevy_egui = "0.38"
+bevy_console = { git = "https://github.com/Zrocket/bevy-console.git" }
+bevy-yoleck = "0.29"
+bevy-inspector-egui = "0.35"
+bevy_simple_text_input = "0.12"
+leafwing-input-manager = "0.18"
+bevy_skein = "0.4"
+bevy_rerecast = "0.3.0"
+polyanya = "0.15.1"
+avian_rerecast = "0.3.0"
+bevy_sun_move = { git = "https://github.com/GuillaumeDelorme/bevy_sun_move", branch = "bevy-0.17-update" }
+itertools = "0.14.0"
+tracing = "0.1.43"
+landmass = "0.9.1"
+bevy_landmass = "0.10.0"
+landmass_rerecast = "0.1.0"
+bevy_flycam = "0.17.0"
 
 [profile.dev]
 opt-level=3

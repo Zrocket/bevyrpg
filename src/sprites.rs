@@ -3,7 +3,6 @@ use std::time::Duration;
 use bevy::prelude::*;
 use bevy_sprite3d::*;
 
-use bevy_trait_query::RegisterExt;
 use rand::Rng;
 
 use crate::*;
@@ -17,21 +16,18 @@ pub struct SpriteBundle {
 
 #[derive(Component)]
 pub struct Talkable;
-impl interact::Interaction for Talkable {
+/*impl interact::Interaction for Talkable {
     fn interact(&self,commands: &mut Commands, _entity:Entity, prop:Entity,) {
         println!("Talkable Interaction Impl");
-        commands.trigger_targets(DialogEvent {actor:prop}, prop);
+        commands.trigger(DialogEvent {actor:prop}, prop);
     }
-}
-impl Inspectable for Talkable {
-    fn inspect(
-        &self,
-        commands: &mut Commands,
-        actor: Entity,
-        prop: Entity,
-    ) {
-        println!("Talkable Inspectable Impl");
-    }
+}*/
+
+fn sprite_interaction_observer(
+    trigger: On<InteractionEvent>,
+    mut commands: Commands,
+) {
+    commands.trigger(DialogMessage { actor: trigger.entity });
 }
 
 #[derive(Component, Clone, Hash, Debug, Eq, PartialEq, Default)]
@@ -41,7 +37,7 @@ pub enum SpriteType {
     Item,
 }
 
-#[derive(AssetCollection, Resource)]
+ #[derive(AssetCollection, Resource, Default)]
 pub struct ImageAssets {
     #[asset(texture_atlas(
         tile_size_x = 16,
@@ -53,9 +49,9 @@ pub struct ImageAssets {
         offset_x = 0,
         offset_y = 0
     ))]
-    pub character_layout: Handle<TextureAtlasLayout>,
+    pub layout: Handle<TextureAtlasLayout>,
     #[asset(path = "character_tileset.png")]
-    pub character_tileset: Handle<Image>,
+    pub image: Handle<Image>,
     #[asset(texture_atlas(
         tile_size_x = 16,
         tile_size_y = 16,
@@ -66,13 +62,13 @@ pub struct ImageAssets {
         offset_x = 5,
         offset_y = 5
     ))]
-    pub layout: Handle<TextureAtlasLayout>,
+    pub layout2: Handle<TextureAtlasLayout>,
     #[asset(path = "tileset_padded.png")]
     pub tileset: Handle<Image>,
 }
 
-#[derive(Event)]
-pub struct SpriteEvent {
+#[derive(Message)]
+pub struct SpriteMessage {
     pub sprite_type: SpriteType,
     pub tile_x: usize,
     pub tile_y: usize,
@@ -96,13 +92,13 @@ pub struct SpritesPlugin;
 impl Plugin for SpritesPlugin {
     fn build(&self, app: &mut App) {
         trace!("SpritesPlugin build");
-        app.add_loading_state(
-            LoadingState::new(GameState::Preload)
-                .load_collection::<ImageAssets>(),
-        )
-        .register_component_as::<dyn interact::Interaction, Talkable>()
-        .register_component_as::<dyn interact::Inspectable, Talkable>();
-        app.add_event::<SpriteEvent>()
+        app
+            .insert_resource(ImageAssets::default())
+            .add_loading_state(
+                LoadingState::new(GameState::Preload)
+                    .load_collection::<ImageAssets>(),
+            )
+            .add_message::<SpriteMessage>()
             .add_systems(Update, sprite_handler.run_if(in_state(GameState::Gameplay)))
             .add_systems(Update, face_camera.run_if(in_state(GameState::Gameplay)))
             .add_systems(
@@ -114,9 +110,9 @@ impl Plugin for SpritesPlugin {
 
 fn sprite_handler(
     mut commands: Commands,
-    mut sprite_events: EventReader<SpriteEvent>,
+    mut sprite_events: MessageReader<SpriteMessage>,
     images: Res<ImageAssets>,
-    mut sprite_params: Sprite3dParams,
+    //mut sprite_params: Sprite3dParams,
 ) {
     trace!("Event Handler: sprite_handler");
     let mut rng = rand::rng();
@@ -132,25 +128,29 @@ fn sprite_handler(
         let mut timer = Timer::from_seconds(0.4, TimerMode::Repeating);
         info!("Timer declared");
         timer.set_elapsed(Duration::from_secs_f32(rng.random_range(0.0..0.4)));
-        atlas.layout = images.character_layout.clone();
+        atlas.layout = images.layout.clone();
         info!("atlas layout decalred");
 
         match event.sprite_type {
             SpriteType::Character => {
                 let atlas = TextureAtlas {
-                    layout: images.character_layout.clone(),
+                    layout: images.layout.clone(),
                     index: event.tile_x,
                 };
 
                 info!("Character Sprite");
                 let mut c = commands.spawn((
-                    Sprite3dBuilder {
-                        image: images.character_tileset.clone(),
+                    Sprite3d {
                         pixels_per_metre: 16.,
                         double_sided: false,
                         ..default()
-                    }
-                    .bundle_with_atlas(&mut sprite_params, atlas),
+                    },
+                    Sprite {
+                        image: images.image.clone(),
+                        texture_atlas: Some(atlas),
+                        ..default()
+                    },
+                    //.bundle_with_atlas(&mut sprite_params, atlas),
                     FaceCamera {},
                     CharacterBundle::default(),
                     Collider::cuboid(0.5, 1., 0.5),
@@ -172,6 +172,7 @@ fn sprite_handler(
                         timer: timer.clone(),
                     });
                 }
+                c.observe(sprite_interaction_observer);
             }
             SpriteType::Item => {
                 let atlas = TextureAtlas {
@@ -181,13 +182,23 @@ fn sprite_handler(
 
                 info!("Item Sprite");
                 let mut c = commands.spawn((
-                    Sprite3dBuilder {
+                    /*Sprite3dBuilder {
                         image: images.tileset.clone(),
                         pixels_per_metre: 16.,
                         double_sided: false,
                         ..default()
-                    }
-                    .bundle_with_atlas(&mut sprite_params, atlas),
+                    }*/
+                        Sprite3d {
+                            pixels_per_metre: 16.,
+                            double_sided: false,
+                            ..default()
+                    },
+                    //.bundle_with_atlas(&mut sprite_params, atlas),
+                    Sprite {
+                        image: images.image.clone(),
+                        texture_atlas: Some(atlas),
+                        ..default()
+                    },
                     FaceCamera {},
                 ));
                 if event.frames > 1 {
@@ -204,7 +215,7 @@ fn sprite_handler(
     }
 }
 
-fn animate_sprites(time: Res<Time>, mut query: Query<(&mut Animation, &mut Sprite3d)>) {
+fn animate_sprites(time: Res<Time>, mut query: Query<(&mut Animation, &mut Sprite)>) {
     trace!("System: animate_sprites");
     for (mut animation, mut sprite) in query.iter_mut() {
         animation.timer.tick(time.delta());
