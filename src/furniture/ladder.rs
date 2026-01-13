@@ -19,18 +19,17 @@ fn on_ladder_add(
     mut world: DeferredWorld,
     context: HookContext,
 ) {
-    println!("QQQQQQQQQQQQQQQQq");
     world.commands()
         .entity(context.entity)
-        .queue_silenced(|mut entity: EntityWorldMut| {
-            entity
+        //.queue_silenced(|mut entity: EntityWorldMut| {
+            //entity
                 .insert(CollidingEntities::default())
                 .insert(CollisionEventsEnabled)
                 .insert(BlenderTranslationComplete)
                 .insert(Climbable)
                 .observe(ladder_collision_observer)
                 .observe(ladder_decollision_observer);
-        });
+       // });
 }
 
 pub fn ladder_collision_observer(
