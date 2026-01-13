@@ -1,4 +1,4 @@
-use crate::{AmmoPouch, DamageMessage, Player, PlayerCamera};
+use crate::{AmmoPouch, DamageEvent, Player, PlayerCamera};
 use avian3d::prelude::*;
 use bevy::prelude::*;
 
@@ -44,8 +44,9 @@ impl Plugin for ShootPlugin {
 }
 
 pub fn shoot(
+    mut commands: Commands,
     mut shoot_messages: MessageReader<ShootEvent>,
-    mut damage_message: MessageWriter<DamageMessage>,
+    //mut damage_message: MessageWriter<DamageMessage>,
     ray_caster: SpatialQuery,
     player: Query<Entity, With<Player>>,
         query: Query<&GlobalTransform, With<Camera>>,
@@ -69,10 +70,11 @@ pub fn shoot(
                     "SHOOT Entity {:?} hit at point {}",
                     ray_data.entity, hit_point
                 );
-                damage_message.write(DamageMessage {
+                commands.entity(ray_data.entity).trigger(|entity| DamageEvent { entity, ammount: 10 });
+                /*damage_message.write(DamageMessage {
                     target: ray_data.entity,
                     ammount: 10,
-                });
+                });*/
             }
         }
     }
@@ -125,7 +127,6 @@ pub fn shoot_grenade(
 pub fn shoot_rocket(
     mut commands: Commands,
     mut shoot_messages: MessageReader<ShootEvent>,
-    mut _damage_message: MessageWriter<DamageMessage>,
     mut player_query: Query<&mut AmmoPouch, With<Player>>,
     camera_transform_query: Query<&GlobalTransform, With<PlayerCamera>>,
     mut meshes: ResMut<Assets<Mesh>>,
@@ -165,5 +166,6 @@ pub fn explode_rocket(
     trigger: On<CollisionStart>,
     mut commands: Commands,
 ) {
-    commands.entity(trigger.observer()).despawn();
+    commands.entity(trigger.event().collider2).trigger(|entity| DamageEvent { entity, ammount: 10 });
+    commands.entity(trigger.event().collider1).despawn();
 }

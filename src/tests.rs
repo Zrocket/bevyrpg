@@ -1,7 +1,7 @@
 use bevy::{input::common_conditions::input_just_pressed, prelude::*};
 use bevy_asset_loader::dynamic_asset::DynamicAssetCollections;
 
-use crate::{AddToInventoryEvent, DamageMessage, Description, DisplayEquipEvent, Equiptable, GameState, Health, Item, Player, RemoveMessage, widgets::floating_windows::floating_window_root };
+use crate::{AddToInventoryEvent, DamageEvent, Description, DisplayEquipEvent, Equiptable, GameState, Health, Item, Player, RemoveMessage, widgets::floating_windows::floating_window_root };
 use super::Weight;
 
 pub struct TestsPlugin;
@@ -37,17 +37,19 @@ fn _dynamic_asset_test(
 }
 
 fn health_test(
+    mut commands: Commands,
     key: Res<ButtonInput<KeyCode>>,
     mut player: Query<(Entity, &Health), With<Player>>,
-    mut damage_event_writer: MessageWriter<DamageMessage>,
+    //mut damage_event_writer: MessageWriter<DamageMessage>,
 ) {
     trace!("SYSTEM: health_test");
     if let Ok((player_entity, _player)) = player.single_mut()
     && key.just_pressed(KeyCode::KeyK) {
-            damage_event_writer.write(DamageMessage {
+        commands.entity(player_entity).trigger(|entity| DamageEvent { entity, ammount: 5 });
+            /*damage_event_writer.write(DamageMessage {
                 target: player_entity,
                 ammount: 5,
-            });
+            });*/
     }
 }
 
