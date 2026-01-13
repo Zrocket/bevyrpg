@@ -4,7 +4,7 @@ use bevy_sun_move::{SkyCenter, SunMovePlugin, TimedSkyConfig, random_stars::{Ran
 use super::GameState;
 use crate::{Climbable, LadderComponent, MiscItem, Obstacle, ladder_collision_observer, ladder_decollision_observer};
 use avian3d::{prelude::{ColliderConstructor, CollidingEntities, CollisionEventsEnabled, CollisionLayers, LayerMask, PhysicsLayer, RigidBody}};
-use bevy::{gltf::Gltf, prelude::*};
+use bevy::{ecs::{lifecycle::HookContext, world::DeferredWorld}, gltf::Gltf, prelude::*};
 #[derive(Debug, PhysicsLayer, Default, Component, Reflect)]
 #[reflect(Component)]
 pub enum CollisionLayer {
@@ -34,6 +34,7 @@ pub struct BlenderCollider;
 
 #[derive(Debug, Default, Component, Reflect)]
 #[reflect(Component)]
+#[component(on_add = on_blender_prop_add)]
 pub struct BlenderProp;
 
 #[derive(Debug, Default, Component, Reflect)]
@@ -44,6 +45,7 @@ pub struct BlenderBoxCollider {
 
 #[derive(Debug, Default, Clone, Component, Reflect)]
 #[reflect(Component)]
+//#[component(on_add = on_blender_collider_constructor_add)]
 pub struct BlenderColliderConstructor;
 
 #[derive(Debug, Default, Component, Reflect)]
@@ -181,6 +183,37 @@ fn change_level_message_handler(
     }
 }
 
+fn on_blender_prop_add(
+    mut world: DeferredWorld,
+    context: HookContext,
+) {
+    world.commands()
+        .entity(context.entity)
+        .queue_silenced(|mut entity: EntityWorldMut| {
+            entity
+                .insert(CollisionLayers::new(CollisionLayer::Prop, LayerMask::ALL))
+                .insert(RigidBody::Dynamic)
+                .insert(MiscItem)
+                .insert(ColliderConstructor::ConvexHullFromMesh)
+                .insert(BlenderTranslationComplete);
+        });
+}
+
+fn on_blender_collider_constructor_add(
+    mut world: DeferredWorld,
+    context: HookContext,
+) {
+    world.commands()
+        .entity(context.entity)
+        .queue_silenced(|mut entity: EntityWorldMut| {
+            entity
+                .insert(RigidBody::Static)
+                .insert(Obstacle)
+                .insert(ColliderConstructor::ConvexHullFromMesh)
+                .insert(BlenderTranslationComplete);
+        });
+}
+
 fn translate_components(
     mut commands: Commands,
     prop_query: Query<Entity, (With<BlenderProp>, Without<BlenderTranslationComplete>)>,
@@ -194,7 +227,7 @@ fn translate_components(
     //    return;
    // }
 
-    for entity in prop_query.iter() {
+    /*for entity in prop_query.iter() {
         commands
             .entity(entity)
             .queue_silenced(|mut entity: EntityWorldMut| {
@@ -205,7 +238,7 @@ fn translate_components(
                     .insert(ColliderConstructor::ConvexHullFromMesh)
                     .insert(BlenderTranslationComplete);
             });
-    }
+    }*/
     for entity in collider_query.iter() {
         commands.entity(entity)
             .queue_silenced(|mut entity: EntityWorldMut| {
