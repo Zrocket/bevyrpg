@@ -46,7 +46,6 @@ impl Plugin for ShootPlugin {
 pub fn shoot(
     mut commands: Commands,
     mut shoot_messages: MessageReader<ShootEvent>,
-    //mut damage_message: MessageWriter<DamageMessage>,
     ray_caster: SpatialQuery,
     player: Query<Entity, With<Player>>,
         query: Query<&GlobalTransform, With<Camera>>,
@@ -71,10 +70,6 @@ pub fn shoot(
                     ray_data.entity, hit_point
                 );
                 commands.entity(ray_data.entity).trigger(|entity| DamageEvent { entity, ammount: 10 });
-                /*damage_message.write(DamageMessage {
-                    target: ray_data.entity,
-                    ammount: 10,
-                });*/
             }
         }
     }

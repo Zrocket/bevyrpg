@@ -11,6 +11,9 @@ pub enum AmmoType {
 #[derive(Debug, Clone, Component,  Reflect, Default)]
 #[reflect(Component)]
 #[component(on_add = on_ammo_add)]
+#[require(
+    Interactable,
+)]
 pub struct Ammo;
 
 #[derive(Debug, Clone, Component,  Reflect, Default)]
@@ -34,8 +37,7 @@ fn on_ammo_add(
     world.commands()
         .entity(context.entity)
         .observe(ammo_interaction_observer)
-        .observe(ammo_use_observer)
-        .insert(Interactable);
+        .observe(ammo_use_observer);
 }
 
 fn ammo_interaction_observer(

@@ -17,6 +17,9 @@ pub struct DoorGraph(pub Handle<AnimationGraph>);
 #[derive(Debug, Default, Component, Reflect)]
 #[reflect(Component)]
 #[component(on_add = on_door_add)]
+#[require(
+    Interactable,
+)]
 pub struct DoorComponent;
 
 pub struct DoorPlugin;
@@ -33,8 +36,7 @@ fn on_door_add(
     trace!("HOOK: on_door_add");
     world.commands()
         .entity(context.entity)
-        .observe(door_interaction_observer)
-        .insert(Interactable);
+        .observe(door_interaction_observer);
 }
 
 fn door_interaction_observer(

@@ -88,17 +88,6 @@ impl Plugin for CharacterPlugin {
     }
 }
 
-fn on_character_add(
-    mut world: DeferredWorld,
-    context: HookContext,
-) {
-    world.commands()
-        .entity(context.entity)
-        .observe(damage_observer)
-        .observe(experience_observer)
-        .observe(level_up_observer);
-}
-
 fn on_health_add(
     mut world: DeferredWorld,
     context: HookContext,
@@ -126,7 +115,6 @@ fn damage_observer(
     println!("{:?}", trigger.entity);
     if let Ok(mut health) = health_query.get_mut(trigger.entity) {
         if health.0 <= trigger.ammount {
-            println!("ZZZZZZZZZZZZZZZZZZZZZZZZ");
             health.0 = 0;
             info!("TARGET IS DEAD!!!");
             commands.entity(trigger.entity).trigger(|entity| DeathEvent { entity });

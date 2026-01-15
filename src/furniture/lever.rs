@@ -5,6 +5,9 @@ use crate::{Interactable, InteractionEvent};
 #[derive(Debug, Default, Component, Reflect)]
 #[reflect(Component)]
 #[component(on_add = on_lever_add)]
+#[require(
+    Interactable,
+)]
 pub struct LeverComponent;
 
 #[derive(Debug, Default, Component, Reflect)]
@@ -34,8 +37,7 @@ fn on_lever_add(
     trace!("HOOK: on_lever_add");
     world.commands()
         .entity(context.entity)
-        .observe(lever_interaction_observer)
-        .insert(Interactable);
+        .observe(lever_interaction_observer);
 }
 
 fn lever_interaction_observer(

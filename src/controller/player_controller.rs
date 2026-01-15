@@ -2,13 +2,14 @@ use std::{cmp::Ordering, f32::consts::*};
 
 use avian3d::{math::{AdjustPrecision, Vector3}, prelude::RigidBodyDisabled};
 use bevy::{feathers::controls, input::mouse, prelude::*};
+use bevy_enhanced_input::{action::Action, prelude::{ActionEvents, Start}};
 use bevy_tnua::{
     TnuaControllerPlugin, TnuaObstacleRadar, TnuaScheme, TnuaUserControlsSystems, builtins::{TnuaBuiltinClimb, TnuaBuiltinCrouch, TnuaBuiltinDash, TnuaBuiltinJump, TnuaBuiltinKnockback, TnuaBuiltinWalk, TnuaBuiltinWallSlide}, control_helpers::{TnuaAirActionDefinition, TnuaBlipReuseAvoidance, TnuaHasTargetEntity, TnuaSimpleAirActionsCounter}, controller::TnuaController, math::{AsF32, Float}, radar_lens::{TnuaBlipSpatialRelation, TnuaRadarLens}
 };
 use bevy_tnua_avian3d::{TnuaAvian3dPlugin, TnuaSpatialExtAvian3d};
 use leafwing_input_manager::prelude::*;
 
-use crate::{Climbable, ObstacleQueryHelper, Player, PlayerFlashlight, PlayerState};
+use crate::{BackwardAction, Climbable, CrouchAction, DownAction, FlashlightAction, ForwardAction, JumpAction, LeftAction, ObstacleQueryHelper, Player, PlayerFlashlight, PlayerState, RightAction, RunAction, UpAction, controller::player_controller};
 
 // Used as padding by camera pitching (up/down) to avoid spooky math problems
 const ANGLE_EPSILON: f32 = 0.001953125;
@@ -116,8 +117,12 @@ impl Default for PlayerControllerConfig {
 }
 
 // This is the list of "things in the game I want to be able to do based on input"
-#[derive(Actionlike, PartialEq, Eq, Hash, Clone, Copy, Debug, Reflect)]
-pub enum Action {
+/*#[derive(Actionlike, PartialEq, Eq, Hash, Clone, Copy, Debug, Reflect)]
+pub enum LeafwingAction {
+    Weapon1,
+    Weapon2,
+    Weapon3,
+    Weapon4,
     Run,
     Jump,
     Forward,
@@ -128,12 +133,13 @@ pub enum Action {
     Up,
     Down,
     Interact,
+    Interact2,
     OpenInventory,
     OpenEquip,
     OpenStats,
     OpenConsole,
     Flashlight,
-}
+}*/
 
 #[derive(Component, Default, Debug)]
 pub struct PlayerControllerInput {
@@ -149,15 +155,17 @@ pub struct PlayerControllerPlugin;
 impl Plugin for PlayerControllerPlugin {
     fn build(&self, app: &mut App) {
         app
+            .add_observer(bei_toggle_flashlight)
             .add_plugins(TnuaAvian3dPlugin::new(FixedUpdate))
             .add_plugins(TnuaControllerPlugin::<PlayerControlScheme>::new(FixedUpdate))
             .add_systems(
             Update,
             (
-                player_controller_input,
+                //player_controller_input,
+                bei_player_controller_input,
                 player_controller_look,
                 //tnua_player_input,
-                toggle_flashlight,
+                //toggle_flashlight,
             )
             //.in_set(TnuaUserControlsSystems)
             .chain()
@@ -166,8 +174,8 @@ impl Plugin for PlayerControllerPlugin {
     }
 }
 
-pub fn player_controller_input(
-    key_input_query: Query<&ActionState<Action>, With<Player>>,
+/*pub fn player_controller_input(
+    key_input_query: Query<&ActionState<LeafwingAction>, With<Player>>,
     mut mouse_events_reader: MessageReader<mouse::MouseMotion>,
     mut player_controller_query: Query<(&PlayerController, &mut PlayerControllerInput)>,
 ) {
@@ -190,22 +198,67 @@ pub fn player_controller_input(
 
         if let Ok(key_input) = key_input_query.single() {
             player_input.movement = Vec3::new(
-                get_axis(key_input, &Action::Right, &Action::Left),
-                get_axis(key_input, &Action::Up, &Action::Down),
-                get_axis(key_input, &Action::Forward, &Action::Backward),
+                get_axis(key_input, &LeafwingAction::Right, &LeafwingAction::Left),
+                get_axis(key_input, &LeafwingAction::Up, &LeafwingAction::Down),
+                get_axis(key_input, &LeafwingAction::Forward, &LeafwingAction::Backward),
             );
-            player_input.sprint = key_input.pressed(&Action::Run);
+            player_input.sprint = key_input.pressed(&LeafwingAction::Run);
         }
     }
+}*/
+
+#[allow(clippy::complexity)]
+pub fn bei_player_controller_input(
+    left_action: Single<&ActionEvents, With<Action<LeftAction>>>,
+    right_action: Single<&ActionEvents, With<Action<RightAction>>>,
+    down_action: Single<&ActionEvents, With<Action<DownAction>>>,
+    up_action: Single<&ActionEvents, With<Action<UpAction>>>,
+    forward_action: Single<&ActionEvents, With<Action<ForwardAction>>>,
+    backward_action: Single<&ActionEvents, With<Action<BackwardAction>>>,
+    run_action: Single<&ActionEvents, With<Action<RunAction>>>,
+    mut mouse_events_reader: MessageReader<mouse::MouseMotion>,
+    mut player_controller_query: Query<(&PlayerController, &mut PlayerControllerInput)>,
+) {
+    for (player_controller, mut player_input) in player_controller_query
+        .iter_mut()
+            .filter(|(controller, _)| controller.enable_input)
+            {
+                let mut mouse_delta = Vec2::ZERO;
+                for mouse_event in mouse_events_reader.read() {
+                    mouse_delta += mouse_event.delta;
+                }
+                mouse_delta *= player_controller.sensitivity;
+
+                player_input.pitch = (player_input.pitch - mouse_delta.y)
+                    .clamp(-FRAC_PI_2 + ANGLE_EPSILON, FRAC_PI_2 - ANGLE_EPSILON);
+                player_input.yaw -= mouse_delta.x;
+                if player_input.yaw.abs() > PI {
+                    player_input.yaw = player_input.yaw.rem_euclid(TAU);
+                }
+
+                let right: f32 = right_action.contains(ActionEvents::FIRED).into();
+                let left: f32 = left_action.contains(ActionEvents::FIRED).into();
+                let up: f32 = up_action.contains(ActionEvents::FIRED).into();
+                let down: f32 = down_action.contains(ActionEvents::FIRED).into();
+                let forward: f32 = forward_action.contains(ActionEvents::FIRED).into();
+                let backward: f32 = backward_action.contains(ActionEvents::FIRED).into();
+
+                player_input.movement = Vec3::new(
+                    right - left,
+                    up - down,
+                   forward - backward
+                );
+                player_input.sprint = run_action.contains(ActionEvents::STARTED);
+            }
 }
 
-fn get_axis(key_input: &ActionState<Action>, key_pos: &Action, key_neg: &Action) -> f32 {
+/*fn get_axis(key_input: &ActionState<LeafwingAction>, key_pos: &LeafwingAction, key_neg: &LeafwingAction) -> f32 {
     get_pressed(key_input, key_pos) - get_pressed(key_input, key_neg)
-}
+}*/
 
-fn get_pressed(key_input: &ActionState<Action>, key: &Action) -> f32 {
+/*fn get_pressed(key_input: &ActionState<LeafwingAction>, key: &LeafwingAction) -> f32 {
     if key_input.pressed(key) { 1.0 } else { 0.0 }
-}
+}*/
 
 pub fn player_controller_look(mut query: Query<(&mut PlayerController, &PlayerControllerInput)>) {
     for (mut controller, input) in query.iter_mut() {
@@ -214,12 +267,11 @@ pub fn player_controller_look(mut query: Query<(&mut PlayerController, &PlayerCo
     }
 }
 
-fn toggle_flashlight(
-    key_input_query: Query<&ActionState<Action>, With<Player>>,
+fn bei_toggle_flashlight(
+    _trigger: On<Start<FlashlightAction>>,
     mut flashlight_query: Query<&mut SpotLight, With<PlayerFlashlight>>,
 ) {
-    if let Ok(mut flashlight) = flashlight_query.single_mut() && let Ok(key_input) = key_input_query.single()
-    && key_input.just_pressed(&Action::Flashlight) {
+    if let Ok(mut flashlight) = flashlight_query.single_mut() {
         if flashlight.intensity == 0. {
             flashlight.intensity = 1_000_000.0;
         } else {
@@ -228,16 +280,33 @@ fn toggle_flashlight(
     }
 }
 
+/*fn toggle_flashlight(
+    key_input_query: Query<&ActionState<LeafwingAction>, With<Player>>,
+    mut flashlight_query: Query<&mut SpotLight, With<PlayerFlashlight>>,
+) {
+    if let Ok(mut flashlight) = flashlight_query.single_mut() && let Ok(key_input) = key_input_query.single()
+    && key_input.just_pressed(&LeafwingAction::Flashlight) {
+        if flashlight.intensity == 0. {
+            flashlight.intensity = 1_000_000.0;
+        } else {
+            flashlight.intensity = 0.;
+        }
+    }
+}*/
+
 // Query for the `ActionState` component in your game logic systems!
 #[allow(clippy::type_complexity)]
 pub fn tnua_player_input(
     mut commands: Commands,
+    jump_action: Single<&ActionEvents, With<Action<JumpAction>>>,
+    run_action: Single<&ActionEvents, With<Action<RunAction>>>,
+    crouch_action: Single<&ActionEvents, With<Action<CrouchAction>>>,
     mut tnua_query: Query<(
         &PlayerControllerConfig,
         &mut TnuaController<PlayerControlScheme>,
         &mut TnuaSimpleAirActionsCounter<PlayerControlScheme>,
         &mut PlayerState,
-        &ActionState<Action>,
+        //&ActionState<LeafwingAction>,
         &PlayerControllerInput,
         &TnuaObstacleRadar,
         &mut TnuaBlipReuseAvoidance<PlayerControlScheme>,
@@ -251,7 +320,7 @@ pub fn tnua_player_input(
             mut tnua_controller,
             mut air_actions_counter,
             mut player_state,
-            action_state,
+            //action_state,
             player_controller_input,
             obstacle_radar,
             mut blip_reuse_avoiodance,
@@ -283,7 +352,8 @@ pub fn tnua_player_input(
     //);
     //println!("Action State: {}", action_state.just_pressed(&Action::Jump));
     //if action_state.just_pressed(&Action::Jump) && air_actions_counter.air_count_for(TnuaBuiltinJump::NAME) == 0 {
-    if action_state.pressed(&Action::Jump) {
+    //if action_state.pressed(&LeafwingAction::Jump) {
+    if jump_action.contains(ActionEvents::FIRED) {
         tnua_controller.action(PlayerControlScheme::Jump(Default::default()));
         if *player_state == PlayerState::Sitting {
             *player_state = PlayerState::Grounded;
@@ -291,10 +361,12 @@ pub fn tnua_player_input(
         }
     }
 
-    if action_state.just_pressed(&Action::Crouch) {
+    //if action_state.just_pressed(&LeafwingAction::Crouch) {
+    if crouch_action.contains(ActionEvents::STARTED) {
         tnua_controller.action_start(PlayerControlScheme::Crouch(Default::default()));
     }
-    if action_state.just_released(&Action::Crouch) {
+    //if action_state.just_released(&LeafwingAction::Crouch) {
+    if crouch_action.contains(ActionEvents::COMPLETED) {
         tnua_controller.action_end(PlayerControlSchemeActionDiscriminant::Crouch);
     }
 
@@ -313,7 +385,8 @@ pub fn tnua_player_input(
         ..default()
     };
 
-    if action_state.just_pressed(&Action::Run) {
+    //if action_state.just_pressed(&LeafwingAction::Run) {
+    if run_action.contains(ActionEvents::STARTED) {
         tnua_controller.action_trigger(PlayerControlScheme::Dash(TnuaBuiltinDash {
             displacement: movement_direction.normalize_or_zero(),
             ..default()

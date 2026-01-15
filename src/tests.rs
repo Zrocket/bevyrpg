@@ -40,16 +40,11 @@ fn health_test(
     mut commands: Commands,
     key: Res<ButtonInput<KeyCode>>,
     mut player: Query<(Entity, &Health), With<Player>>,
-    //mut damage_event_writer: MessageWriter<DamageMessage>,
 ) {
     trace!("SYSTEM: health_test");
     if let Ok((player_entity, _player)) = player.single_mut()
     && key.just_pressed(KeyCode::KeyK) {
         commands.entity(player_entity).trigger(|entity| DamageEvent { entity, ammount: 5 });
-            /*damage_event_writer.write(DamageMessage {
-                target: player_entity,
-                ammount: 5,
-            });*/
     }
 }
 
