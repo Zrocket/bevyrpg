@@ -117,6 +117,7 @@ pub fn display_inventory_event_observer(
 }
 
 #[derive(EntityEvent)]
+#[entity_event(propagate, auto_propagate)]
 pub struct RefreshInventory {
     pub entity: Entity,
 }
@@ -128,6 +129,7 @@ fn refresh_window_observer(
     name_query: Query<&Name>,
     inventory: Query<&Inventory>,
 ) {
+    println!("QQQQQQQQQQQQQQQQQQQq");
     trace!("OBSERVER: refresh_window_observer");
     if let Ok((parent_entity, children, invref)) = children_query.get_mut(trigger.entity) {
         trace!("Got children: {:?}, invref: {:?}", children, invref);
@@ -300,14 +302,22 @@ fn drop_item_button_observer(
     trigger: On<Pointer<Click>>,
     mut commands: Commands,
     parent_query: Query<&ChildOf>,
+    childmenu_query:  Query<&ChildMenu>,
     owner_query: Query<&Owner>,
     inv_query: Query<Entity, With<Inventory>>,
+    transform_query: Query<&Transform>,
 ) {
     trace!("OBSERVER: drop_item_button_observer");
-    if let Ok(parent) = parent_query.get(trigger.entity) 
+    if let Ok(parent) = parent_query.get(trigger.entity)
     && let Ok(owner) = owner_query.get(parent.0)
-    && let Ok(actor) = inv_query.get(owner.inv_owner) {
-        commands.entity(owner.item_owner).trigger(|entity| DropEvent { entity, actor });
+    && let Ok(actor) = inv_query.get(owner.inv_owner)
+    && let Ok(actor_transform) = transform_query.get(owner.inv_owner)
+    && let Ok(childmenu) = childmenu_query.get(parent.0) {
+        //commands.entity(owner.item_owner).trigger(|entity| DropEvent { entity, actor });
+        commands.entity(owner.item_owner)
+            .insert(actor_transform.clone());
+        commands.entity(actor).trigger(|entity| RemoveFromInventoryEvent { entity, item: owner.item_owner});
+        commands.entity(childmenu.0).trigger(|entity| RefreshInventory { entity });
     }
 }
 
@@ -319,7 +329,7 @@ fn use_item_button_observer(
     inv_query: Query<Entity, With<Inventory>>,
 ) {
     trace!("OBSERVER: use_item_button_observer");
-    if let Ok(parent) = parent_query.get(trigger.entity) 
+    if let Ok(parent) = parent_query.get(trigger.entity)
     && let Ok(owner) = owner_query.get(parent.0)
     && let Ok(actor) = inv_query.get(owner.inv_owner) {
         commands.entity(owner.item_owner).trigger(|entity| UseEvent { entity, actor });
