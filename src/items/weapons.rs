@@ -12,6 +12,9 @@ pub enum WeaponType {
 #[derive(Component, Debug, Clone, Reflect, Default)]
 #[reflect(Component)]
 #[component(on_add = on_weapon_add)]
+#[require(
+    Interactable,
+)]
 pub struct Weapon {
     weapon_type: WeaponType,
 }
@@ -30,8 +33,7 @@ fn on_weapon_add(
     trace!("HOOK: on_weapon_add");
     world.commands()
         .entity(context.entity)
-        .observe(weapon_interaction_observer)
-        .insert(Interactable);
+        .observe(weapon_interaction_observer);
 }
 
 fn weapon_interaction_observer(

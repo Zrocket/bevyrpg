@@ -42,6 +42,9 @@ static FONT_DATA: &[u8] = include_bytes!("../../assets/iosevka.ttf");
 #[derive(Debug, Clone, Component, Reflect)]
 #[reflect(Component)]
 #[component(on_add = on_computer_add)]
+#[require(
+    Interactable,
+)]
 pub struct ComputerCube;
 
 #[derive(Debug, Clone, Component, Reflect)]
@@ -84,8 +87,7 @@ fn on_computer_add(
     trace!("HOOK: on_computer_add");
     world.commands()
         .entity(context.entity)
-        .observe(change_computer_screen)
-        .insert(Interactable);
+        .observe(change_computer_screen);
 }
 
 fn change_computer_screen (

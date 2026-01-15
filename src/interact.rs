@@ -1,7 +1,7 @@
 use bevy::prelude::*;
 use avian_pickup::prelude::*;
 
-#[derive(Component)]
+#[derive(Component, Default)]
 pub struct Interactable;
 
 #[derive(EntityEvent)]
@@ -32,6 +32,17 @@ pub struct UseEvent {
 pub struct DropEvent {
     pub entity: Entity,
     pub actor: Entity,
+}
+
+pub fn drop_event_observer<T: Component>(
+    trigger: On<DropEvent>,
+    mut commands: Commands,
+    query: Query<Entity, With<T>>,
+) {
+    trace!("OBSERVER: drop_event_observer");
+    if let Ok(entity) = query.get(trigger.entity) {
+        commands.entity(entity);
+    }
 }
 
 #[derive(Message)]

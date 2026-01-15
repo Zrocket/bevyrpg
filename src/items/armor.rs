@@ -19,6 +19,9 @@ pub enum ArmorType {
 #[derive(Component, Debug, Clone, Reflect, Default)]
 #[reflect(Component)]
 #[component(on_add = on_armor_add)]
+#[require(
+    Interactable,
+)]
 pub struct Armor {
     armor_type: ArmorType,
     defense: i32,
@@ -37,8 +40,7 @@ fn on_armor_add(
 ) {
     trace!("HOOK: on_armor_add");
     world.commands()
-        .entity(context.entity)
-        .insert(Interactable);
+        .entity(context.entity);
 }
 
 fn armor_interaction_observer(

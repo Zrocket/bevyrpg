@@ -1,10 +1,12 @@
 mod equip_controller;
+mod input;
 mod interact_controller;
 mod inventory_controller;
 mod player_controller;
 mod stats_controller;
 
 use equip_controller::*;
+pub use input::*;
 use avian_pickup::prelude::*;
 use bevy::input::common_conditions::input_just_pressed;
 use bevy::prelude::*;
@@ -18,13 +20,15 @@ use super::GameState;
 use bevy::window::{CursorGrabMode, CursorOptions};
 use leafwing_input_manager::prelude::*;
 
-use crate::{ShootEvent, shoot, widgets::floating_windows::FloatingWindow};
+use crate::{Player, ShootEvent, shoot, widgets::floating_windows::FloatingWindow};
 
 pub struct ControllerPlugin;
 impl Plugin for ControllerPlugin {
     fn build(&self, app: &mut App) {
         app
-            .add_plugins(InputManagerPlugin::<Action>::default())
+            //.add_plugins(InputManagerPlugin::<LeafwingAction>::default())
+            .add_plugins(InputPlugin)
+            .add_plugins(InteractControllerPlugin)
             .add_plugins(PlayerControllerPlugin)
             .add_plugins(InventoryControllerPlugin)
             .add_plugins(EquipControllerPlugin)
@@ -35,9 +39,9 @@ impl Plugin for ControllerPlugin {
                 (
                     manage_cursor,
                     //manage_interact.run_if(in_state(GameState::Gameplay)).run_if(input_just_pressed(KeyCode::KeyE)),
-                    manage_interact.run_if(in_state(GameState::Gameplay)).run_if(input_just_pressed(KeyCode::KeyE)),
-                    manage_inspect.run_if(in_state(GameState::Gameplay)),
-                    player_raycast.run_if(in_state(GameState::Gameplay)),
+                    //manage_interact.run_if(in_state(GameState::Gameplay)).run_if(input_just_pressed(KeyCode::KeyE)),
+                    //manage_inspect.run_if(in_state(GameState::Gameplay)),
+                    //player_raycast.run_if(in_state(GameState::Gameplay)),
                     inventory_navigation.in_set(TnuaUserControlsSystems),
                 )
             );
@@ -85,15 +89,18 @@ fn manage_cursor(
     }
 }
 
-fn _weapon_select(key: Res<ButtonInput<KeyCode>>) {
-    if key.just_pressed(KeyCode::Digit1) {
-    } else if key.just_pressed(KeyCode::Digit2) {
-        todo!();
-    } else if key.just_pressed(KeyCode::Digit3) {
-        todo!();
-    } else if key.just_pressed(KeyCode::Digit4) {
-        todo!();
-    } else if key.just_pressed(KeyCode::Digit5) {
-        todo!();
+/*fn _weapon_select(
+    action_query: Query<&ActionState<LeafwingAction>, With<Player>>,
+) {
+    if let Ok(action) = action_query.single() {
+        if action.just_pressed(&LeafwingAction::Weapon1) {
+            todo!();
+        } else if action.just_pressed(&LeafwingAction::Weapon2) {
+            todo!();
+        } else if action.just_pressed(&LeafwingAction::Weapon3) {
+            todo!();
+        } else if action.just_pressed(&LeafwingAction::Weapon4) {
+            todo!();
+        }
     }
-}
+}*/

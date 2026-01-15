@@ -7,6 +7,9 @@ use crate::{InspectEvent, Interactable, InteractionEvent, UiInspect, widgets};
 #[derive(Component, Reflect, Default)]
 #[reflect(Component)]
 #[component(on_add = on_misc_add)]
+#[require(
+    Interactable,
+)]
 pub struct MiscItem;
 
 pub struct MiscItemPlugin;
@@ -25,8 +28,7 @@ fn on_misc_add(
     world.commands()
         .entity(context.entity)
         .observe(misc_interaction_observer)
-        .observe(misc_inspection_observer)
-        .insert(Interactable);
+        .observe(misc_inspection_observer);
 }
 
 fn misc_interaction_observer(

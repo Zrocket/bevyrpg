@@ -10,6 +10,9 @@ pub struct OpenBookEvent {
 #[derive(Component, Reflect, Default, Clone, Debug)]
 #[reflect(Component)]
 #[component(on_add = on_book_add)]
+#[require(
+    Interactable,
+)]
 pub struct Book {
     pub title: String,
     pub contents: String,
@@ -37,7 +40,6 @@ fn on_book_add(
     world.commands()
         .entity(context.entity)
         .observe(book_interaction_observer)
-        .insert(Interactable)
         .observe(display_book_ui);
 }
 

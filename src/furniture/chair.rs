@@ -6,6 +6,9 @@ use crate::{Interactable, InteractionEvent, Player, PlayerState};
 #[derive(Debug, Default, Component, Reflect)]
 #[reflect(Component)]
 #[component(on_add = on_chair_add)]
+#[require(
+    Interactable,
+)]
 pub struct Chair;
 
 pub struct ChairPlugin;
@@ -23,8 +26,7 @@ fn on_chair_add(
     trace!("HOOK: on_chair_add");
     world.commands()
         .entity(context.entity)
-        .observe(chair_interaction_observer)
-        .insert(Interactable);
+        .observe(chair_interaction_observer);
 }
 
 fn chair_interaction_observer(
