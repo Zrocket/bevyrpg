@@ -34,7 +34,7 @@ impl Default for Walk {
     }
 }
 
-#[derive(Debug, Component)]
+#[derive(Debug, Component, Default)]
 pub struct Obstacle;
 
 #[derive(Debug, Default, Clone, PartialEq, Component, Reflect)]

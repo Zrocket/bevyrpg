@@ -34,7 +34,13 @@ pub struct BlenderCollider;
 
 #[derive(Debug, Default, Component, Reflect)]
 #[reflect(Component)]
-#[component(on_add = on_blender_prop_add)]
+#[require(
+    CollisionLayers::new(CollisionLayer::Prop, LayerMask::ALL),
+    RigidBody::Dynamic,
+    MiscItem,
+    ColliderConstructor::ConvexHullFromMesh,
+    BlenderTranslationComplete,
+)]
 pub struct BlenderProp;
 
 #[derive(Debug, Default, Component, Reflect)]
@@ -45,7 +51,12 @@ pub struct BlenderBoxCollider {
 
 #[derive(Debug, Default, Clone, Component, Reflect)]
 #[reflect(Component)]
-//#[component(on_add = on_blender_collider_constructor_add)]
+#[require(
+    RigidBody::Static,
+    Obstacle,
+    ColliderConstructor::ConvexHullFromMesh,
+    BlenderTranslationComplete,
+)]
 pub struct BlenderColliderConstructor;
 
 #[derive(Debug, Default, Component, Reflect)]
@@ -96,14 +107,12 @@ impl Plugin for BlenderTranslationPlugin {
             .register_type::<DAGunAssets>()
             .register_type::<CollisionLayer>()
             .add_message::<ChangeLevelMessage>()
-            .add_systems(Update, translate_components)
             .add_systems(Update, change_level_message_handler)
             .add_systems(OnExit(GameState::Loading), animation_preload.run_if(resource_added::<LevelGltf>))
             .add_loading_state(
                 LoadingState::new(GameState::Preload)
                     .with_dynamic_assets_file::<StandardDynamicAssetCollection>("gunassets.ron")
                     .with_dynamic_assets_file::<StandardDynamicAssetCollection>("devroom.ron")
-                    //.with_dynamic_assets_file::<StandardDynamicAssetCollection>("fpslevel.ron")
                     .load_collection::<DAGunAssets>()
                     .load_collection::<DALevelAsset>()
             );
@@ -181,88 +190,6 @@ fn change_level_message_handler(
         }
 
     }
-}
-
-fn on_blender_prop_add(
-    mut world: DeferredWorld,
-    context: HookContext,
-) {
-    world.commands()
-        .entity(context.entity)
-        .queue_silenced(|mut entity: EntityWorldMut| {
-            entity
-                .insert(CollisionLayers::new(CollisionLayer::Prop, LayerMask::ALL))
-                .insert(RigidBody::Dynamic)
-                .insert(MiscItem)
-                .insert(ColliderConstructor::ConvexHullFromMesh)
-                .insert(BlenderTranslationComplete);
-        });
-}
-
-fn on_blender_collider_constructor_add(
-    mut world: DeferredWorld,
-    context: HookContext,
-) {
-    world.commands()
-        .entity(context.entity)
-        .queue_silenced(|mut entity: EntityWorldMut| {
-            entity
-                .insert(RigidBody::Static)
-                .insert(Obstacle)
-                .insert(ColliderConstructor::ConvexHullFromMesh)
-                .insert(BlenderTranslationComplete);
-        });
-}
-
-fn translate_components(
-    mut commands: Commands,
-    prop_query: Query<Entity, (With<BlenderProp>, Without<BlenderTranslationComplete>)>,
-    collider_query: Query<Entity, (With<BlenderColliderConstructor>, Without<BlenderProp>, Without<BlenderTranslationComplete>)>,
-    ladder_query: Query<Entity, (With<LadderComponent>, Without<BlenderTranslationComplete>)>,
-    mut loaded: Local<bool>,
-) {
-    trace!("SYSTEM: translate_blender_components");
-
-    //if *loaded {
-    //    return;
-   // }
-
-    /*for entity in prop_query.iter() {
-        commands
-            .entity(entity)
-            .queue_silenced(|mut entity: EntityWorldMut| {
-                entity
-                    .insert(CollisionLayers::new(CollisionLayer::Prop, LayerMask::ALL))
-                    .insert(RigidBody::Dynamic)
-                    .insert(MiscItem)
-                    .insert(ColliderConstructor::ConvexHullFromMesh)
-                    .insert(BlenderTranslationComplete);
-            });
-    }*/
-    for entity in collider_query.iter() {
-        commands.entity(entity)
-            .queue_silenced(|mut entity: EntityWorldMut| {
-                entity
-                    .insert(RigidBody::Static)
-                    .insert(Obstacle)
-                    .insert(ColliderConstructor::ConvexHullFromMesh)
-                    .insert(BlenderTranslationComplete);
-            });
-    }
-    for entity in ladder_query.iter() {
-        commands.entity(entity)
-            .queue_silenced(|mut entity: EntityWorldMut| {
-                entity
-                    .insert(CollidingEntities::default())
-                    .insert(CollisionEventsEnabled)
-                    .insert(BlenderTranslationComplete)
-                    .insert(Climbable)
-                    .observe(ladder_collision_observer)
-                    .observe(ladder_decollision_observer);
-            });
-    }
-
-    *loaded = true;
 }
 
 fn animation_preload(

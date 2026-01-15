@@ -5,6 +5,9 @@ use crate::{DisplayInventoryEvent, InspectEvent, Interactable, InteractionEvent,
 #[derive(Component, Debug, Clone, Reflect, Default)]
 #[reflect(Component)]
 #[component(on_add = on_container_add)]
+#[require(
+    Interactable,
+)]
 pub struct Container;
 
 pub struct ContainerPlugin;
@@ -26,8 +29,7 @@ fn on_container_add(
             .observe(container_inspection_observer)
             .observe(display_inventory_event_observer)
             .observe(add_to_inventory_observer::<Container>)
-            .observe(remove_from_inventory_observer::<Container>)
-            .insert(Interactable);
+            .observe(remove_from_inventory_observer::<Container>);
 }
 
 fn container_interaction_observer(

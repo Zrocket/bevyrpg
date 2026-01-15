@@ -5,7 +5,13 @@ use crate::{Climbable, Player, PlayerState, level::BlenderTranslationComplete};
 
 #[derive(Debug, Default, Component, Reflect)]
 #[reflect(Component)]
-//#[component(on_add = on_ladder_add)]
+#[component(on_add = on_ladder_add)]
+#[require(
+    CollidingEntities::default(),
+    CollisionEventsEnabled,
+    BlenderTranslationComplete,
+    Climbable,
+)]
 pub struct LadderComponent;
 
 pub struct LadderPlugin;
@@ -21,15 +27,11 @@ fn on_ladder_add(
 ) {
     world.commands()
         .entity(context.entity)
-        //.queue_silenced(|mut entity: EntityWorldMut| {
-            //entity
-                .insert(CollidingEntities::default())
-                .insert(CollisionEventsEnabled)
-                .insert(BlenderTranslationComplete)
-                .insert(Climbable)
+        .queue_silenced(|mut entity: EntityWorldMut| {
+            entity
                 .observe(ladder_collision_observer)
                 .observe(ladder_decollision_observer);
-       // });
+        });
 }
 
 pub fn ladder_collision_observer(

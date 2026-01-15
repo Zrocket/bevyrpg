@@ -1,13 +1,14 @@
 use avian3d::{prelude::{CoefficientCombine, Collider, CollisionLayers, Friction, GravityScale, LayerMask, LockedAxes, RigidBody, SpatialQuery, SpatialQueryFilter}};
 use avian_pickup::actor::{AvianPickupActor, AvianPickupActorHoldConfig};
-use bevy::{camera::Exposure, core_pipeline::tonemapping::Tonemapping, input::common_conditions::input_just_pressed, pbr::{Atmosphere, AtmosphereSettings}, post_process::bloom::Bloom, prelude::*, render::view::Hdr};
+use bevy::{camera::Exposure, core_pipeline::tonemapping::Tonemapping, input::{common_conditions::input_just_pressed, keyboard::Key}, pbr::{Atmosphere, AtmosphereSettings}, post_process::bloom::Bloom, prelude::*, render::view::Hdr};
 use bevy_egui::PrimaryEguiContext;
+use bevy_enhanced_input::{action::Action, actions, bindings};
 use bevy_flycam::{FlyCam, NoCameraPlayerPlugin};
 use bevy_tnua::{TnuaConfig, TnuaObstacleRadar, builtins::{TnuaBuiltinClimbConfig, TnuaBuiltinCrouchConfig, TnuaBuiltinDashConfig, TnuaBuiltinJumpConfig, TnuaBuiltinWalkConfig, TnuaBuiltinWallSlideConfig}, control_helpers::{TnuaBlipReuseAvoidance, TnuaSimpleAirActionsCounter}, prelude::TnuaController};
 use bevy_tnua_avian3d::TnuaAvian3dSensorShape;
 use leafwing_input_manager::prelude::InputMap;
 
-use crate::{Action, CameraConfig, CharacterBundle, CollisionLayer, DeathEvent, Description, Experience, FloatHeight, GameState, Health, Item, Mana, MaxHealth, MaxMana, PlayerControlScheme, PlayerControlSchemeConfig, PlayerController, PlayerControllerConfig, PlayerControllerInput, RayHit, RenderPlayer, Walk, Weight, add_to_inventory_observer, display_equip_event_observer, display_inventory_event_observer, display_stats_event_observer, level::DAGunAssets, remove_from_inventory_observer};
+use crate::{BackwardAction, CameraConfig, CharacterBundle, CollisionLayer, CrouchAction, DeathEvent, Description, DownAction, Experience, FlashlightAction, FloatHeight, ForwardAction, GameState, Health, Interact2Action, InteractAction, Item, JumpAction, LeftAction, Mana, MaxHealth, MaxMana, OpenConsoleAction, OpenEquipAction, OpenInventoryAction, OpenStatsAction, PlayerControlScheme, PlayerControlSchemeConfig, PlayerController, PlayerControllerConfig, PlayerControllerInput, RayHit, RenderPlayer, RightAction, RunAction, UpAction, Walk, Weapon1Action, Weapon2Action, Weapon3Action, Weapon4Action, Weight, add_to_inventory_observer, display_equip_event_observer, display_inventory_event_observer, display_stats_event_observer, level::DAGunAssets, remove_from_inventory_observer};
 
 #[derive(Clone, Component, Hash, Debug, Eq, PartialEq, Default, States)]
 pub enum PlayerState {
@@ -117,26 +118,113 @@ fn spawn_player_observer(
             ))
             .id();
 
+        let bei_input_map = actions!(Player[
+            (
+                Action::<Weapon1Action>::new(),
+                bindings![KeyCode::Digit1],
+            ),
+            (
+                Action::<Weapon2Action>::new(),
+                bindings![KeyCode::Digit2],
+            ),
+            (
+                Action::<Weapon3Action>::new(),
+                bindings![KeyCode::Digit3],
+            ),
+            (
+                Action::<Weapon4Action>::new(),
+                bindings![KeyCode::Digit4],
+            ),
+            (
+                Action::<JumpAction>::new(),
+                bindings![KeyCode::Space],
+            ),
+            (
+                Action::<RunAction>::new(),
+                bindings![KeyCode::ShiftLeft],
+            ),
+            (
+                Action::<LeftAction>::new(),
+                bindings![KeyCode::KeyA],
+            ),
+            (
+                Action::<RightAction>::new(),
+                bindings![KeyCode::KeyD],
+            ),
+            (
+                Action::<ForwardAction>::new(),
+                bindings![KeyCode::KeyW],
+            ),
+            (
+                Action::<BackwardAction>::new(),
+                bindings![KeyCode::KeyS],
+            ),
+            (
+                Action::<CrouchAction>::new(),
+                bindings![KeyCode::ControlLeft],
+            ),
+            (
+                Action::<UpAction>::new(),
+                bindings![KeyCode::KeyZ],
+            ),
+            (
+                Action::<DownAction>::new(),
+                bindings![KeyCode::KeyX],
+            ),
+            (
+                Action::<InteractAction>::new(),
+                bindings![KeyCode::KeyE],
+            ),
+            (
+                Action::<Interact2Action>::new(),
+                bindings![KeyCode::KeyQ],
+            ),
+            (
+                Action::<OpenInventoryAction>::new(),
+                bindings![KeyCode::KeyI],
+            ),
+            (
+                Action::<OpenEquipAction>::new(),
+                bindings![KeyCode::KeyK],
+            ),
+            (
+                Action::<OpenStatsAction>::new(),
+                bindings![KeyCode::KeyL],
+            ),
+            (
+                Action::<OpenConsoleAction>::new(),
+                bindings![KeyCode::Backslash],
+            ),
+            (
+                Action::<FlashlightAction>::new(),
+                bindings![KeyCode::KeyF],
+            ),
+        ]);
 
         // Player
         debug!("Creating Player");
-        let input_map = InputMap::new([
-            (Action::Jump, KeyCode::Space),
-            (Action::Run, KeyCode::ShiftLeft),
-            (Action::Left, KeyCode::KeyA),
-            (Action::Right, KeyCode::KeyD),
-            (Action::Forward, KeyCode::KeyW),
-            (Action::Backward, KeyCode::KeyS),
-            (Action::Crouch, KeyCode::ControlLeft),
-            (Action::Up, KeyCode::KeyZ),
-            (Action::Down, KeyCode::KeyX),
-            (Action::Interact, KeyCode::KeyO),
-            (Action::OpenInventory, KeyCode::KeyI),
-            (Action::OpenEquip, KeyCode::KeyK),
-            (Action::OpenStats, KeyCode::KeyL),
-            (Action::OpenConsole, KeyCode::Backslash),
-            (Action::Flashlight, KeyCode::KeyF),
-        ]);
+        /*let input_map = InputMap::new([
+            (LeafwingAction::Weapon1, KeyCode::Digit1),
+            (LeafwingAction::Weapon2, KeyCode::Digit2),
+            (LeafwingAction::Weapon3, KeyCode::Digit3),
+            (LeafwingAction::Weapon4, KeyCode::Digit4),
+            (LeafwingAction::Jump, KeyCode::Space),
+            (LeafwingAction::Run, KeyCode::ShiftLeft),
+            (LeafwingAction::Left, KeyCode::KeyA),
+            (LeafwingAction::Right, KeyCode::KeyD),
+            (LeafwingAction::Forward, KeyCode::KeyW),
+            (LeafwingAction::Backward, KeyCode::KeyS),
+            (LeafwingAction::Crouch, KeyCode::ControlLeft),
+            (LeafwingAction::Up, KeyCode::KeyZ),
+            (LeafwingAction::Down, KeyCode::KeyX),
+            (LeafwingAction::Interact, KeyCode::KeyO),
+            (LeafwingAction::Interact2, KeyCode::KeyQ),
+            (LeafwingAction::OpenInventory, KeyCode::KeyI),
+            (LeafwingAction::OpenEquip, KeyCode::KeyK),
+            (LeafwingAction::OpenStats, KeyCode::KeyL),
+            (LeafwingAction::OpenConsole, KeyCode::Backslash),
+            (LeafwingAction::Flashlight, KeyCode::KeyF),
+        ]);*/
 
         let logical_entity = commands
             .spawn((
@@ -206,7 +294,8 @@ fn spawn_player_observer(
                 ),
                 (CollisionLayers::new(CollisionLayer::Player, LayerMask::ALL),),
             ))
-            .insert((Walk::default(), input_map))
+            .insert(Walk::default())
+            .insert(bei_input_map)
             .insert(TnuaSimpleAirActionsCounter::<PlayerControlScheme>::default())
             .insert(AvianPickupActor {
                 prop_filter: SpatialQueryFilter::from_mask(CollisionLayer::Prop),

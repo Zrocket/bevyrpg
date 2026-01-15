@@ -54,6 +54,8 @@ pub use utils::*;
 use level::*;
 use tests::TestsPlugin;
 
+use crate::enemy::EnemyPlugin;
+
 #[derive(Parser, Debug)]
 struct Args {
     #[clap(long)]
@@ -150,6 +152,7 @@ fn main() {
             DialogPlugin,
             NavMeshPlugin,
             SpritesPlugin,
+            EnemyPlugin,
     ));
     app.add_systems(Update, pause_game);
 

@@ -1,11 +1,26 @@
 use crate::player::Player;
-use crate::{InspectEvent, InteractionEvent, PlayerCamera, PlayerFlashlight, RESOLUTION_HEIGHT, RESOLUTION_WIDTH, UnInspectMessage};
+use crate::{GameState, InspectEvent, InteractAction, InteractionEvent, PlayerCamera, PlayerFlashlight, RESOLUTION_HEIGHT, RESOLUTION_WIDTH, UnInspectMessage};
 use avian3d::prelude::*;
 use avian_pickup::{
     input::AvianPickupInput,
     prop::HeldProp,
 };
 use bevy::prelude::*;
+use bevy_enhanced_input::prelude::Start;
+
+pub struct InteractControllerPlugin;
+impl Plugin for InteractControllerPlugin {
+    fn build(&self, app: &mut App) {
+       app
+           .add_observer(bei_manage_interact)
+           .add_systems(Update,
+               (
+                   manage_inspect.run_if(in_state(GameState::Gameplay)),
+                   player_raycast.run_if(in_state(GameState::Gameplay)),
+                   )
+            );
+    }
+}
 
 #[derive(Debug, Component, Reflect)]
 #[reflect(Component)]
@@ -41,7 +56,8 @@ pub fn player_raycast(
     }
 }
 
-pub fn manage_interact(
+fn bei_manage_interact(
+    trigger: On<Start<InteractAction>>,
     mut commands: Commands,
     player: Query<(Entity, &RayHit), With<Player>>,
     mut avian_pickup_input_writer: MessageWriter<AvianPickupInput>,
@@ -60,6 +76,26 @@ pub fn manage_interact(
         }
     }
 }
+
+/*pub fn manage_interact(
+    mut commands: Commands,
+    player: Query<(Entity, &RayHit), With<Player>>,
+    mut avian_pickup_input_writer: MessageWriter<AvianPickupInput>,
+    held_prop_query: Query<&HeldProp>,
+) {
+    trace!("SYSTEM: manage_interact");
+    if let Ok((player, ray_hit)) = player.single() {
+        if let Ok(_held_prop) = held_prop_query.single() {
+            avian_pickup_input_writer.write(
+                AvianPickupInput { actor: player, action: avian_pickup::input::AvianPickupAction::Drop }
+            );
+            return
+        }
+        if let Some(entity) = ray_hit.0 {
+            commands.entity(entity).trigger(|entity| InteractionEvent { entity, actor: player });
+        }
+    }
+}*/
 
 pub fn manage_inspect(
     mut commands: Commands,

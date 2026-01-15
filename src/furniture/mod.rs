@@ -17,7 +17,7 @@ pub struct ObstacleQueryHelper {
     pub climbable: Has<Climbable>,
 }
 
-#[derive(Component)]
+#[derive(Component, Default)]
 pub struct Climbable;
 
 pub struct FurniturePlugin;
