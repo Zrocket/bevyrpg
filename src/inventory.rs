@@ -1,4 +1,4 @@
-use bevy::{ecs::relationship::RelationshipSourceCollection, prelude::*};
+use bevy::prelude::*;
 
 #[derive(EntityEvent)]
 pub struct AddToInventoryEvent {

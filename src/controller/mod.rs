@@ -8,7 +8,6 @@ mod stats_controller;
 use equip_controller::*;
 pub use input::*;
 use avian_pickup::prelude::*;
-use bevy::input::common_conditions::input_just_pressed;
 use bevy::prelude::*;
 use bevy_tnua::TnuaUserControlsSystems;
 pub use interact_controller::*;
@@ -16,11 +15,9 @@ use inventory_controller::*;
 pub use player_controller::*;
 pub use stats_controller::*;
 
-use super::GameState;
 use bevy::window::{CursorGrabMode, CursorOptions};
-use leafwing_input_manager::prelude::*;
 
-use crate::{Player, ShootEvent, shoot, widgets::floating_windows::FloatingWindow};
+use crate::{ShootEvent, shoot, widgets::floating_windows::FloatingWindow};
 
 pub struct ControllerPlugin;
 impl Plugin for ControllerPlugin {

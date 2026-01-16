@@ -34,6 +34,12 @@ pub struct DropEvent {
     pub actor: Entity,
 }
 
+#[derive(EntityEvent)]
+pub struct PickupEvent {
+    pub entity: Entity,
+    pub actor: Entity,
+}
+
 pub fn drop_event_observer<T: Component>(
     trigger: On<DropEvent>,
     mut commands: Commands,
