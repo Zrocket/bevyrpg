@@ -1,22 +1,17 @@
-use crate::{DisplayEquipEvent, DisplayStatsEvent, GameState, OpenStatsAction, Player, UiIndex, UiInventory};
+use crate::{DisplayStatsEvent, OpenStatsAction, Player, UiIndex, UiInventory};
 use bevy::prelude::*;
 use bevy_enhanced_input::prelude::Start;
-use leafwing_input_manager::prelude::ActionState;
-
-//use super::LeafwingAction;
 
 pub struct StatsControllerPlugin;
 impl Plugin for StatsControllerPlugin {
     fn build(&self, app: &mut App) {
        app
-           .add_observer(bei_open_stats);
-           //.add_systems(Update, open_stats.run_if(in_state(GameState::Gameplay)));
-           //.add_systems(Update, close_equip.run_if(in_state(GameState::Inventory)));
+           .add_observer(open_stats);
     }
 }
 
-fn bei_open_stats(
-    trigger: On<Start<OpenStatsAction>>,
+fn open_stats(
+    _trigger: On<Start<OpenStatsAction>>,
     mut commands: Commands,
     player_query: Query<Entity, With<Player>>,
 ) {
@@ -25,26 +20,6 @@ fn bei_open_stats(
     }
 
 }
-
-/*fn open_stats(
-    key: Query<&ActionState<LeafwingAction>, With<Player>>,
-    mut commands: Commands,
-    player_query: Query<Entity, With<Player>>,
-) {
-    if let Ok(entity) = player_query.single()
-    && let Ok(key) = key.single() && key.just_pressed(&LeafwingAction::OpenStats) {
-        commands.entity(entity).trigger(|entity| DisplayStatsEvent { entity });
-    }
-}*/
-
-/*fn close_stats(
-    key: Query<&ActionState<LeafwingAction>, With<Player>>,
-    mut game_state: ResMut<NextState<GameState>>,
-) {
-    if let Ok(key) = key.single() && key.just_pressed(&LeafwingAction::OpenInventory) {
-        game_state.set(GameState::Gameplay);
-    }
-}*/
 
 pub fn stats_navigation(
     key: Res<ButtonInput<KeyCode>>,

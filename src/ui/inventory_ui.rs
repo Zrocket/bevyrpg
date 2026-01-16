@@ -305,7 +305,7 @@ fn drop_item_button_observer(
     childmenu_query:  Query<&ChildMenu>,
     owner_query: Query<&Owner>,
     inv_query: Query<Entity, With<Inventory>>,
-    transform_query: Query<&Transform>,
+    transform_query: Query<&GlobalTransform>,
 ) {
     trace!("OBSERVER: drop_item_button_observer");
     if let Ok(parent) = parent_query.get(trigger.entity)
