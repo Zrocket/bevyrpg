@@ -77,7 +77,7 @@ fn manage_cursor(
         }
 
         if key.just_pressed(KeyCode::Escape) {
-            window.grab_mode = CursorGrabMode::None;
+            //window.grab_mode = CursorGrabMode::None;
             window.visible = true;
             for mut controller in &mut controllers {
                 controller.enable_input = false;
