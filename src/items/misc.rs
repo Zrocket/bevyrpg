@@ -2,7 +2,7 @@ use avian_pickup::{input::{AvianPickupAction, AvianPickupInput}, prop::HeldProp}
 use avian3d::prelude::RigidBodyDisabled;
 use bevy::{color::palettes::css::CRIMSON, ecs::{lifecycle::HookContext, world::DeferredWorld}, prelude::*};
 
-use crate::{InspectEvent, Interactable, InteractionEvent, UiInspect, widgets};
+use crate::{AddToInventoryEvent, InspectEvent, Interactable, InteractionEvent, PickupEvent, UiInspect, widgets};
 
 #[derive(Component, Reflect, Default)]
 #[reflect(Component)]
@@ -28,11 +28,24 @@ fn on_misc_add(
     world.commands()
         .entity(context.entity)
         .observe(misc_interaction_observer)
+        .observe(misc_pickup_observer)
         .observe(misc_inspection_observer);
 }
 
 fn misc_interaction_observer(
     trigger: On<InteractionEvent>,
+    mut commands: Commands,
+    mut avian_pickup_input_writer: MessageWriter<AvianPickupInput>,
+    _held_prop_query: Query<&HeldProp>,
+) {
+    trace!("OBSERVER: misc_interaction_observer");
+    let actor = trigger.event().actor;
+    commands.entity(trigger.event().entity).remove::<GlobalTransform>();
+    commands.entity(actor).trigger(|entity| AddToInventoryEvent { entity, item: trigger.event().entity });
+}
+
+fn misc_pickup_observer(
+    trigger: On<PickupEvent>,
     mut commands: Commands,
     mut avian_pickup_input_writer: MessageWriter<AvianPickupInput>,
     _held_prop_query: Query<&HeldProp>,
