@@ -1,18 +1,19 @@
 use crate::player::Player;
-use crate::{GameState, InspectEvent, InteractAction, InteractionEvent, PlayerCamera, PlayerFlashlight, RESOLUTION_HEIGHT, RESOLUTION_WIDTH, UnInspectMessage};
+use crate::{GameState, InspectEvent, Interact2Action, InteractAction, InteractionEvent, PickupEvent, PlayerCamera, PlayerFlashlight, RESOLUTION_HEIGHT, RESOLUTION_WIDTH, UnInspectMessage};
 use avian3d::prelude::*;
 use avian_pickup::{
     input::AvianPickupInput,
     prop::HeldProp,
 };
 use bevy::prelude::*;
-use bevy_enhanced_input::prelude::Start;
+use bevy_enhanced_input::prelude::{Fire, Start};
 
 pub struct InteractControllerPlugin;
 impl Plugin for InteractControllerPlugin {
     fn build(&self, app: &mut App) {
        app
-           .add_observer(bei_manage_interact)
+           .add_observer(manage_interact)
+           .add_observer(manage_interact2)
            .add_systems(Update,
                (
                    manage_inspect.run_if(in_state(GameState::Gameplay)),
@@ -56,8 +57,8 @@ pub fn player_raycast(
     }
 }
 
-fn bei_manage_interact(
-    trigger: On<Start<InteractAction>>,
+fn manage_interact(
+    _trigger: On<Fire<InteractAction>>,
     mut commands: Commands,
     player: Query<(Entity, &RayHit), With<Player>>,
     mut avian_pickup_input_writer: MessageWriter<AvianPickupInput>,
@@ -77,13 +78,14 @@ fn bei_manage_interact(
     }
 }
 
-/*pub fn manage_interact(
+fn manage_interact2(
+    _trigger: On<Fire<Interact2Action>>,
     mut commands: Commands,
     player: Query<(Entity, &RayHit), With<Player>>,
     mut avian_pickup_input_writer: MessageWriter<AvianPickupInput>,
     held_prop_query: Query<&HeldProp>,
 ) {
-    trace!("SYSTEM: manage_interact");
+    trace!("SYSTEM: manage_interact2");
     if let Ok((player, ray_hit)) = player.single() {
         if let Ok(_held_prop) = held_prop_query.single() {
             avian_pickup_input_writer.write(
@@ -92,10 +94,10 @@ fn bei_manage_interact(
             return
         }
         if let Some(entity) = ray_hit.0 {
-            commands.entity(entity).trigger(|entity| InteractionEvent { entity, actor: player });
+            commands.entity(entity).trigger(|entity| PickupEvent { entity, actor: player });
         }
     }
-}*/
+}
 
 pub fn manage_inspect(
     mut commands: Commands,

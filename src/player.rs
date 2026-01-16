@@ -2,11 +2,10 @@ use avian3d::{prelude::{CoefficientCombine, Collider, CollisionLayers, Friction,
 use avian_pickup::actor::{AvianPickupActor, AvianPickupActorHoldConfig};
 use bevy::{camera::Exposure, core_pipeline::tonemapping::Tonemapping, input::{common_conditions::input_just_pressed, keyboard::Key}, pbr::{Atmosphere, AtmosphereSettings}, post_process::bloom::Bloom, prelude::*, render::view::Hdr};
 use bevy_egui::PrimaryEguiContext;
-use bevy_enhanced_input::{action::Action, actions, bindings};
+use bevy_enhanced_input::{action::Action, actions, bindings, condition::{hold::Hold, press::Press, block_by::BlockBy, tap::Tap}};
 use bevy_flycam::{FlyCam, NoCameraPlayerPlugin};
 use bevy_tnua::{TnuaConfig, TnuaObstacleRadar, builtins::{TnuaBuiltinClimbConfig, TnuaBuiltinCrouchConfig, TnuaBuiltinDashConfig, TnuaBuiltinJumpConfig, TnuaBuiltinWalkConfig, TnuaBuiltinWallSlideConfig}, control_helpers::{TnuaBlipReuseAvoidance, TnuaSimpleAirActionsCounter}, prelude::TnuaController};
 use bevy_tnua_avian3d::TnuaAvian3dSensorShape;
-use leafwing_input_manager::prelude::InputMap;
 
 use crate::{BackwardAction, CameraConfig, CharacterBundle, CollisionLayer, CrouchAction, DeathEvent, Description, DownAction, Experience, FlashlightAction, FloatHeight, ForwardAction, GameState, Health, Interact2Action, InteractAction, Item, JumpAction, LeftAction, Mana, MaxHealth, MaxMana, OpenConsoleAction, OpenEquipAction, OpenInventoryAction, OpenStatsAction, PlayerControlScheme, PlayerControlSchemeConfig, PlayerController, PlayerControllerConfig, PlayerControllerInput, RayHit, RenderPlayer, RightAction, RunAction, UpAction, Walk, Weapon1Action, Weapon2Action, Weapon3Action, Weapon4Action, Weight, add_to_inventory_observer, display_equip_event_observer, display_inventory_event_observer, display_stats_event_observer, level::DAGunAssets, remove_from_inventory_observer};
 
@@ -173,11 +172,14 @@ fn spawn_player_observer(
             ),
             (
                 Action::<InteractAction>::new(),
+                //Press::default(),
+                Tap::new(0.5),
                 bindings![KeyCode::KeyE],
             ),
             (
                 Action::<Interact2Action>::new(),
-                bindings![KeyCode::KeyQ],
+                Hold::new(0.5),
+                bindings![KeyCode::KeyE],
             ),
             (
                 Action::<OpenInventoryAction>::new(),
