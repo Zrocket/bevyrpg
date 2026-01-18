@@ -129,7 +129,6 @@ fn refresh_window_observer(
     name_query: Query<&Name>,
     inventory: Query<&Inventory>,
 ) {
-    println!("QQQQQQQQQQQQQQQQQQQq");
     trace!("OBSERVER: refresh_window_observer");
     if let Ok((parent_entity, children, invref)) = children_query.get_mut(trigger.entity) {
         trace!("Got children: {:?}, invref: {:?}", children, invref);
@@ -298,6 +297,7 @@ fn inventory_item_drowpdown_observer(
     }
 }
 
+#[allow(clippy::complexity)]
 fn drop_item_button_observer(
     trigger: On<Pointer<Click>>,
     mut commands: Commands,
@@ -305,17 +305,24 @@ fn drop_item_button_observer(
     childmenu_query:  Query<&ChildMenu>,
     owner_query: Query<&Owner>,
     inv_query: Query<Entity, With<Inventory>>,
-    transform_query: Query<&GlobalTransform>,
+    transform_query: Query<&Transform>,
+    shelf_query: Query<&Shelf<Transform>>,
 ) {
     trace!("OBSERVER: drop_item_button_observer");
     if let Ok(parent) = parent_query.get(trigger.entity)
     && let Ok(owner) = owner_query.get(parent.0)
     && let Ok(actor) = inv_query.get(owner.inv_owner)
     && let Ok(actor_transform) = transform_query.get(owner.inv_owner)
-    && let Ok(childmenu) = childmenu_query.get(parent.0) {
-        //commands.entity(owner.item_owner).trigger(|entity| DropEvent { entity, actor });
+    && let Ok(childmenu) = childmenu_query.get(parent.0)
+    && let Ok(item_parent) = parent_query.get(owner.item_owner)
+    && let Ok(parent_shelf) = shelf_query.get(item_parent.0)
+    && let Ok(item_shelf) = shelf_query.get(owner.item_owner) {
+        let mut parent_transform = *parent_shelf.0;
+        parent_transform.translation = actor_transform.translation;
+        commands.entity(item_parent.0)
+            .insert(parent_transform);
         commands.entity(owner.item_owner)
-            .insert(actor_transform.clone());
+            .insert(*item_shelf.0);
         commands.entity(actor).trigger(|entity| RemoveFromInventoryEvent { entity, item: owner.item_owner});
         commands.entity(childmenu.0).trigger(|entity| RefreshInventory { entity });
     }

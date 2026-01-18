@@ -1,6 +1,6 @@
 use avian3d::{prelude::{CoefficientCombine, Collider, CollisionLayers, Friction, GravityScale, LayerMask, LockedAxes, RigidBody, SpatialQuery, SpatialQueryFilter}};
 use avian_pickup::actor::{AvianPickupActor, AvianPickupActorHoldConfig};
-use bevy::{camera::Exposure, core_pipeline::tonemapping::Tonemapping, input::{common_conditions::input_just_pressed, keyboard::Key}, pbr::{Atmosphere, AtmosphereSettings}, post_process::bloom::Bloom, prelude::*, render::view::Hdr};
+use bevy::{camera::Exposure, core_pipeline::tonemapping::Tonemapping, input::{common_conditions::input_just_pressed}, pbr::{Atmosphere, AtmosphereSettings}, post_process::bloom::Bloom, prelude::*, render::view::Hdr};
 use bevy_egui::PrimaryEguiContext;
 use bevy_enhanced_input::{action::Action, actions, bindings, condition::{hold::Hold, press::Press, block_by::BlockBy, tap::Tap}};
 use bevy_flycam::{FlyCam, NoCameraPlayerPlugin};
@@ -38,6 +38,10 @@ pub struct PlayerSpawner;
 #[derive(Component, Reflect, Default)]
 #[reflect(Component)]
 pub struct PlayerTrigger;
+
+#[derive(Component, Reflect, Default)]
+#[reflect(Component)]
+pub struct ActiveWeapon;
 
 #[derive(Message)]
 pub struct SpawnPlayerMessage;
@@ -114,6 +118,7 @@ fn spawn_player_observer(
                     weight: Weight(0),
                 },
                 Name::new("gun"),
+                ActiveWeapon,
             ))
             .id();
 
@@ -172,7 +177,6 @@ fn spawn_player_observer(
             ),
             (
                 Action::<InteractAction>::new(),
-                //Press::default(),
                 Tap::new(0.5),
                 bindings![KeyCode::KeyE],
             ),
@@ -205,28 +209,6 @@ fn spawn_player_observer(
 
         // Player
         debug!("Creating Player");
-        /*let input_map = InputMap::new([
-            (LeafwingAction::Weapon1, KeyCode::Digit1),
-            (LeafwingAction::Weapon2, KeyCode::Digit2),
-            (LeafwingAction::Weapon3, KeyCode::Digit3),
-            (LeafwingAction::Weapon4, KeyCode::Digit4),
-            (LeafwingAction::Jump, KeyCode::Space),
-            (LeafwingAction::Run, KeyCode::ShiftLeft),
-            (LeafwingAction::Left, KeyCode::KeyA),
-            (LeafwingAction::Right, KeyCode::KeyD),
-            (LeafwingAction::Forward, KeyCode::KeyW),
-            (LeafwingAction::Backward, KeyCode::KeyS),
-            (LeafwingAction::Crouch, KeyCode::ControlLeft),
-            (LeafwingAction::Up, KeyCode::KeyZ),
-            (LeafwingAction::Down, KeyCode::KeyX),
-            (LeafwingAction::Interact, KeyCode::KeyO),
-            (LeafwingAction::Interact2, KeyCode::KeyQ),
-            (LeafwingAction::OpenInventory, KeyCode::KeyI),
-            (LeafwingAction::OpenEquip, KeyCode::KeyK),
-            (LeafwingAction::OpenStats, KeyCode::KeyL),
-            (LeafwingAction::OpenConsole, KeyCode::Backslash),
-            (LeafwingAction::Flashlight, KeyCode::KeyF),
-        ]);*/
 
         let logical_entity = commands
             .spawn((

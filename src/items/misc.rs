@@ -2,7 +2,7 @@ use avian_pickup::{input::{AvianPickupAction, AvianPickupInput}, prop::HeldProp}
 use avian3d::prelude::RigidBodyDisabled;
 use bevy::{color::palettes::css::CRIMSON, ecs::{lifecycle::HookContext, world::DeferredWorld}, prelude::*};
 
-use crate::{AddToInventoryEvent, InspectEvent, Interactable, InteractionEvent, PickupEvent, UiInspect, widgets};
+use crate::{AddToInventoryEvent, InspectEvent, Interactable, InteractionEvent, PickupEvent, Shelf, UiInspect, widgets};
 
 #[derive(Component, Reflect, Default)]
 #[reflect(Component)]
@@ -35,13 +35,23 @@ fn on_misc_add(
 fn misc_interaction_observer(
     trigger: On<InteractionEvent>,
     mut commands: Commands,
-    mut avian_pickup_input_writer: MessageWriter<AvianPickupInput>,
+    parent_query: Query<&ChildOf>,
+    transform_query: Query<&Transform>,
     _held_prop_query: Query<&HeldProp>,
 ) {
     trace!("OBSERVER: misc_interaction_observer");
     let actor = trigger.event().actor;
-    commands.entity(trigger.event().entity).remove::<GlobalTransform>();
-    commands.entity(actor).trigger(|entity| AddToInventoryEvent { entity, item: trigger.event().entity });
+    if let Ok(parent) = parent_query.get(trigger.event().entity)
+    && let Ok(parent_transform) = transform_query.get(parent.0)
+    && let Ok(item_transform) = transform_query.get(trigger.event().entity) {
+        commands.entity(parent.0).insert(Shelf(Box::new(parent_transform.clone())));
+        commands.entity(trigger.event().entity).insert(Shelf(Box::new(item_transform.clone())));
+        commands.entity(parent.0).remove::<GlobalTransform>();
+        commands.entity(parent.0).remove::<Transform>();
+        commands.entity(trigger.event().entity).remove::<GlobalTransform>();
+        commands.entity(trigger.event().entity).remove::<Transform>();
+        commands.entity(actor).trigger(|entity| AddToInventoryEvent { entity, item: trigger.event().entity });
+    }
 }
 
 fn misc_pickup_observer(

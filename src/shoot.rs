@@ -1,6 +1,7 @@
 use crate::{AmmoPouch, DamageEvent, Player, PlayerCamera};
 use avian3d::prelude::*;
 use bevy::prelude::*;
+use bevy_seedling::sample::SamplePlayer;
 
 use super::GameState;
 
@@ -126,6 +127,7 @@ pub fn shoot_rocket(
     camera_transform_query: Query<&GlobalTransform, With<PlayerCamera>>,
     mut meshes: ResMut<Assets<Mesh>>,
     mut materials: ResMut<Assets<StandardMaterial>>,
+    asset_server: Res<AssetServer>,
 ) {
     trace!("Message Handler: shoot_rocket");
     for _message in shoot_messages.read() {
@@ -152,6 +154,7 @@ pub fn shoot_rocket(
                         CollisionEventsEnabled,
                 ))
                     .observe(explode_rocket);
+                commands.spawn(SamplePlayer::new(asset_server.load("audio/rocket/rocket_launch_1.wav")));
             }
         }
     }
