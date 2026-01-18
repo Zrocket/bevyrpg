@@ -5,6 +5,7 @@ use bevy::{
 use bevy_asset_loader::prelude::*;
 use bevy_egui::EguiGlobalSettings;
 use bevy_inspector_egui::quick::WorldInspectorPlugin;
+use bevy_seedling::SeedlingPlugin;
 use bevy_skein::SkeinPlugin;
 use bevy_sprite3d::Sprite3dPlugin;
 use bevy_yoleck::prelude::*;
@@ -147,6 +148,7 @@ fn main() {
         SkeinPlugin::default(),
     ))
     .add_plugins((
+            AudioPlugin,
             TestsPlugin,
             Sprite3dPlugin,
             DialogPlugin,
