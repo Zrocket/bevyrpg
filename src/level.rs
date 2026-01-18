@@ -30,6 +30,10 @@ pub struct BlenderAnimationName(pub String);
 
 #[derive(Debug, Default, Component, Reflect)]
 #[reflect(Component)]
+#[require(
+    ColliderConstructor::ConvexHullFromMesh,
+    BlenderTranslationComplete,
+)]
 pub struct BlenderCollider;
 
 #[derive(Debug, Default, Component, Reflect)]

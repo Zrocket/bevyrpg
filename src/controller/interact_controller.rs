@@ -6,7 +6,7 @@ use avian_pickup::{
     prop::HeldProp,
 };
 use bevy::prelude::*;
-use bevy_enhanced_input::prelude::{Fire, Start};
+use bevy_enhanced_input::prelude::Fire;
 
 pub struct InteractControllerPlugin;
 impl Plugin for InteractControllerPlugin {
@@ -31,12 +31,12 @@ pub struct RayHit(pub Option<Entity>);
 pub fn player_raycast(
     camera_query: Query<(&Camera, &GlobalTransform), (Without<HeldProp>, With<PlayerCamera>)>,
     ray_caster: SpatialQuery,
-    mut player: Query<(Entity, &mut RayHit), With<Player>>,
-    mut flashlight: Query<Entity, With<PlayerFlashlight>>,
+    mut player_query: Query<(Entity, &mut RayHit), With<Player>>,
+    mut flashlight_query: Query<Entity, With<PlayerFlashlight>>,
 ) {
     trace!("SYSTEM: player_raycast");
-    if let Ok((player, mut ray_hit)) = player.single_mut()
-    && let Ok(flashlight) = flashlight.single_mut() {
+    if let Ok((player, mut ray_hit)) = player_query.single_mut()
+    && let Ok(flashlight) = flashlight_query.single_mut() {
         for (camera, global_transform) in camera_query.iter() {
             let center_window = camera.viewport_to_world(global_transform, Vec2 { y: (RESOLUTION_HEIGHT / 2) as f32, x: (RESOLUTION_WIDTH / 2) as f32 }).unwrap();
             let camera_position = global_transform.translation();
