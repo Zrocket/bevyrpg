@@ -5,6 +5,7 @@ mod inventory_controller;
 mod player_controller;
 mod stats_controller;
 
+use bevy_enhanced_input::prelude::Fire;
 use equip_controller::*;
 pub use input::*;
 use avian_pickup::prelude::*;
@@ -17,7 +18,7 @@ pub use stats_controller::*;
 
 use bevy::window::{CursorGrabMode, CursorOptions};
 
-use crate::{ShootEvent, shoot, widgets::floating_windows::FloatingWindow};
+use crate::{ActiveWeapon, Item, PlayerCamera, ShootEvent, level::DAGunAssets, shoot, widgets::floating_windows::FloatingWindow};
 
 pub struct ControllerPlugin;
 impl Plugin for ControllerPlugin {
@@ -30,6 +31,10 @@ impl Plugin for ControllerPlugin {
             .add_plugins(InventoryControllerPlugin)
             .add_plugins(EquipControllerPlugin)
             .add_plugins(StatsControllerPlugin)
+            .add_observer(weapon_1)
+            .add_observer(weapon_2)
+            .add_observer(weapon_3)
+            .add_observer(weapon_4)
             .register_type::<RayHit>()
             .add_systems(
                 Update,
@@ -86,18 +91,126 @@ fn manage_cursor(
     }
 }
 
-/*fn _weapon_select(
-    action_query: Query<&ActionState<LeafwingAction>, With<Player>>,
+fn weapon_1(
+    _trigger: On<Fire<Weapon1Action>>,
+    mut commands: Commands,
+    player_query: Query<Entity, With<PlayerCamera>>,
+    gun_assets: Res<DAGunAssets>,
+    gltf_assets: Res<Assets<Gltf>>,
+    asset_server: Res<AssetServer>,
+    active_weapon_query: Query<Entity, With<ActiveWeapon>>,
 ) {
-    if let Ok(action) = action_query.single() {
-        if action.just_pressed(&LeafwingAction::Weapon1) {
-            todo!();
-        } else if action.just_pressed(&LeafwingAction::Weapon2) {
-            todo!();
-        } else if action.just_pressed(&LeafwingAction::Weapon3) {
-            todo!();
-        } else if action.just_pressed(&LeafwingAction::Weapon4) {
-            todo!();
+    if let Ok(player_entity) = player_query.single() {
+        if let Ok(active_weapon) = active_weapon_query.single() {
+            commands.entity(active_weapon).despawn();
         }
+        let path = gltf_assets.get(&gun_assets.uzi).unwrap().scenes[0].path().unwrap();
+        let gun = commands.spawn((
+                Transform::from_translation(vec3(0.1, -0.2, -0.5)),
+                SceneRoot(asset_server.load(path)),
+                Item {
+                    description: crate::Description("gun".to_string()),
+                    weight: crate::Weight(0),
+                },
+                Name::new("uzi"),
+                ActiveWeapon,
+        ))
+        .id();
+
+        commands.entity(player_entity)
+            .add_child(gun);
     }
-}*/
+}
+
+fn weapon_2(
+    _trigger: On<Fire<Weapon2Action>>,
+    mut commands: Commands,
+    player_query: Query<Entity, With<PlayerCamera>>,
+    gun_assets: Res<DAGunAssets>,
+    gltf_assets: Res<Assets<Gltf>>,
+    asset_server: Res<AssetServer>,
+    active_weapon_query: Query<Entity, With<ActiveWeapon>>,
+) {
+    if let Ok(player_entity) = player_query.single() {
+        if let Ok(active_weapon) = active_weapon_query.single() {
+            commands.entity(active_weapon).despawn();
+        }
+        let path = gltf_assets.get(&gun_assets.shotgun).unwrap().scenes[0].path().unwrap();
+        let gun = commands.spawn((
+                Transform::from_translation(vec3(0.1, -0.2, -0.5)),
+                SceneRoot(asset_server.load(path)),
+                Item {
+                    description: crate::Description("gun".to_string()),
+                    weight: crate::Weight(0),
+                },
+                Name::new("shotgun"),
+                ActiveWeapon,
+        ))
+        .id();
+
+        commands.entity(player_entity)
+            .add_child(gun);
+    }
+}
+
+fn weapon_3(
+    _trigger: On<Fire<Weapon3Action>>,
+    mut commands: Commands,
+    player_query: Query<Entity, With<PlayerCamera>>,
+    gun_assets: Res<DAGunAssets>,
+    gltf_assets: Res<Assets<Gltf>>,
+    asset_server: Res<AssetServer>,
+    active_weapon_query: Query<Entity, With<ActiveWeapon>>,
+) {
+    if let Ok(player_entity) = player_query.single() {
+        if let Ok(active_weapon) = active_weapon_query.single() {
+            commands.entity(active_weapon).despawn();
+        }
+        let path = gltf_assets.get(&gun_assets.sniper).unwrap().scenes[0].path().unwrap();
+        let gun = commands.spawn((
+                Transform::from_translation(vec3(0.1, -0.2, -0.5)),
+                SceneRoot(asset_server.load(path)),
+                Item {
+                    description: crate::Description("gun".to_string()),
+                    weight: crate::Weight(0),
+                },
+                Name::new("sniper"),
+                ActiveWeapon,
+        ))
+        .id();
+
+        commands.entity(player_entity)
+            .add_child(gun);
+    }
+}
+
+fn weapon_4(
+    _trigger: On<Fire<Weapon4Action>>,
+    mut commands: Commands,
+    player_query: Query<Entity, With<PlayerCamera>>,
+    gun_assets: Res<DAGunAssets>,
+    gltf_assets: Res<Assets<Gltf>>,
+    asset_server: Res<AssetServer>,
+    active_weapon_query: Query<Entity, With<ActiveWeapon>>,
+) {
+    if let Ok(player_entity) = player_query.single() {
+        if let Ok(active_weapon) = active_weapon_query.single() {
+            commands.entity(active_weapon).despawn();
+        }
+        let path = gltf_assets.get(&gun_assets.mp5).unwrap().scenes[0].path().unwrap();
+        let gun = commands.spawn((
+                Transform::from_translation(vec3(0.1, -0.2, -0.5)),
+                SceneRoot(asset_server.load(path)),
+                Item {
+                    description: crate::Description("gun".to_string()),
+                    weight: crate::Weight(0),
+                },
+                Name::new("mp5"),
+                ActiveWeapon,
+        ))
+        .id();
+
+        commands.entity(player_entity)
+            .add_child(gun);
+    }
+}
