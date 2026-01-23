@@ -72,35 +72,22 @@ nom = "*"
 #
 # BEVY ADDONS
 #
-#bevy_mod_picking = "*"
-#bevy_mod_ui_texture_atlas_image = "0.4.1"
-
-# bevy 0.17 in progress
-bevy_yarnspinner = "0.6"
-bevy_yarnspinner_example_dialogue_view = "0.6.0"
-bevy_asset_loader = {version = "0.24.0-rc.1", features = ["2d", "standard_dynamic_assets"]}
+#leafwing-input-manager = "0.18"
+#bevy-tnua-avian3d = "0.7"
+#bevy-tnua-physics-integration-layer = "0.10"
 
 # bevy 0.17 ready
+bevy_yarnspinner = "0.6"
+bevy_yarnspinner_example_dialogue_view = "0.6.0"
 bevy_seedling = "0.6"
 soft_ratatui = { git = "https://github.com/gold-silver-copper/soft_ratatui.git", branch ="togit", features = ["embedded-graphics", "unicodefonts"] }
 ratatui = { version = "0.30.0", default-features = false }
 avian_pickup = "0.3"
-#bevy-tnua-avian3d = "0.7"
-bevy-tnua-avian3d = "0.9"
-bevy-tnua = "0.28"
-#bevy-tnua-physics-integration-layer = "0.10"
-bevy-tnua-physics-integration-layer = "0.11"
-avian3d = { version = "0.4", features = ["collider-from-mesh"] }
-bevy_sprite3d = "7.0"
+bevy_hanabi = "0.17.0"
+bevy_console = { git = "https://github.com/Zrocket/bevy-console.git" }
+
 big-brain = { git = "https://codeberg.org/zkat/big-brain.git" }
 moonshine-kind = "0.4.1"
-bevy_egui = "0.38"
-bevy_console = { git = "https://github.com/Zrocket/bevy-console.git" }
-bevy-yoleck = "0.29"
-bevy-inspector-egui = "0.35"
-bevy_simple_text_input = "0.12"
-leafwing-input-manager = "0.18"
-bevy_skein = "0.4"
 bevy_rerecast = "0.3.0"
 polyanya = "0.15.1"
 avian_rerecast = "0.3.0"
@@ -110,8 +97,21 @@ tracing = "0.1.43"
 landmass = "0.9.1"
 bevy_landmass = "0.10.0"
 landmass_rerecast = "0.1.0"
-bevy_flycam = "0.17.0"
+
+# bevy 0.18 ready
+avian3d = { version = "0.4", features = ["collider-from-mesh"] }
+bevy-tnua-physics-integration-layer = "0.11"
+bevy-inspector-egui = "0.35"
+bevy_asset_loader = {version = "0.24.0-rc.1", features = ["2d", "standard_dynamic_assets"]}
 bevy_enhanced_input = "0.20.0"
+bevy_flycam = "0.17.0"
+bevy-yoleck = "0.29"
+bevy_egui = "0.38"
+bevy_sprite3d = "7.0"
+bevy-tnua-avian3d = "0.9"
+bevy-tnua = "0.28"
+bevy_skein = "0.4"
+bevy_simple_text_input = "0.12"
 
 [profile.dev]
 opt-level=3
