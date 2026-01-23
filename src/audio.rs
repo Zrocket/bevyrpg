@@ -3,7 +3,7 @@ use bevy_enhanced_input::{action::InputAction, prelude::{Fire, Start}};
 use bevy_seedling::{SeedlingPlugin, pool::SamplerPool, prelude::PoolLabel, sample::SamplePlayer};
 use rand::Rng;
 
-use crate::{BackwardAction, ForwardAction, JumpAction, LeftAction, Player, RightAction, RunAction};
+use crate::{BackwardAction, FlashlightAction, ForwardAction, JumpAction, LeftAction, Player, RightAction, RunAction};
 
 #[derive(Debug, Reflect, Resource)]
 pub struct VolumeSettings {
@@ -33,7 +33,8 @@ impl Plugin for AudioPlugin {
            .add_observer(walk_audio::<LeftAction>)
            .add_observer(walk_audio::<RightAction>)
            .add_observer(jump_audio)
-           .add_observer(dash_audio);
+           .add_observer(dash_audio)
+           .add_observer(flashlight_audio);
     }
 }
 
@@ -91,5 +92,15 @@ fn dash_audio(
     commands.spawn((
             RunPool,
             SamplePlayer::new(asset_server.load("audio/dash/steam hisses - Marker 1.wav")),
+    ));
+}
+
+fn flashlight_audio(
+    _trigger: On<Start<FlashlightAction>>,
+    mut commands: Commands,
+    asset_server: Res<AssetServer>,
+) {
+    commands.spawn((
+            SamplePlayer::new(asset_server.load("audio/clicks/click.1.ogg")),
     ));
 }

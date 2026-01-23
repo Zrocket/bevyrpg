@@ -25,6 +25,7 @@ mod items;
 mod level;
 mod magic;
 mod navmesh;
+mod particles;
 mod player;
 mod render;
 mod rover;
@@ -55,7 +56,7 @@ pub use utils::*;
 use level::*;
 use tests::TestsPlugin;
 
-use crate::enemy::EnemyPlugin;
+use crate::{enemy::EnemyPlugin, particles::ParticlePlugin};
 
 #[derive(Parser, Debug)]
 struct Args {
@@ -155,6 +156,7 @@ fn main() {
             NavMeshPlugin,
             SpritesPlugin,
             EnemyPlugin,
+            ParticlePlugin,
     ));
     app.add_systems(Update, pause_game);
 
