@@ -25,6 +25,7 @@ mod items;
 mod level;
 mod magic;
 mod navmesh;
+mod npc;
 mod particles;
 mod player;
 mod render;
@@ -46,6 +47,7 @@ pub use interact::*;
 pub use inventory::*;
 pub use items::*;
 pub use navmesh::*;
+pub use npc::*;
 pub use player::*;
 pub use render::*;
 pub use rover::*;
@@ -157,6 +159,7 @@ fn main() {
             SpritesPlugin,
             EnemyPlugin,
             ParticlePlugin,
+            NpcPlugin,
     ));
     app.add_systems(Update, pause_game);
 

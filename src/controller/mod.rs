@@ -3,6 +3,7 @@ mod input;
 mod interact_controller;
 mod inventory_controller;
 mod player_controller;
+mod quest_controller;
 mod stats_controller;
 
 use bevy_enhanced_input::prelude::Fire;
@@ -14,6 +15,7 @@ use bevy_tnua::TnuaUserControlsSystems;
 pub use interact_controller::*;
 use inventory_controller::*;
 pub use player_controller::*;
+pub use quest_controller::*;
 pub use stats_controller::*;
 
 use bevy::window::{CursorGrabMode, CursorOptions};
