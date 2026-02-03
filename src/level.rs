@@ -112,7 +112,6 @@ impl Plugin for BlenderTranslationPlugin {
             .register_type::<CollisionLayer>()
             .add_message::<ChangeLevelMessage>()
             .add_systems(Update, change_level_message_handler)
-            .add_systems(OnExit(GameState::Loading), animation_preload.run_if(resource_added::<LevelGltf>))
             .add_loading_state(
                 LoadingState::new(GameState::Preload)
                     .with_dynamic_assets_file::<StandardDynamicAssetCollection>("gunassets.ron")
@@ -196,7 +195,7 @@ fn change_level_message_handler(
     }
 }
 
-fn animation_preload(
+/*fn animation_preload(
     mut commands: Commands,
     level_gltf: Res<LevelGltf>,
     gltf_assets: Res<Assets<Gltf>>,
@@ -205,11 +204,10 @@ fn animation_preload(
 ){
     trace!("SYSTEM: animation_preload");
     if let Some(gltf) = gltf_assets.get(&level_gltf.0) {
-        for (entity, animation_name) in blender_animation_query.iter() {
-            let animation_clip_handle = gltf.named_animations[animation_name.0.as_str()].clone();
-            let animation_clip = animation_clip_handle.clone();
-            let (animation_graph, _index) = AnimationGraph::from_clip(animation_clip);
+        for (entity, _animation_name) in blender_animation_query.iter() {
+            let animation_clip_handle = gltf.named_animations["opendoor"].clone();
+            let (animation_graph, _index) = AnimationGraph::from_clip(animation_clip_handle);
             commands.entity(entity).insert(AnimationGraphHandle(animation_graphs.add(animation_graph)));
         }
     }
-}
+}*/

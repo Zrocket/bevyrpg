@@ -57,7 +57,6 @@ fn spawn_sprites(
             unlit: true,
             ..default()
         },
-        //.bundle_with_atlas(&mut sprite_params, atlas),
         Transform::from_xyz(2.0, 0.5, -5.5),
         Animation {
             frames: vec![30 * 32 + 14, 30 * 32 + 15, 30 * 32 + 16],
@@ -73,13 +72,6 @@ fn spawn_sprites(
     };
 
     commands.spawn((
-        /*Sprite3dBuilder {
-            image: images.tileset.clone(),
-            pixels_per_metre: 16.,
-            emissive: LinearRgba::rgb(165. / 255., 1.0, 160. / 255.),
-            unlit: true,
-            ..default()
-        }*/
         Sprite3d {
             pixels_per_metre: 16.,
             double_sided: false,
@@ -92,7 +84,6 @@ fn spawn_sprites(
             texture_atlas: Some(atlas),
             ..default()
         },
-        //.bundle_with_atlas(&mut sprite_params, atlas),
         Transform::from_xyz(-5., 0.7, 6.5),
         FaceCamera {},
     ));
