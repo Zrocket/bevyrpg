@@ -1,9 +1,10 @@
 use bevy::prelude::*;
 use bevy_enhanced_input::{action::InputAction, prelude::{Fire, Start}};
 use bevy_seedling::{SeedlingPlugin, pool::SamplerPool, prelude::PoolLabel, sample::SamplePlayer};
+use bevy_tnua::TnuaController;
 use rand::Rng;
 
-use crate::{BackwardAction, FlashlightAction, ForwardAction, JumpAction, LeftAction, Player, RightAction, RunAction};
+use crate::{BackwardAction, FlashlightAction, ForwardAction, JumpAction, LeftAction, Player, PlayerControlScheme, RightAction, RunAction};
 
 #[derive(Debug, Reflect, Resource)]
 pub struct VolumeSettings {
@@ -13,7 +14,7 @@ pub struct VolumeSettings {
 }
 
 #[derive(PoolLabel, Debug, Clone, PartialEq, Eq, Hash)]
-struct MovementPool;
+pub struct MovementPool;
 
 #[derive(PoolLabel, Debug, Clone, PartialEq, Eq, Hash)]
 struct JumpPool;
@@ -56,10 +57,15 @@ fn walk_audio<T: InputAction>(
     mut commands: Commands,
     asset_server: Res<AssetServer>,
     pool_query: Query<&SamplePlayer, With<MovementPool>>,
+    tnua_query: Query<&TnuaController<PlayerControlScheme>, With<Player>>,
 ) {
     if let Ok(_) = pool_query.single() {
         return;
+    } else if let Ok(tnua_controller) = tnua_query.single()
+    && tnua_controller.is_airborne().unwrap() {
+        return;
     }
+
     let mut rng = rand::rng();
     let file = format!("audio/footsteps/tile/{}.ogg", rng.random_range(0..8));
     commands.spawn(
@@ -70,14 +76,19 @@ fn walk_audio<T: InputAction>(
 }
 
 fn jump_audio(
-    _trigger: On<Fire<JumpAction>>,
+    _trigger: On<Start<JumpAction>>,
     mut commands: Commands,
     asset_server: Res<AssetServer>,
     pool_query: Query<&SamplePlayer, With<JumpPool>>,
+    tnua_query: Query<&TnuaController<PlayerControlScheme>, With<Player>>,
 ) {
     if let Ok(_) = pool_query.single() {
         return;
+    } else if let Ok(tnua_controller) = tnua_query.single()
+    && tnua_controller.is_airborne().unwrap() {
+        return;
     }
+
     commands.spawn((
             JumpPool,
             SamplePlayer::new(asset_server.load("audio/jump/jumppp11.ogg")),

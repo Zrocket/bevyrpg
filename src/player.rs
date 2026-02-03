@@ -1,13 +1,9 @@
-use avian3d::{prelude::{CoefficientCombine, Collider, CollisionLayers, Friction, GravityScale, LayerMask, LockedAxes, RigidBody, SpatialQuery, SpatialQueryFilter}};
-use avian_pickup::actor::{AvianPickupActor, AvianPickupActorHoldConfig};
-use bevy::{camera::Exposure, core_pipeline::tonemapping::Tonemapping, input::{common_conditions::input_just_pressed}, pbr::{Atmosphere, AtmosphereSettings}, post_process::bloom::Bloom, prelude::*, render::view::Hdr};
+use avian3d::{prelude::{CoefficientCombine, Collider, Friction, GravityScale, LockedAxes, RigidBody, SpatialQuery, SpatialQueryFilter}};
+use bevy::{camera::Exposure, core_pipeline::tonemapping::Tonemapping, ecs::{lifecycle::HookContext, world::DeferredWorld}, input::common_conditions::input_just_pressed, pbr::{Atmosphere, AtmosphereSettings}, post_process::bloom::Bloom, prelude::*, render::view::Hdr};
 use bevy_egui::PrimaryEguiContext;
-use bevy_enhanced_input::{action::Action, actions, bindings, condition::{hold::Hold, press::Press, block_by::BlockBy, tap::Tap}};
 use bevy_flycam::{FlyCam, NoCameraPlayerPlugin};
-use bevy_tnua::{TnuaConfig, TnuaObstacleRadar, builtins::{TnuaBuiltinClimbConfig, TnuaBuiltinCrouchConfig, TnuaBuiltinDashConfig, TnuaBuiltinJumpConfig, TnuaBuiltinWalkConfig, TnuaBuiltinWallSlideConfig}, control_helpers::{TnuaBlipReuseAvoidance, TnuaSimpleAirActionsCounter}, prelude::TnuaController};
-use bevy_tnua_avian3d::TnuaAvian3dSensorShape;
 
-use crate::{BackwardAction, CameraConfig, CharacterBundle, CollisionLayer, CrouchAction, DeathEvent, Description, DownAction, Experience, FlashlightAction, FloatHeight, ForwardAction, GameState, Health, Interact2Action, InteractAction, Item, JumpAction, LeftAction, Mana, MaxHealth, MaxMana, OpenConsoleAction, OpenEquipAction, OpenInventoryAction, OpenStatsAction, PlayerControlScheme, PlayerControlSchemeConfig, PlayerController, PlayerControllerConfig, PlayerControllerInput, RayHit, RenderPlayer, RightAction, RunAction, UpAction, Walk, Weapon1Action, Weapon2Action, Weapon3Action, Weapon4Action, Weight, add_to_inventory_observer, display_equip_event_observer, display_inventory_event_observer, display_stats_event_observer, level::DAGunAssets, remove_from_inventory_observer};
+use crate::{CameraConfig, CharacterBundle, CollisionLayer, DeathEvent, Description, Experience, GameState, Health, Item, Mana, MaxHealth, MaxMana, PlayerControlSchemeConfig, RenderPlayer, TnuaPlayerController, Walk, Weight, add_to_inventory_observer, display_equip_event_observer, display_inventory_event_observer, display_quest_event_observer, display_stats_event_observer, level::DAGunAssets, remove_from_inventory_observer};
 
 #[derive(Clone, Component, Hash, Debug, Eq, PartialEq, Default, States)]
 pub enum PlayerState {
@@ -21,10 +17,53 @@ pub enum PlayerState {
 
 #[derive(Component, Reflect, Default)]
 #[reflect(Component)]
+#[require(
+    Name::new("Player"),
+    Collider::capsule(0.1, 0.5),
+    Friction {
+        combine_rule: CoefficientCombine::Min,
+        ..default()
+    },
+    RigidBody::Dynamic,
+    LockedAxes::ROTATION_LOCKED,
+    GravityScale(1.0),
+    CameraConfig {
+        height_offset: 0.0,
+        //radius_scale: 0.75,
+    },
+    Walk::default(),
+    PlayerState::Grounded,
+)]
+#[component(on_add = on_player_add)]
 pub struct Player;
 
 #[derive(Component, Reflect, Default)]
 #[reflect(Component)]
+#[require(
+    Camera {
+        clear_color: ClearColorConfig::Custom(Srgba::rgb(0.0, 0.0, 0.0).into()),
+        ..default()
+    },
+    Hdr,
+    Camera3d { ..default() },
+    Atmosphere::EARTH,
+    AtmosphereSettings {
+        aerial_view_lut_max_distance: 3.2e5,
+        scene_units_to_m: 1e+4,
+        ..Default::default()
+    },
+    Exposure::SUNLIGHT,
+    Tonemapping::AcesFitted,
+    Bloom::NATURAL,
+    Projection::Perspective(PerspectiveProjection {
+        fov: std::f32::consts::PI / 2.0,
+        ..default()
+    }),
+    Transform {
+        translation: Vec3 { y: 2., ..default() },
+        ..default()
+    },
+)]
 pub struct PlayerCamera;
 
 #[derive(Component, Reflect, Default)]
@@ -73,6 +112,21 @@ impl Plugin for GamePlayerPlugin {
     }
 }
 
+fn on_player_add(
+    mut world: DeferredWorld,
+    context: HookContext,
+) {
+    world.commands()
+        .entity(context.entity)
+        .observe(player_death_event_observer)
+        .observe(add_to_inventory_observer::<Player>)
+        .observe(remove_from_inventory_observer::<Player>)
+        .observe(display_inventory_event_observer)
+        .observe(display_quest_event_observer)
+        .observe(display_equip_event_observer)
+        .observe(display_stats_event_observer);
+}
+
 fn init_player(
     mut spawn_player_message_writer: MessageWriter<SpawnPlayerMessage>,
 ) {
@@ -89,7 +143,6 @@ fn spawn_player_observer(
     player_spawner_query: Query<&GlobalTransform, With<PlayerSpawner>>,
     mut player_camera_query: Query<&mut RenderPlayer, With<PlayerCamera>>,
     mut player_query: Query<Entity, With<Player>>,
-    mut control_scheme_configs: ResMut<Assets<PlayerControlSchemeConfig>>,
 ) {
     trace!("SYSTEM: spawn_player");
 
@@ -122,113 +175,15 @@ fn spawn_player_observer(
             ))
             .id();
 
-        let bei_input_map = actions!(Player[
-            (
-                Action::<Weapon1Action>::new(),
-                bindings![KeyCode::Digit1],
-            ),
-            (
-                Action::<Weapon2Action>::new(),
-                bindings![KeyCode::Digit2],
-            ),
-            (
-                Action::<Weapon3Action>::new(),
-                bindings![KeyCode::Digit3],
-            ),
-            (
-                Action::<Weapon4Action>::new(),
-                bindings![KeyCode::Digit4],
-            ),
-            (
-                Action::<JumpAction>::new(),
-                bindings![KeyCode::Space],
-            ),
-            (
-                Action::<RunAction>::new(),
-                bindings![KeyCode::ShiftLeft],
-            ),
-            (
-                Action::<LeftAction>::new(),
-                bindings![KeyCode::KeyA],
-            ),
-            (
-                Action::<RightAction>::new(),
-                bindings![KeyCode::KeyD],
-            ),
-            (
-                Action::<ForwardAction>::new(),
-                bindings![KeyCode::KeyW],
-            ),
-            (
-                Action::<BackwardAction>::new(),
-                bindings![KeyCode::KeyS],
-            ),
-            (
-                Action::<CrouchAction>::new(),
-                bindings![KeyCode::ControlLeft],
-            ),
-            (
-                Action::<UpAction>::new(),
-                bindings![KeyCode::KeyZ],
-            ),
-            (
-                Action::<DownAction>::new(),
-                bindings![KeyCode::KeyX],
-            ),
-            (
-                Action::<InteractAction>::new(),
-                Tap::new(0.5),
-                bindings![KeyCode::KeyE],
-            ),
-            (
-                Action::<Interact2Action>::new(),
-                Hold::new(0.5),
-                bindings![KeyCode::KeyE],
-            ),
-            (
-                Action::<OpenInventoryAction>::new(),
-                bindings![KeyCode::KeyI],
-            ),
-            (
-                Action::<OpenEquipAction>::new(),
-                bindings![KeyCode::KeyK],
-            ),
-            (
-                Action::<OpenStatsAction>::new(),
-                bindings![KeyCode::KeyL],
-            ),
-            (
-                Action::<OpenConsoleAction>::new(),
-                bindings![KeyCode::Backslash],
-            ),
-            (
-                Action::<FlashlightAction>::new(),
-                bindings![KeyCode::KeyF],
-            ),
-        ]);
-
         // Player
         debug!("Creating Player");
 
         let logical_entity = commands
             .spawn((
                 (
-                    Collider::capsule(0.1, 0.5),
-                    Friction {
-                        combine_rule: CoefficientCombine::Min,
-                        ..default()
-                    },
-                    RigidBody::Dynamic,
-                    LockedAxes::ROTATION_LOCKED,
-                    GravityScale(1.0),
                     spawn_point,
-                    CameraConfig {
-                        height_offset: 0.0,
-                        //radius_scale: 0.75,
-                    },
                     Player,
-                    PlayerController::default(),
-                    PlayerControllerInput::default(),
+                    TnuaPlayerController,
                     CharacterBundle {
                         mana: Mana(100),
                         max_mana: MaxMana(100),
@@ -237,78 +192,11 @@ fn spawn_player_observer(
                         experience: Experience(100),
                         ..default()
                     },
-                    TnuaController::<PlayerControlScheme>::default(),
-                    TnuaConfig::<PlayerControlScheme>(control_scheme_configs.add(PlayerControlSchemeConfig {
-                        basis: TnuaBuiltinWalkConfig {
-                            speed: 10.0,
-                            float_height: 1.5,
-                            ..default()
-                        },
-                        jump: TnuaBuiltinJumpConfig {
-                            height: 2.0,
-                            ..default()
-                        },
-                        crouch: TnuaBuiltinCrouchConfig {
-                            float_offset: -0.7,
-                            ..default()
-                        },
-                        dash: TnuaBuiltinDashConfig {
-                            horizontal_distance: 5.0,
-                            ..default()
-                        },
-                        knockback: Default::default(),
-                        wall_slide: TnuaBuiltinWallSlideConfig {
-                            maintain_distance: Some(0.7),
-                            ..default()
-                        },
-                        wall_jump: TnuaBuiltinJumpConfig {
-                            height: 4.0,
-                            takeoff_extra_gravity: 90.0, // 3 times the default
-                            takeoff_above_velocity: 0.0,
-                            horizontal_distance: 2.0,
-                            ..default()
-                        },
-                        climb: TnuaBuiltinClimbConfig {
-                            climb_speed: 10.0,
-                            ..default()
-                        },
-                    })),
-                    TnuaAvian3dSensorShape(Collider::capsule(0.1, 0.5)),
-                    FloatHeight(1.5),
                 ),
-                (CollisionLayers::new(CollisionLayer::Player, LayerMask::ALL),),
             ))
-            .insert(Walk::default())
-            .insert(bei_input_map)
-            .insert(TnuaSimpleAirActionsCounter::<PlayerControlScheme>::default())
-            .insert(AvianPickupActor {
-                prop_filter: SpatialQueryFilter::from_mask(CollisionLayer::Prop),
-                actor_filter: SpatialQueryFilter::from_mask(CollisionLayer::Player),
-                obstacle_filter: SpatialQueryFilter::from_mask(CollisionLayer::Default),
-                hold: AvianPickupActorHoldConfig {
-                    pitch_range: -40.0_f32.to_radians()..=75.0_f32.to_radians(),
-                    distance_to_allow_holding: 100.0,
-                    ..default()
-                },
-                ..default()
-            })
-            .insert(RayHit(None))
-            .insert(Name::new("Player"))
-            .insert(PlayerState::Grounded)
-            .insert(TnuaObstacleRadar::new(1.0, 3.0))
-            .insert(TnuaBlipReuseAvoidance::<PlayerControlScheme>::default())
-            .insert(PlayerControllerConfig::default())
-            .observe(player_death_event_observer)
-            .observe(add_to_inventory_observer::<Player>)
-            .observe(remove_from_inventory_observer::<Player>)
-            .observe(display_inventory_event_observer)
-            .observe(display_equip_event_observer)
-            .observe(display_stats_event_observer)
             .id();
 
         // Camera
-
-
         debug!("Creating Camera");
         if let Ok(mut render_player) = player_camera_query.single_mut() {
             *render_player = RenderPlayer { logical_entity };
@@ -325,30 +213,7 @@ fn spawn_player_observer(
                 .id();
             commands
                 .spawn((
-                    Camera {
-                        clear_color: ClearColorConfig::Custom(Srgba::rgb(0.0, 0.0, 0.0).into()),
-                        ..default()
-                    },
-                    Hdr,
-                    Camera3d { ..default() },
                     PrimaryEguiContext,
-                    Atmosphere::EARTH,
-                    AtmosphereSettings {
-                        aerial_view_lut_max_distance: 3.2e5,
-                        scene_units_to_m: 1e+4,
-                        ..Default::default()
-                    },
-                    Exposure::SUNLIGHT,
-                    Tonemapping::AcesFitted,
-                    Bloom::NATURAL,
-                    Projection::Perspective(PerspectiveProjection {
-                        fov: std::f32::consts::PI / 2.0,
-                        ..default()
-                    }),
-                    Transform {
-                        translation: Vec3 { y: 2., ..default() },
-                        ..default()
-                    },
                     RenderPlayer { logical_entity },
                     PlayerCamera,
                 ))

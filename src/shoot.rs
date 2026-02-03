@@ -1,6 +1,6 @@
 use crate::{AmmoPouch, DamageEvent, Player, PlayerCamera};
 use avian3d::prelude::*;
-use bevy::prelude::*;
+use bevy::{ecs::{lifecycle::HookContext, world::DeferredWorld}, prelude::*};
 use bevy_seedling::sample::SamplePlayer;
 
 use super::GameState;
@@ -15,16 +15,55 @@ pub struct ShootEvent;
 pub struct Cooldown(Timer);
 
 #[derive(Debug, Component, Reflect)]
+#[require(
+    RigidBody::Dynamic,
+    Collider::capsule(GRENADE_SIZE, GRENADE_SIZE),
+    CollisionEventsEnabled,
+)]
+#[component(on_add = on_grenade_add)]
 pub struct Grenade(Timer); /*{
     damage: i32,
     splash_radius: i32,
 }*/
 
 #[derive(Debug, Component, Reflect)]
-pub struct Rocket; /*{
-    damage: i32,
-    splash_radius: i32,
-}*/
+#[require(
+    RigidBody::Kinematic,
+    Collider::sphere(ROCKET_SIZE),
+    CollisionEventsEnabled,
+)]
+#[component(on_add = on_rocket_add)]
+pub struct Rocket;
+
+fn on_grenade_add(
+    mut world: DeferredWorld,
+    context: HookContext,
+) {
+    let mut meshes = world.resource_mut::<Assets<Mesh>>();
+    let mesh = meshes.add(Capsule3d::new(GRENADE_SIZE, GRENADE_SIZE));
+    let mut materials = world.resource_mut::<Assets<StandardMaterial>>();
+    let material = materials.add(Color::WHITE);
+
+    world.commands()
+        .entity(context.entity)
+        .insert(Mesh3d(mesh))
+        .insert(MeshMaterial3d(material));
+}
+
+fn on_rocket_add(
+    mut world: DeferredWorld,
+    context: HookContext,
+) {
+    let mut meshes = world.resource_mut::<Assets<Mesh>>();
+    let mesh = meshes.add(Sphere::new(ROCKET_SIZE));
+    let mut materials = world.resource_mut::<Assets<StandardMaterial>>();
+    let material = materials.add(Color::WHITE);
+    world.commands()
+        .entity(context.entity)
+        .insert(Mesh3d(mesh))
+        .insert(MeshMaterial3d(material))
+        .observe(explode_rocket);
+}
 
 pub struct ShootPlugin;
 impl Plugin for ShootPlugin {
@@ -106,10 +145,6 @@ pub fn shoot_grenade(
             let linear_velocity = direction * 23.;
             commands.spawn((
                     Grenade(Timer::from_seconds(3., TimerMode::Once)),
-                    RigidBody::Dynamic,
-                    Collider::capsule(GRENADE_SIZE, GRENADE_SIZE),
-                    Mesh3d(meshes.add(Capsule3d::new(GRENADE_SIZE, GRENADE_SIZE))),
-                    MeshMaterial3d(materials.add(Color::WHITE)),
                     Transform {
                         translation: grenade_position,
                         ..default()
@@ -125,8 +160,6 @@ pub fn shoot_rocket(
     mut shoot_messages: MessageReader<ShootEvent>,
     mut player_query: Query<&mut AmmoPouch, With<Player>>,
     camera_transform_query: Query<&GlobalTransform, With<PlayerCamera>>,
-    mut meshes: ResMut<Assets<Mesh>>,
-    mut materials: ResMut<Assets<StandardMaterial>>,
     asset_server: Res<AssetServer>,
 ) {
     trace!("Message Handler: shoot_rocket");
@@ -137,23 +170,17 @@ pub fn shoot_rocket(
 
             for global_transform in camera_transform_query.iter() {
                 let camera_position = global_transform.translation();
-                let rocket_position = camera_position + (global_transform.forward() * 3.);
-                let direction = global_transform.forward();
-                let linear_velocity = direction * 20.;
+                let rocket_position = camera_position + (global_transform.forward() * 1.);
+                let direction = global_transform.forward().normalize();
+                let linear_velocity = direction * 21.1111;
                 commands.spawn((
                         Rocket,
-                        RigidBody::Kinematic,
-                        Collider::capsule(ROCKET_SIZE, ROCKET_SIZE),
-                        Mesh3d(meshes.add(Capsule3d::new(ROCKET_SIZE, ROCKET_SIZE))),
-                        MeshMaterial3d(materials.add(Color::WHITE)),
                         Transform {
                             translation: rocket_position,
                             ..default()
                         },
                         LinearVelocity(linear_velocity),
-                        CollisionEventsEnabled,
-                ))
-                    .observe(explode_rocket);
+                ));
                 commands.spawn(SamplePlayer::new(asset_server.load("audio/rocket/rocket_launch_1.wav")));
             }
         }
