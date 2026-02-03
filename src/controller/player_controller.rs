@@ -1,15 +1,17 @@
 use std::{cmp::Ordering, f32::consts::*};
+use rand::Rng;
 
 use avian3d::{math::{AdjustPrecision, Vector3}, prelude::RigidBodyDisabled};
 use bevy::{input::mouse, prelude::*};
 use bevy_enhanced_input::{action::Action, prelude::{ActionEvents, Fire, Start}};
+use bevy_flycam::MovementSettings;
 use bevy_seedling::sample::{SamplePlayer, SamplePriority};
 use bevy_tnua::{
-    TnuaControllerPlugin, TnuaObstacleRadar, TnuaScheme, TnuaUserControlsSystems, builtins::{TnuaBuiltinClimb, TnuaBuiltinCrouch, TnuaBuiltinDash, TnuaBuiltinJump, TnuaBuiltinKnockback, TnuaBuiltinWalk, TnuaBuiltinWallSlide}, control_helpers::{TnuaAirActionDefinition, TnuaBlipReuseAvoidance, TnuaHasTargetEntity, TnuaSimpleAirActionsCounter}, controller::TnuaController, math::{AsF32, Float}, radar_lens::{TnuaBlipSpatialRelation, TnuaRadarLens}
+    TnuaControllerPlugin, TnuaObstacleRadar, TnuaScheme, TnuaUserControlsSystems, builtins::{TnuaBuiltinClimb, TnuaBuiltinCrouch, TnuaBuiltinDash, TnuaBuiltinJump, TnuaBuiltinKnockback, TnuaBuiltinWalk, TnuaBuiltinWallSlide}, control_helpers::{TnuaAirActionDefinition, TnuaAirActionsTracker, TnuaBlipReuseAvoidance, TnuaHasTargetEntity, TnuaSimpleAirActionsCounter}, controller::TnuaController, math::{AsF32, Float}, radar_lens::{TnuaBlipSpatialRelation, TnuaRadarLens}
 };
 use bevy_tnua_avian3d::{TnuaAvian3dPlugin, TnuaSpatialExtAvian3d};
 
-use crate::{BackwardAction, CrouchAction, DownAction, FlashlightAction, ForwardAction, JumpAction, LeftAction, ObstacleQueryHelper, Player, PlayerFlashlight, PlayerState, RightAction, RunAction, UpAction};
+use crate::{BackwardAction, CrouchAction, DownAction, FlashlightAction, ForwardAction, JumpAction, LeftAction, MovementPool, ObstacleQueryHelper, Player, PlayerFlashlight, PlayerState, RightAction, RunAction, UpAction};
 
 // Used as padding by camera pitching (up/down) to avoid spooky math problems
 const ANGLE_EPSILON: f32 = 0.001953125;
@@ -211,7 +213,7 @@ fn toggle_flashlight(
 }
 
 // Query for the `ActionState` component in your game logic systems!
-#[allow(clippy::type_complexity)]
+#[allow(clippy::type_complexity, clippy::too_many_arguments)]
 pub fn tnua_player_input(
     mut commands: Commands,
     jump_action: Single<&ActionEvents, With<Action<JumpAction>>>,
@@ -230,6 +232,7 @@ pub fn tnua_player_input(
         ), With<Player>>,
     spatial_ext: TnuaSpatialExtAvian3d,
     obstacle_query: Query<ObstacleQueryHelper>,
+    asset_server: Res<AssetServer>,
 ) {
     // Get player's tnua controller, otherwise return
     let Ok((player_controller_config,
@@ -285,9 +288,6 @@ pub fn tnua_player_input(
     if crouch_action.contains(ActionEvents::COMPLETED) {
         tnua_controller.action_end(PlayerControlSchemeActionDiscriminant::Crouch);
     }
-
-            // NOT SURE WHY SECOND UPDATE
-    //air_actions_counter.update(tnua_controller.as_mut());
 
     if *player_state == PlayerState::Sitting {
         return;

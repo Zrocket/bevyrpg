@@ -16,12 +16,6 @@ pub struct SpriteBundle {
 
 #[derive(Component)]
 pub struct Talkable;
-/*impl interact::Interaction for Talkable {
-    fn interact(&self,commands: &mut Commands, _entity:Entity, prop:Entity,) {
-        println!("Talkable Interaction Impl");
-        commands.trigger(DialogEvent {actor:prop}, prop);
-    }
-}*/
 
 fn sprite_interaction_observer(
     trigger: On<InteractionEvent>,
@@ -37,7 +31,7 @@ pub enum SpriteType {
     Item,
 }
 
- #[derive(AssetCollection, Resource, Default)]
+#[derive(AssetCollection, Resource, Default)]
 pub struct ImageAssets {
     #[asset(texture_atlas(
         tile_size_x = 16,
@@ -156,7 +150,7 @@ fn sprite_handler(
                     Collider::cuboid(0.5, 1., 0.5),
                     YarnNode::default(),
                     //KinematicCharacterController::default(),
-                    RigidBody::Kinematic,
+                    RigidBody::Static,
                     Transform::from_xyz(event.x, 1., event.y),
                     Talkable,
                 ));
