@@ -66,7 +66,7 @@ pub fn label_base(text: impl Into<String>, font_size: f32) -> impl Bundle {
     )
 }
 
-pub fn button<E, B, M, I>(text: impl Into<String>, action: I) -> impl Bundle 
+pub fn button<E, B, M, I>(text: impl Into<String>, action: I) -> impl Bundle
 where
     E: EntityEvent,
     B: Bundle,
@@ -81,10 +81,10 @@ where
                 height: Val::Px(80.0),
                 align_items: AlignItems::Center,
                 justify_content: JustifyContent::Center,
+                border_radius: BorderRadius::MAX,
                 ..default()
             },
             BackgroundColor::from(DARK_GREEN),
-            BorderRadius::MAX,
         ),
     )
 }
@@ -138,9 +138,9 @@ where
                 height: Val::Px(80.0),
                 align_items: AlignItems::Center,
                 justify_content: JustifyContent::Center,
+                border_radius: BorderRadius::MAX,
                 ..default()
             },
-            BorderRadius::MAX,
         )
     )
 }
