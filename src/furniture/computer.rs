@@ -169,10 +169,7 @@ fn spawn_computer(
     let texture_camera = commands
         .spawn((
             Camera2d,
-            Camera {
-                target: RenderTarget::Image(image_handle.clone().into()),
-                ..default()
-            },
+            RenderTarget::Image(image_handle.clone().into()),
             ComputerTextureCam,
             Name::new("ComputerTextureCam"),
         ))

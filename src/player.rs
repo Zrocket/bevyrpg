@@ -1,5 +1,5 @@
 use avian3d::{prelude::{CoefficientCombine, Collider, Friction, GravityScale, LockedAxes, RigidBody, SpatialQuery, SpatialQueryFilter}};
-use bevy::{camera::Exposure, core_pipeline::tonemapping::Tonemapping, ecs::{lifecycle::HookContext, world::DeferredWorld}, input::common_conditions::input_just_pressed, pbr::{Atmosphere, AtmosphereSettings}, post_process::bloom::Bloom, prelude::*, render::view::Hdr};
+use bevy::{camera::Exposure, core_pipeline::tonemapping::Tonemapping, ecs::{lifecycle::HookContext, world::DeferredWorld}, input::common_conditions::input_just_pressed, pbr::{Atmosphere, AtmosphereSettings, ScatteringMedium}, post_process::bloom::Bloom, prelude::*, render::view::Hdr};
 use bevy_egui::PrimaryEguiContext;
 use bevy_flycam::{FlyCam, NoCameraPlayerPlugin};
 
@@ -46,7 +46,6 @@ pub struct Player;
     },
     Hdr,
     Camera3d { ..default() },
-    Atmosphere::EARTH,
     AtmosphereSettings {
         aerial_view_lut_max_distance: 3.2e5,
         scene_units_to_m: 1e+4,
@@ -64,6 +63,7 @@ pub struct Player;
         ..default()
     },
 )]
+#[component(on_add = on_player_camera_add)]
 pub struct PlayerCamera;
 
 #[derive(Component, Reflect, Default)]
@@ -125,6 +125,18 @@ fn on_player_add(
         .observe(display_quest_event_observer)
         .observe(display_equip_event_observer)
         .observe(display_stats_event_observer);
+}
+
+fn on_player_camera_add(
+    mut world: DeferredWorld,
+    context: HookContext,
+) {
+    let mut scattering_mediums = world.resource_mut::<Assets<ScatteringMedium>>();
+    let scattering_mediums_handle = scattering_mediums.add(ScatteringMedium::default());
+
+    world.commands()
+        .entity(context.entity)
+        .insert(Atmosphere::earthlike(scattering_mediums_handle));
 }
 
 fn init_player(
