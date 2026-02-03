@@ -128,7 +128,7 @@ fn main() {
                 ..default()
             }),
     )
-    .insert_resource(AmbientLight {
+    .insert_resource(GlobalAmbientLight {
         color: Color::WHITE,
         brightness: 0.5,
         ..default()
