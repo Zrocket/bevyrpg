@@ -1,4 +1,3 @@
-use avian3d::{prelude::{Collider, RigidBody}};
 use avian_rerecast::AvianBackendPlugin;
 use bevy::{input::common_conditions::input_just_pressed, prelude::*};
 use bevy_landmass::{Agent, Agent3dBundle, AgentDesiredVelocity3d, AgentSettings, AgentTarget3d, Archipelago3d, ArchipelagoRef3d, Island, Landmass3dPlugin, Velocity3d, debug::{EnableLandmassDebug, Landmass3dDebugPlugin}};
@@ -87,28 +86,6 @@ fn landmass_rerecast_setup(
             generator.generate(NavmeshSettings { cell_size_fraction: 8., agent_radius: 0.5, ..Default::default() }),
         ),
     });
-
-    // Create an agent that will find a path as soon as the nav mesh is generated.
-    /*commands.spawn((
-            Agent3dBundle {
-                agent: Agent::default(),
-                archipelago_ref: ArchipelagoRef3d::new(archipelago),
-                settings: AgentSettings {
-                    desired_speed: 5.0,
-                    max_speed: 10.0,
-                    radius: 0.5
-                },
-            },
-            Transform::from_xyz(-5.0, 0.5, -15.0),
-            AgentTarget3d::Point(Vec3::new(15.0, 1.5, 15.0)),
-            Mesh3d(meshes.add(Cuboid::new(1.0, 1.0, 1.0))),
-            MeshMaterial3d(materials.add(Color::WHITE)),
-            RigidBody::Dynamic,
-            Collider::cuboid(1.0, 1.0, 1.0),
-    ))
-    .insert(TnuaNpcController)
-    .insert(Walk::default())
-    .insert(Name::new("Walking Cube"));*/
 }
 
 fn toggle_landmass_debug(mut debug: ResMut<EnableLandmassDebug>) {
@@ -122,8 +99,12 @@ fn apply_walking(
 
     for (mut controller, desired_velocity, mut agent_velocity, tracker) in &mut character_query {
         controller.initiate_action_feeding();
-        let Ok(direction) = Dir3::new(desired_velocity.velocity()) else { return };
-        controller.basis = TnuaBuiltinWalk { desired_motion: direction.normalize_or_zero(), desired_forward: Some(direction) };
+        let Ok(direction) = Dir3::new(desired_velocity.velocity()) else { 
+            controller.basis = TnuaBuiltinWalk { desired_motion: desired_velocity.velocity().normalize_or_zero(), desired_forward: None };
+            agent_velocity.velocity = tracker.velocity;
+            return;
+        };
+        controller.basis = TnuaBuiltinWalk { desired_motion: desired_velocity.velocity().normalize_or_zero(), desired_forward: Some(direction) };
         agent_velocity.velocity = tracker.velocity;
     }
 }
