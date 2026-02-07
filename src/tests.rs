@@ -1,7 +1,7 @@
 use bevy::{input::common_conditions::input_just_pressed, prelude::*};
 use bevy_asset_loader::dynamic_asset::DynamicAssetCollections;
 
-use crate::{AddToInventoryEvent, DamageEvent, Description, DisplayEquipEvent, Equiptable, GameState, Health, Item, Player, RemoveMessage, widgets::floating_windows::floating_window_root };
+use crate::{AddToInventoryEvent, DamageEvent, Description, DisplayEquipEvent, Equiptable, GameState, Health, Item, Player};
 use super::Weight;
 
 pub struct TestsPlugin;

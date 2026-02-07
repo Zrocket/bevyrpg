@@ -33,6 +33,7 @@ impl Plugin for ControllerPlugin {
             .add_plugins(InventoryControllerPlugin)
             .add_plugins(EquipControllerPlugin)
             .add_plugins(StatsControllerPlugin)
+            .add_plugins(QuestControllerPlugin)
             .add_observer(weapon_1)
             .add_observer(weapon_2)
             .add_observer(weapon_3)
