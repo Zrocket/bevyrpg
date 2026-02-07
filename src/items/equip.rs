@@ -1,4 +1,4 @@
-use bevy::{ecs::{component::Component, entity::Entity, lifecycle::HookContext, observer::On, relationship, system::Commands, world::DeferredWorld}, prelude::Plugin, prelude::trace};
+use bevy::{ecs::{component::Component, entity::Entity, lifecycle::HookContext, observer::On, system::Commands, world::DeferredWorld}, prelude::Plugin, prelude::trace};
 
 use crate::UseEvent;
 

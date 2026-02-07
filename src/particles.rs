@@ -1,5 +1,4 @@
-use std::{cell::RefCell, rc::Rc};
-
+use avian3d::prelude::*;
 use bevy::{ecs::{lifecycle::HookContext, world::DeferredWorld}, prelude::*};
 use bevy_hanabi::{AccelModifier, Attribute, ColorBlendMask, ColorOverLifetimeModifier, EffectAsset, EffectMaterial, ExprWriter, HanabiPlugin, OrientModifier, ParticleEffect, ParticleTextureModifier, ScalarType, SetAttributeModifier, SetPositionSphereModifier, SetVelocitySphereModifier, SizeOverLifetimeModifier, SpawnerSettings};
 
@@ -11,8 +10,18 @@ pub struct SmokeEffectResource(Handle<EffectAsset>);
 
 #[derive(Component, Reflect)]
 #[reflect(Component)]
+#[require(
+    CollisionEventsEnabled,
+)]
 #[component(on_add = on_particle_tester_add)]
 pub struct ParticleTester;
+
+#[derive(Component, Reflect)]
+#[reflect(Component)]
+#[require(
+    CollisionEventsEnabled,
+)]
+pub struct Flamable;
 
 pub struct ParticlePlugin;
 impl Plugin for ParticlePlugin {
@@ -20,6 +29,7 @@ impl Plugin for ParticlePlugin {
        app
            .add_plugins(HanabiPlugin)
            .register_type::<ParticleTester>()
+           .register_type::<Flamable>()
            .init_resource::<FireEffectResource>()
            .init_resource::<SmokeEffectResource>()
            .add_systems(Startup, smoke_effect)
@@ -47,7 +57,12 @@ fn on_particle_tester_add(
                 images: vec![texture_handle.clone()],
             },
     )).id();
-    world.commands().entity(context.entity).add_child(fire_emitter).add_child(smoke_emitter);
+
+    world.commands()
+        .entity(context.entity)
+        .add_child(fire_emitter)
+        .add_child(smoke_emitter)
+        .observe(fire_collision_observer);
 }
 
 fn smoke_effect(
@@ -237,4 +252,15 @@ fn fire_effect(
     let effect_asset = effects.add(effect);
 
     fire_resource.0 = effect_asset;
+}
+
+fn fire_collision_observer(
+    trigger: On<CollisionStart>,
+    mut commands: Commands,
+    flamable_query: Query<Entity, (With<Flamable>, Without<ParticleTester>)>,
+) {
+    if let Ok(flamable_entity) = flamable_query.get(trigger.event().collider2) {
+        commands.entity(flamable_entity)
+            .insert(ParticleTester);
+    }
 }
