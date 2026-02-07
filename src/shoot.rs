@@ -133,8 +133,6 @@ pub fn shoot_grenade(
     mut commands: Commands,
     mut shoot_messages: MessageReader<ShootEvent>,
     camera_transform_query: Query<&GlobalTransform, With<PlayerCamera>>,
-    mut meshes: ResMut<Assets<Mesh>>,
-    mut materials: ResMut<Assets<StandardMaterial>>,
 ) {
     trace!("Message Handler: shoot_grenade");
     for _message in shoot_messages.read() {
