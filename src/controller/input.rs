@@ -126,30 +126,10 @@ pub struct TnuaNpcController;
 )]
 pub struct TnuaEnemyController;
 
-#[derive(Component)]
+#[derive(Component, Default)]
+#[require(
+)]
 #[component(on_add = on_tnua_player_controller_add)]
-/*#[require(
-    PlayerController::default(),
-    PlayerControllerInput::default(),
-    TnuaController::<PlayerControlScheme>::default(),
-    TnuaAvian3dSensorShape(Collider::capsule(0.1, 0.5)),
-    TnuaSimpleAirActionsCounter::<PlayerControlScheme>::default(),
-    PlayerControllerConfig::default(),
-    TnuaObstacleRadar::new(1.0, 3.0),
-    RayHit(None),
-    TnuaBlipReuseAvoidance::<PlayerControlScheme>::default(),
-    AvianPickupActor {
-        prop_filter: SpatialQueryFilter::from_mask(CollisionLayer::Prop),
-        actor_filter: SpatialQueryFilter::from_mask(CollisionLayer::Player),
-        obstacle_filter: SpatialQueryFilter::from_mask(CollisionLayer::Default),
-        hold: AvianPickupActorHoldConfig {
-            pitch_range: -40.0_f32.to_radians()..=75.0_f32.to_radians(),
-            distance_to_allow_holding: 100.0,
-            ..default()
-        },
-        ..default()
-    },
-)]*/
 pub struct TnuaPlayerController;
 
 fn on_tnua_player_controller_add(
