@@ -21,23 +21,45 @@ pub enum PlayerState {
 
 #[derive(Component, Reflect, Default)]
 #[reflect(Component)]
-/*#[require(
+#[require(
     Name::new("Player"),
+    TnuaPlayerController,
+    CameraConfig {
+        height_offset: 0.0,
+        //radius_scale: 0.75,
+    },
     Collider::capsule(0.1, 0.5),
     Friction {
         combine_rule: CoefficientCombine::Min,
         ..default()
     },
+    RayHit(None),
+    Walk::default(),
+    FloatHeight(1.5),
     RigidBody::Dynamic,
     LockedAxes::ROTATION_LOCKED,
     GravityScale(1.0),
-    CameraConfig {
-        height_offset: 0.0,
-        //radius_scale: 0.75,
-    },
-    Walk::default(),
     PlayerState::Grounded,
-)]*/
+    TnuaObstacleRadar::new(1.0, 3.0),
+    TnuaBlipReuseAvoidance::<PlayerControlScheme>::default(),
+    PlayerControllerConfig::default(),
+    TnuaSimpleAirActionsCounter::<PlayerControlScheme>::default(),
+    TnuaController::<PlayerControlScheme>::default(),
+    PlayerController::default(),
+    PlayerControllerInput::default(),
+    TnuaAvian3dSensorShape(Collider::capsule(0.1, 0.5)),
+    AvianPickupActor {
+        prop_filter: SpatialQueryFilter::from_mask(CollisionLayer::Prop),
+        actor_filter: SpatialQueryFilter::from_mask(CollisionLayer::Player),
+        obstacle_filter: SpatialQueryFilter::from_mask(CollisionLayer::Default),
+        hold: AvianPickupActorHoldConfig {
+            pitch_range: -40.0_f32.to_radians()..=75.0_f32.to_radians(),
+            distance_to_allow_holding: 100.0,
+            ..default()
+        },
+        ..default()
+    }
+)]
 #[component(on_add = on_player_add)]
 pub struct Player;
 
@@ -48,30 +70,33 @@ pub struct Player;
         clear_color: ClearColorConfig::Custom(Srgba::rgb(0.0, 0.0, 0.0).into()),
         ..default()
     },
-    Hdr,
     Camera3d { ..default() },
+    Projection::Perspective(PerspectiveProjection {
+        fov: std::f32::consts::PI / 2.0,
+        ..default()
+    }),
     AtmosphereSettings {
         aerial_view_lut_max_distance: 3.2e5,
         scene_units_to_m: 1e+4,
         ..Default::default()
     },
+    Hdr,
     Exposure::SUNLIGHT,
     Tonemapping::AcesFitted,
     Bloom::NATURAL,
-    Projection::Perspective(PerspectiveProjection {
-        fov: std::f32::consts::PI / 2.0,
-        ..default()
-    }),
-    Transform {
-        translation: Vec3 { y: 2., ..default() },
-        ..default()
-    },
 )]
 #[component(on_add = on_player_camera_add)]
 pub struct PlayerCamera;
 
 #[derive(Component, Reflect, Default)]
 #[reflect(Component)]
+#[require(
+    SpotLight {
+        intensity: 1_000_000.0,
+        shadows_enabled: true,
+        ..default()
+    },
+)]
 pub struct PlayerFlashlight;
 
 #[derive(Component, Reflect, Default)]
@@ -122,6 +147,16 @@ fn on_player_add(
 ) {
     world.commands()
         .entity(context.entity)
+        .insert(
+            CharacterBundle {
+                mana: Mana(100),
+                max_mana: MaxMana(100),
+                health: Health(100),
+                max_health: MaxHealth(100),
+                experience: Experience(100),
+                ..default()
+            },
+        )
         .observe(player_death_event_observer)
         .observe(add_to_inventory_observer::<Player>)
         .observe(remove_from_inventory_observer::<Player>)
@@ -140,7 +175,8 @@ fn on_player_camera_add(
 
     world.commands()
         .entity(context.entity)
-        .insert(Atmosphere::earthlike(scattering_mediums_handle));
+        .insert(Atmosphere::earthlike(scattering_mediums_handle))
+        .insert(PrimaryEguiContext);
 }
 
 fn init_player(
@@ -192,192 +228,20 @@ fn spawn_player_observer(
             ))
             .id();
 
-        let bei_input_map = actions!(Player[
-            (
-                Action::<Weapon1Action>::new(),
-                bindings![KeyCode::Digit1],
-            ),
-            (
-                Action::<Weapon2Action>::new(),
-                bindings![KeyCode::Digit2],
-            ),
-            (
-                Action::<Weapon3Action>::new(),
-                bindings![KeyCode::Digit3],
-            ),
-            (
-                Action::<Weapon4Action>::new(),
-                bindings![KeyCode::Digit4],
-            ),
-            (
-                Action::<JumpAction>::new(),
-                bindings![KeyCode::Space],
-            ),
-            (
-                Action::<RunAction>::new(),
-                bindings![KeyCode::ShiftLeft],
-            ),
-            (
-                Action::<LeftAction>::new(),
-                bindings![KeyCode::KeyA],
-            ),
-            (
-                Action::<RightAction>::new(),
-                bindings![KeyCode::KeyD],
-            ),
-            (
-                Action::<ForwardAction>::new(),
-                bindings![KeyCode::KeyW],
-            ),
-            (
-                Action::<BackwardAction>::new(),
-                bindings![KeyCode::KeyS],
-            ),
-            (
-                Action::<CrouchAction>::new(),
-                bindings![KeyCode::ControlLeft],
-            ),
-            (
-                Action::<UpAction>::new(),
-                bindings![KeyCode::KeyZ],
-            ),
-            (
-                Action::<DownAction>::new(),
-                bindings![KeyCode::KeyX],
-            ),
-            (
-                Action::<InteractAction>::new(),
-                Tap::new(0.5),
-                bindings![KeyCode::KeyE],
-            ),
-            (
-                Action::<Interact2Action>::new(),
-                Hold::new(0.5),
-                bindings![KeyCode::KeyE],
-            ),
-            (
-                Action::<OpenInventoryAction>::new(),
-                bindings![KeyCode::KeyI],
-            ),
-            (
-                Action::<OpenEquipAction>::new(),
-                bindings![KeyCode::KeyK],
-            ),
-            (
-                Action::<OpenStatsAction>::new(),
-                bindings![KeyCode::KeyL],
-            ),
-            (
-                Action::<OpenConsoleAction>::new(),
-                bindings![KeyCode::Backslash],
-            ),
-            (
-                Action::<FlashlightAction>::new(),
-                bindings![KeyCode::KeyF],
-            ),
-        ]);
-
         // Player
         debug!("Creating Player");
 
         let logical_entity = commands
             .spawn((
                 (
-                    Collider::capsule(0.1, 0.5),
-                    Friction {
-                        combine_rule: CoefficientCombine::Min,
-                        ..default()
-                    },
-                    RigidBody::Dynamic,
-                    LockedAxes::ROTATION_LOCKED,
-                    GravityScale(1.0),
                     spawn_point,
-                    CameraConfig {
-                        height_offset: 0.0,
-                        //radius_scale: 0.75,
-                    },
                     Player,
-                    PlayerController::default(),
-                    PlayerControllerInput::default(),
-                    CharacterBundle {
-                        mana: Mana(100),
-                        max_mana: MaxMana(100),
-                        health: Health(100),
-                        max_health: MaxHealth(100),
-                        experience: Experience(100),
-                        ..default()
-                    },
-                    TnuaController::<PlayerControlScheme>::default(),
-                    TnuaConfig::<PlayerControlScheme>(control_scheme_configs.add(PlayerControlSchemeConfig {
-                        basis: TnuaBuiltinWalkConfig {
-                            speed: 10.0,
-                            float_height: 1.5,
-                            ..default()
-                        },
-                        jump: TnuaBuiltinJumpConfig {
-                            height: 2.0,
-                            ..default()
-                        },
-                        crouch: TnuaBuiltinCrouchConfig {
-                            float_offset: -0.7,
-                            ..default()
-                        },
-                        dash: TnuaBuiltinDashConfig {
-                            horizontal_distance: 5.0,
-                            ..default()
-                        },
-                        knockback: Default::default(),
-                        wall_slide: TnuaBuiltinWallSlideConfig {
-                            maintain_distance: Some(0.7),
-                            ..default()
-                        },
-                        wall_jump: TnuaBuiltinJumpConfig {
-                            height: 4.0,
-                            takeoff_extra_gravity: 90.0, // 3 times the default
-                            takeoff_above_velocity: 0.0,
-                            horizontal_distance: 2.0,
-                            ..default()
-                        },
-                        climb: TnuaBuiltinClimbConfig {
-                            climb_speed: 10.0,
-                            ..default()
-                        },
-                    })),
-                    TnuaAvian3dSensorShape(Collider::capsule(0.1, 0.5)),
-                    FloatHeight(1.5),
                 ),
                 (CollisionLayers::new(CollisionLayer::Player, LayerMask::ALL),),
             ))
-            .insert(Walk::default())
-            .insert(bei_input_map)
-            .insert(TnuaSimpleAirActionsCounter::<PlayerControlScheme>::default())
-            .insert(AvianPickupActor {
-                prop_filter: SpatialQueryFilter::from_mask(CollisionLayer::Prop),
-                actor_filter: SpatialQueryFilter::from_mask(CollisionLayer::Player),
-                obstacle_filter: SpatialQueryFilter::from_mask(CollisionLayer::Default),
-                hold: AvianPickupActorHoldConfig {
-                    pitch_range: -40.0_f32.to_radians()..=75.0_f32.to_radians(),
-                    distance_to_allow_holding: 100.0,
-                    ..default()
-                },
-                ..default()
-            })
-            .insert(RayHit(None))
-            .insert(Name::new("Player"))
-            .insert(PlayerState::Grounded)
-            .insert(TnuaObstacleRadar::new(1.0, 3.0))
-            .insert(TnuaBlipReuseAvoidance::<PlayerControlScheme>::default())
-            .insert(PlayerControllerConfig::default())
-            .observe(player_death_event_observer)
-            .observe(add_to_inventory_observer::<Player>)
-            .observe(remove_from_inventory_observer::<Player>)
-            .observe(display_inventory_event_observer)
-            .observe(display_equip_event_observer)
-            .observe(display_stats_event_observer)
             .id();
 
         // Camera
-
 
         debug!("Creating Camera");
         if let Ok(mut render_player) = player_camera_query.single_mut() {
@@ -385,36 +249,11 @@ fn spawn_player_observer(
         } else {
             let flashlight = commands
                 .spawn((
-                    SpotLight {
-                        intensity: 1_000_000.0,
-                        shadows_enabled: true,
-                        ..default()
-                    },
                     PlayerFlashlight,
                 ))
                 .id();
             commands
                 .spawn((
-                    Camera {
-                        clear_color: ClearColorConfig::Custom(Srgba::rgb(0.0, 0.0, 0.0).into()),
-                        ..default()
-                    },
-                    Hdr,
-                    Camera3d { ..default() },
-                    PrimaryEguiContext,
-                    //Atmosphere::Earth,
-                    AtmosphereSettings {
-                        aerial_view_lut_max_distance: 3.2e5,
-                        scene_units_to_m: 1e+4,
-                        ..Default::default()
-                    },
-                    Exposure::SUNLIGHT,
-                    Tonemapping::AcesFitted,
-                    Bloom::NATURAL,
-                    Projection::Perspective(PerspectiveProjection {
-                        fov: std::f32::consts::PI / 2.0,
-                        ..default()
-                    }),
                     Transform {
                         translation: Vec3 { y: 2., ..default() },
                         ..default()
@@ -427,96 +266,6 @@ fn spawn_player_observer(
         }
     }
 }
-
-/*#[allow(clippy::too_many_arguments)]
-fn spawn_player_observer(
-    mut commands: Commands,
-    mut spawn_player_message_reader: MessageReader<SpawnPlayerMessage>,
-    asset_server: Res<AssetServer>,
-    gun_assets: Res<DAGunAssets>,
-    gltf_assets: Res<Assets<Gltf>>,
-    player_spawner_query: Query<&GlobalTransform, With<PlayerSpawner>>,
-    mut player_camera_query: Query<&mut RenderPlayer, With<PlayerCamera>>,
-    mut player_query: Query<Entity, With<Player>>,
-) {
-    trace!("SYSTEM: spawn_player");
-
-    for _message in spawn_player_message_reader.read() {
-        if let Ok(player) = player_query.single_mut() {
-            commands.entity(player).despawn();
-        }
-        let mut spawn_point = Transform::from_xyz(0.0, 50.0, 0.0);
-
-        if let Ok(player_spawner) = player_spawner_query.single() {
-            spawn_point.translation = player_spawner.translation();
-        }
-
-        // Gun
-        debug!("Creating Gun");
-        //let temp = gun_assets.uzi.clone_weak();
-        let uzi = gltf_assets.get(&gun_assets.uzi).unwrap().scenes[0].path().unwrap();
-        //let temp = uzi.scenes[0].path().unwrap();
-        let gun = commands
-            .spawn((
-                Transform::from_translation(vec3(0.1, -0.2, -0.5)),
-                //SceneRoot(asset_server.load("guns/uzi.glb#Scene0")),
-                SceneRoot(asset_server.load(uzi)),
-                Item {
-                    description: Description("gun".to_string()),
-                    weight: Weight(0),
-                },
-                Name::new("gun"),
-                ActiveWeapon,
-            ))
-            .id();
-
-        // Player
-        debug!("Creating Player");
-
-        let logical_entity = commands
-            .spawn((
-                (
-                    spawn_point,
-                    Player,
-                    TnuaPlayerController,
-                    CharacterBundle {
-                        mana: Mana(100),
-                        max_mana: MaxMana(100),
-                        health: Health(100),
-                        max_health: MaxHealth(100),
-                        experience: Experience(100),
-                        ..default()
-                    },
-                ),
-            ))
-            .id();
-
-        // Camera
-        debug!("Creating Camera");
-        if let Ok(mut render_player) = player_camera_query.single_mut() {
-            *render_player = RenderPlayer { logical_entity };
-        } else {
-            let flashlight = commands
-                .spawn((
-                    SpotLight {
-                        intensity: 1_000_000.0,
-                        shadows_enabled: true,
-                        ..default()
-                    },
-                    PlayerFlashlight,
-                ))
-                .id();
-            commands
-                .spawn((
-                    PrimaryEguiContext,
-                    RenderPlayer { logical_entity },
-                    PlayerCamera,
-                ))
-                .add_child(gun)
-                .add_child(flashlight);
-        }
-    }
-}*/
 
 fn toggle_player_noclip(
     mut commands: Commands,
