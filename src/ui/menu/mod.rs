@@ -1,9 +1,10 @@
 use bevy::prelude::*;
-use crate::{GameState, PauseMenuState, menu::{controller_settings::ControllerSettingsMenuUiPlugin, gameplay_settings::GameplaySettingsMenuUiPlugin, settings::SettingsMenuUiPlugin, sound_settings::SoundSettingsMenuUiPlugin, video_settings::VideoSettingsMenuUiPlugin}};
+use crate::{GameState, PauseMenuState, credits::CreditsMenuUiPlugin, menu::{controller_settings::ControllerSettingsMenuUiPlugin, gameplay_settings::GameplaySettingsMenuUiPlugin, settings::SettingsMenuUiPlugin, sound_settings::SoundSettingsMenuUiPlugin, video_settings::VideoSettingsMenuUiPlugin}};
 
 use super::widgets;
 
 pub mod controller_settings;
+pub mod credits;
 pub mod gameplay_settings;
 pub mod settings;
 pub mod sound_settings;
@@ -21,6 +22,7 @@ impl Plugin for MenuUiPlugin {
             .add_plugins((
                     SettingsMenuUiPlugin,
                     ControllerSettingsMenuUiPlugin,
+                    CreditsMenuUiPlugin,
                     GameplaySettingsMenuUiPlugin,
                     SoundSettingsMenuUiPlugin,
                     VideoSettingsMenuUiPlugin,
@@ -36,7 +38,8 @@ fn spawn_pause_menu(
             DespawnOnExit(PauseMenuState::MainMenu),
             GlobalZIndex(2),
             children![
-                widgets::button("Settings", enter_settings_menu)
+                widgets::button("Settings", enter_settings_menu),
+                widgets::button("Credits", enter_pause_menu),
             ]
     ));
 }
@@ -46,4 +49,11 @@ fn enter_settings_menu(
     mut pause_menu_state: ResMut<NextState<PauseMenuState>>,
 ) {
     pause_menu_state.set(PauseMenuState::Settings);
+}
+
+fn enter_pause_menu(
+    _: On<Pointer<Click>>,
+    mut pause_menu_state: ResMut<NextState<PauseMenuState>>,
+) {
+    pause_menu_state.set(PauseMenuState::Credits);
 }

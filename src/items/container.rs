@@ -8,6 +8,7 @@ use crate::{DisplayInventoryEvent, InspectEvent, Interactable, InteractionEvent,
 #[require(
     Interactable,
 )]
+#[type_path("api")]
 pub struct Container;
 
 pub struct ContainerPlugin;

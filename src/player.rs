@@ -2,12 +2,12 @@ use avian_pickup::actor::{AvianPickupActor, AvianPickupActorHoldConfig};
 use avian3d::prelude::{CoefficientCombine, Collider, CollisionLayers, Friction, GravityScale, LayerMask, LockedAxes, RigidBody, SpatialQuery, SpatialQueryFilter};
 use bevy::{camera::Exposure, core_pipeline::tonemapping::Tonemapping, ecs::{lifecycle::HookContext, world::DeferredWorld}, input::common_conditions::input_just_pressed, pbr::{Atmosphere, AtmosphereSettings, ScatteringMedium}, post_process::bloom::Bloom, prelude::*, render::view::Hdr};
 use bevy_egui::PrimaryEguiContext;
-use bevy_enhanced_input::{{actions, bindings}, action::Action, condition::{hold::Hold, tap::Tap}};
 use bevy_flycam::{FlyCam, NoCameraPlayerPlugin};
-use bevy_tnua::{TnuaConfig, TnuaController, TnuaObstacleRadar, builtins::{TnuaBuiltinClimbConfig, TnuaBuiltinCrouchConfig, TnuaBuiltinDashConfig, TnuaBuiltinJumpConfig, TnuaBuiltinWalkConfig, TnuaBuiltinWallSlideConfig}, control_helpers::{TnuaBlipReuseAvoidance, TnuaSimpleAirActionsCounter}};
+use bevy_tnua::{TnuaController, TnuaObstacleRadar, control_helpers::{TnuaBlipReuseAvoidance, TnuaSimpleAirActionsCounter}};
 use bevy_tnua_avian3d::TnuaAvian3dSensorShape;
+use bevy_seedling::spatial::SpatialListener3D;
 
-use crate::{BackwardAction, CameraConfig, CharacterBundle, CollisionLayer, CrouchAction, DeathEvent, Description, DownAction, Experience, FlashlightAction, FloatHeight, ForwardAction, GameState, Health, Item, JumpAction, LeftAction, Mana, MaxHealth, MaxMana, OpenConsoleAction, OpenEquipAction, OpenInventoryAction, PlayerControlScheme, PlayerControlSchemeConfig, PlayerController, PlayerControllerConfig, PlayerControllerInput, RayHit, RenderPlayer, RightAction, TnuaPlayerController, UpAction, Walk, Weapon1Action, InteractAction, Interact2Action, OpenStatsAction, RunAction, Weapon2Action, Weapon3Action, Weapon4Action, Weight, add_to_inventory_observer, display_equip_event_observer, display_inventory_event_observer, display_quest_event_observer, display_stats_event_observer, level::DAGunAssets, remove_from_inventory_observer};
+use crate::{CameraConfig, CharacterBundle, CollisionLayer, DeathEvent, Description, Experience, FloatHeight, GameState, Health, Item, Mana, MaxHealth, MaxMana, PlayerControlScheme, PlayerControlSchemeConfig, PlayerController, PlayerControllerConfig, PlayerControllerInput, RayHit, RenderPlayer, TnuaPlayerController, Walk, Weight, add_to_inventory_observer, display_equip_event_observer, display_inventory_event_observer, display_quest_event_observer, display_stats_event_observer, level::DAGunAssets, remove_from_inventory_observer};
 
 #[derive(Clone, Component, Hash, Debug, Eq, PartialEq, Default, States)]
 pub enum PlayerState {
@@ -17,6 +17,13 @@ pub enum PlayerState {
     UnGrounded,
     Sitting,
     NoClip,
+}
+
+#[derive(Clone, Component, Hash, Debug, Eq, PartialEq, Default, States)]
+pub enum CameraState {
+    #[default]
+    Player,
+    Indipendent,
 }
 
 #[derive(Component, Reflect, Default)]
@@ -33,11 +40,13 @@ pub enum PlayerState {
         combine_rule: CoefficientCombine::Min,
         ..default()
     },
+    SpatialListener3D,
     RayHit(None),
     Walk::default(),
     FloatHeight(1.5),
     RigidBody::Dynamic,
     LockedAxes::ROTATION_LOCKED,
+    CollisionLayers::new(CollisionLayer::Player, LayerMask::ALL),
     GravityScale(1.0),
     PlayerState::Grounded,
     TnuaObstacleRadar::new(1.0, 3.0),
@@ -83,10 +92,18 @@ pub struct Player;
     Hdr,
     Exposure::SUNLIGHT,
     Tonemapping::AcesFitted,
+    Transform {
+        translation: Vec3 { y: 2., ..default() },
+        ..default()
+    },
     Bloom::NATURAL,
 )]
 #[component(on_add = on_player_camera_add)]
 pub struct PlayerCamera;
+
+#[derive(Component, Reflect, Default)]
+#[reflect(Component)]
+pub struct CameraTarget(pub Transform);
 
 #[derive(Component, Reflect, Default)]
 #[reflect(Component)]
@@ -101,10 +118,12 @@ pub struct PlayerFlashlight;
 
 #[derive(Component, Reflect, Default)]
 #[reflect(Component)]
+#[type_path("api")]
 pub struct PlayerSpawner;
 
 #[derive(Component, Reflect, Default)]
 #[reflect(Component)]
+#[type_path("api")]
 pub struct PlayerTrigger;
 
 #[derive(Component, Reflect, Default)]
@@ -114,11 +133,18 @@ pub struct ActiveWeapon;
 #[derive(Message)]
 pub struct SpawnPlayerMessage;
 
+#[derive(EntityEvent)]
+pub struct CameraTransition {
+    pub entity: Entity,
+    pub transform: Transform,
+}
+
 pub struct GamePlayerPlugin;
 impl Plugin for GamePlayerPlugin {
     fn build(&self, app: &mut App) {
         info!("GamePlayerPlugin build");
         app.register_type::<Player>()
+            .init_state::<CameraState>()
             .add_plugins(NoCameraPlayerPlugin)
             .insert_resource(bevy_flycam::KeyBindings {
                 move_ascend: KeyCode::PageUp,
@@ -195,7 +221,6 @@ fn spawn_player_observer(
     player_spawner_query: Query<&GlobalTransform, With<PlayerSpawner>>,
     mut player_camera_query: Query<&mut RenderPlayer, With<PlayerCamera>>,
     mut player_query: Query<Entity, With<Player>>,
-    mut control_scheme_configs: ResMut<Assets<PlayerControlSchemeConfig>>,
 ) {
     trace!("SYSTEM: spawn_player");
 
@@ -237,7 +262,6 @@ fn spawn_player_observer(
                     spawn_point,
                     Player,
                 ),
-                (CollisionLayers::new(CollisionLayer::Player, LayerMask::ALL),),
             ))
             .id();
 
@@ -254,10 +278,6 @@ fn spawn_player_observer(
                 .id();
             commands
                 .spawn((
-                    Transform {
-                        translation: Vec3 { y: 2., ..default() },
-                        ..default()
-                    },
                     RenderPlayer { logical_entity },
                     PlayerCamera,
                 ))
@@ -326,4 +346,11 @@ fn player_death_event_observer(
     mut game_state: ResMut<NextState<GameState>>,
 ) {
     game_state.set(GameState::GameOver);
+}
+
+fn camera_transition_observer(
+    trigger: On<CameraTransition>,
+    mut commands: Commands,
+    //query: Query<>,
+) {
 }

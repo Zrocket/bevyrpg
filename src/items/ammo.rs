@@ -14,6 +14,7 @@ pub enum AmmoType {
 #[require(
     Interactable,
 )]
+#[type_path("api")]
 pub struct Ammo;
 
 #[derive(Debug, Clone, Component,  Reflect, Default)]

@@ -22,10 +22,10 @@ pub struct DialogPlugin;
 impl Plugin for DialogPlugin {
     fn build(&self, app: &mut App) {
         app
-            .add_plugins((
-                    YarnSpinnerPlugin::new(),
-                    ExampleYarnSpinnerDialogueViewPlugin::new(),
-                    ))
+            //.add_plugins((
+            //        YarnSpinnerPlugin::new(),
+            //        ExampleYarnSpinnerDialogueViewPlugin::new(),
+            //        ))
             .register_type::<YarnNode>()
             .add_message::<DialogMessage>()
             .add_observer(dialog_message_observer)

@@ -9,6 +9,7 @@ use crate::{Interactable, InteractionEvent, Player, PlayerState};
 #[require(
     Interactable,
 )]
+#[type_path("api")]
 pub struct Chair;
 
 pub struct ChairPlugin;
