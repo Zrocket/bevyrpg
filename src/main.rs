@@ -1,15 +1,25 @@
+use avian_pickup::{AvianPickupPlugin, actor::AvianPickupActor};
+use avian_rerecast::AvianBackendPlugin;
 use avian3d::prelude::*;
 use bevy::{
     log::LogPlugin, prelude::*, window::{ CursorGrabMode, CursorOptions, WindowResolution,}
 };
 use bevy_asset_loader::prelude::*;
+use bevy_bae::BaePlugin;
 use bevy_egui::EguiGlobalSettings;
+use bevy_hanabi::HanabiPlugin;
 use bevy_inspector_egui::quick::WorldInspectorPlugin;
-use bevy_seedling::SeedlingPlugin;
+use bevy_landmass::{Landmass3dPlugin, debug::Landmass3dDebugPlugin};
+use bevy_rerecast::NavmeshPlugins;
+use bevy_simple_text_input::TextInputPlugin;
 use bevy_skein::SkeinPlugin;
 use bevy_sprite3d::Sprite3dPlugin;
+use bevy_sun_move::{SunMovePlugin, random_stars::RandomStarsPlugin};
+use bevy_yarnspinner::prelude::YarnSpinnerPlugin;
+use bevy_yarnspinner_example_dialogue_view::ExampleYarnSpinnerDialogueViewPlugin;
 use bevy_yoleck::prelude::*;
 use clap::Parser;
+use landmass_rerecast::LandmassRerecastPlugin;
 
 mod audio;
 mod character;
@@ -76,6 +86,7 @@ struct Args {
 #[source(GameState = GameState::Paused)]
 pub enum PauseMenuState {
     ControllerSettings,
+    Credits,
     GameplaySettings,
     #[default]
     MainMenu,
@@ -88,7 +99,6 @@ pub enum PauseMenuState {
 pub enum GameState {
     Console,
     Gameplay,
-    //Inventory,
     Loading,
     MainMenu,
     Paused,
@@ -135,8 +145,29 @@ fn main() {
         brightness: 0.5,
         ..default()
     })
+    // Library Plugins
     .add_plugins((
         PhysicsPlugins::default(),
+        AvianPickupPlugin::default(),
+        YarnSpinnerPlugin::new(),
+        ExampleYarnSpinnerDialogueViewPlugin::new(),
+        Sprite3dPlugin,
+        SunMovePlugin,
+        RandomStarsPlugin,
+        Landmass3dPlugin::default(),
+        Landmass3dDebugPlugin::default(),
+        LandmassRerecastPlugin::default(),
+        NavmeshPlugins::default(),
+        AvianBackendPlugin::default(),
+        BaePlugin::default(),
+        HanabiPlugin,
+        TextInputPlugin,
+    ))
+    .add_plugins((
+        SkeinPlugin::default(),
+    ))
+    // Crate Plugins
+    .add_plugins((
         GamePlayerPlugin,
         CharacterPlugin,
         DevRoomPlugin,
@@ -150,18 +181,16 @@ fn main() {
         GameRenderPlugin,
         FurniturePlugin,
         ItemPlugin,
-        SkeinPlugin::default(),
+        AudioPlugin,
+        TestsPlugin,
     ))
     .add_plugins((
-            AudioPlugin,
-            TestsPlugin,
-            Sprite3dPlugin,
-            DialogPlugin,
-            NavMeshPlugin,
-            SpritesPlugin,
-            EnemyPlugin,
-            ParticlePlugin,
-            NpcPlugin,
+        DialogPlugin,
+        NavMeshPlugin,
+        SpritesPlugin,
+        EnemyPlugin,
+        ParticlePlugin,
+        NpcPlugin,
     ));
     app.add_systems(Update, pause_game);
 

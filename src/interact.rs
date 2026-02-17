@@ -59,7 +59,6 @@ impl Plugin for InteractPlugin {
     fn build(&self, app: &mut App) {
         trace!("InteractPlugin build");
         app
-            .add_plugins(AvianPickupPlugin::default())
             .add_message::<UnInspectMessage>();
     }
 }

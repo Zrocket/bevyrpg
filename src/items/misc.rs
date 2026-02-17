@@ -10,6 +10,7 @@ use crate::{AddToInventoryEvent, InspectEvent, Interactable, InteractionEvent, P
 #[require(
     Interactable,
 )]
+#[type_path("api")]
 pub struct MiscItem;
 
 pub struct MiscItemPlugin;

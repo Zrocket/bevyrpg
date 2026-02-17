@@ -1,7 +1,7 @@
 use bevy::prelude::*;
 use avian3d::collision::collider::Collider;
 
-use crate::PlayerController;
+use crate::{CameraState, PlayerController};
 
 pub const RESOLUTION_HEIGHT: u32 = 720;
 pub const RESOLUTION_WIDTH: u32 = 1280;
@@ -35,8 +35,11 @@ pub fn player_controller_render(
         (&Transform, &Collider, &PlayerController, &CameraConfig),
         Without<RenderPlayer>,
     >,
+    camera_state: ResMut<State<CameraState>>,
 ) {
     trace!("SYSTEM: player_controller_render");
+    if camera_state.get() == &CameraState::Indipendent { return };
+
     for (mut render_transform, render_player) in render_query.iter_mut() {
         if let Ok((logical_transform, collider, controller, camera_config)) =
             logical_query.get(render_player.logical_entity)

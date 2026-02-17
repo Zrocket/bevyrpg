@@ -61,7 +61,6 @@ pub struct UiPlugin;
 impl Plugin for UiPlugin {
     fn build(&self, app: &mut App) {
         app
-            .add_plugins(TextInputPlugin)
             .register_type::<DAUiAssets>()
             .add_plugins((
                     AnchoredUiPlugin,

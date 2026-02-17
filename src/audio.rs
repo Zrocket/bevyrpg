@@ -59,7 +59,7 @@ fn walk_audio<T: InputAction>(
     pool_query: Query<&SamplePlayer, With<MovementPool>>,
     tnua_query: Query<&TnuaController<PlayerControlScheme>, With<Player>>,
 ) {
-    if let Ok(_) = pool_query.single() {
+    if pool_query.single().is_ok() {
         return;
     } else if let Ok(tnua_controller) = tnua_query.single()
     && tnua_controller.is_airborne().unwrap() {
@@ -82,7 +82,7 @@ fn jump_audio(
     pool_query: Query<&SamplePlayer, With<JumpPool>>,
     tnua_query: Query<&TnuaController<PlayerControlScheme>, With<Player>>,
 ) {
-    if let Ok(_) = pool_query.single() {
+    if pool_query.single().is_ok() {
         return;
     } else if let Ok(tnua_controller) = tnua_query.single()
     && tnua_controller.is_airborne().unwrap() {

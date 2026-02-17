@@ -1,5 +1,5 @@
 use avian3d::prelude::{Collider, SpatialQueryFilter, RigidBody};
-use bevy::{app::Plugin, asset::Assets, ecs::{component::{self, Component}, lifecycle::HookContext, world::DeferredWorld}, input::keyboard::KeyCode, time::Timer, utils::default};
+use bevy::{app::Plugin, asset::Assets, ecs::{component::{self, Component}, lifecycle::HookContext, world::DeferredWorld}, input::{gamepad::{Gamepad, GamepadButton}, keyboard::KeyCode, mouse::MouseButton}, time::Timer, utils::default};
 use bevy_enhanced_input::{action::Action, actions, bindings, prelude::{EnhancedInputPlugin, Hold, InputAction, InputContextAppExt, Tap}};
 use bevy_tnua::{TnuaConfig, builtins::{TnuaBuiltinClimbConfig, TnuaBuiltinCrouchConfig, TnuaBuiltinDashConfig, TnuaBuiltinJumpConfig, TnuaBuiltinWalkConfig, TnuaBuiltinWallSlideConfig}};
 use bevy_tnua::{TnuaController, TnuaObstacleRadar, control_helpers::{TnuaSimpleAirActionsCounter, TnuaBlipReuseAvoidance, TnuaActionsCounter}};
@@ -7,7 +7,7 @@ use bevy_tnua_avian3d::TnuaAvian3dSensorShape;
 use avian_pickup::actor::{AvianPickupActor, AvianPickupActorHoldConfig};
 use bevy_bae::{plan::Plan, prelude::{Operator, Sequence}, tasks};
 
-use crate::{IdleTimer, Player, PlayerControlScheme, PlayerControlSchemeConfig, PlayerController, PlayerControllerConfig, PlayerControllerInput, RayHit, Walk, idle, level::CollisionLayer, wander};
+use crate::{IdleTimer, Player, PlayerControlScheme, PlayerControlSchemeConfig, PlayerController, PlayerControllerConfig, PlayerControllerInput, RayHit, Walk, idle, level::CollisionLayer, run_from_player, wander};
 
 pub struct InputPlugin;
 impl Plugin for InputPlugin {
@@ -102,6 +102,10 @@ pub struct OpenQuestAction;
 #[action_output(bool)]
 pub struct FlashlightAction;
 
+#[derive(InputAction)]
+#[action_output(bool)]
+pub struct ShootAction;
+
 #[derive(Component)]
 #[component(on_add = on_tnua_npc_controller_add)]
 #[require(
@@ -139,27 +143,27 @@ fn on_tnua_player_controller_add(
         let bei_input_map = actions!(Player[
             (
                 Action::<Weapon1Action>::new(),
-                bindings![KeyCode::Digit1],
+                bindings![KeyCode::Digit1, GamepadButton::DPadLeft],
             ),
             (
                 Action::<Weapon2Action>::new(),
-                bindings![KeyCode::Digit2],
+                bindings![KeyCode::Digit2, GamepadButton::DPadUp],
             ),
             (
                 Action::<Weapon3Action>::new(),
-                bindings![KeyCode::Digit3],
+                bindings![KeyCode::Digit3, GamepadButton::DPadRight],
             ),
             (
                 Action::<Weapon4Action>::new(),
-                bindings![KeyCode::Digit4],
+                bindings![KeyCode::Digit4, GamepadButton::DPadDown],
             ),
             (
                 Action::<JumpAction>::new(),
-                bindings![KeyCode::Space],
+                bindings![KeyCode::Space, GamepadButton::South],
             ),
             (
                 Action::<RunAction>::new(),
-                bindings![KeyCode::ShiftLeft],
+                bindings![KeyCode::ShiftLeft, GamepadButton::LeftThumb],
             ),
             (
                 Action::<LeftAction>::new(),
@@ -179,7 +183,7 @@ fn on_tnua_player_controller_add(
             ),
             (
                 Action::<CrouchAction>::new(),
-                bindings![KeyCode::ControlLeft],
+                bindings![KeyCode::ControlLeft, GamepadButton::RightThumb],
             ),
             (
                 Action::<UpAction>::new(),
@@ -192,21 +196,21 @@ fn on_tnua_player_controller_add(
             (
                 Action::<InteractAction>::new(),
                 Tap::new(0.5),
-                bindings![KeyCode::KeyE],
+                bindings![KeyCode::KeyE, GamepadButton::West],
             ),
             (
                 Action::<Interact2Action>::new(),
-                //Hold::new(0.5),
-                Tap::new(0.5),
-                bindings![KeyCode::KeyQ],
+                Hold::new(0.5),
+                //Tap::new(0.5),
+                bindings![KeyCode::KeyE, GamepadButton::West],
             ),
             (
                 Action::<OpenInventoryAction>::new(),
-                bindings![KeyCode::KeyI],
+                bindings![KeyCode::KeyI, GamepadButton::Select],
             ),
             (
                 Action::<OpenEquipAction>::new(),
-                bindings![KeyCode::KeyK],
+                bindings![KeyCode::KeyK, GamepadButton::Start],
             ),
             (
                 Action::<OpenStatsAction>::new(),
@@ -222,7 +226,11 @@ fn on_tnua_player_controller_add(
             ),
             (
                 Action::<FlashlightAction>::new(),
-                bindings![KeyCode::KeyF],
+                bindings![KeyCode::KeyF, GamepadButton::East],
+            ),
+            (
+                Action::<ShootAction>::new(),
+                bindings![MouseButton::Left, GamepadButton::RightTrigger2],
             ),
         ]);
 
@@ -369,7 +377,6 @@ fn on_tnua_enemy_controller_add(
         },
     });
 
-
     world.commands()
         .entity(context.entity)
         .insert((
@@ -378,8 +385,9 @@ fn on_tnua_enemy_controller_add(
         .insert((
             Sequence,
             tasks![
-                Operator::new(wander),
+                //Operator::new(wander),
                 Operator::new(idle),
+                Operator::new(run_from_player),
             ],
             IdleTimer(Timer::from_seconds(5.0, bevy::time::TimerMode::Once))
         ));

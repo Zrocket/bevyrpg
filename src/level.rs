@@ -2,9 +2,10 @@ use bevy_asset_loader::{asset_collection::AssetCollection, loading_state::{confi
 use bevy_sun_move::{SkyCenter, SunMovePlugin, TimedSkyConfig, random_stars::{RandomStarsPlugin, StarSpawner}};
 
 use super::GameState;
-use crate::{Climbable, LadderComponent, MiscItem, Obstacle, ladder_collision_observer, ladder_decollision_observer};
+use crate::{MiscItem, Obstacle, ladder_collision_observer, ladder_decollision_observer};
 use avian3d::{prelude::{ColliderConstructor, CollidingEntities, CollisionEventsEnabled, CollisionLayers, LayerMask, PhysicsLayer, RigidBody}};
-use bevy::{ecs::{lifecycle::HookContext, world::DeferredWorld}, gltf::Gltf, prelude::*};
+use bevy::{ecs::{world::DeferredWorld}, gltf::Gltf, prelude::*};
+
 #[derive(Debug, PhysicsLayer, Default, Component, Reflect)]
 #[reflect(Component)]
 pub enum CollisionLayer {
@@ -22,10 +23,12 @@ pub struct CurrentLevel;
 
 #[derive(Debug, Default, Component, Reflect)]
 #[reflect(Component)]
+#[type_path("api")]
 pub struct BlenderAnimations(pub Vec<String>);
 
 #[derive(Debug, Default, Component, Reflect)]
 #[reflect(Component)]
+#[type_path("api")]
 pub struct BlenderAnimationName(pub String);
 
 #[derive(Debug, Default, Component, Reflect)]
@@ -34,6 +37,7 @@ pub struct BlenderAnimationName(pub String);
     ColliderConstructor::ConvexHullFromMesh,
     BlenderTranslationComplete,
 )]
+#[type_path("api")]
 pub struct BlenderCollider;
 
 #[derive(Debug, Default, Component, Reflect)]
@@ -45,10 +49,12 @@ pub struct BlenderCollider;
     ColliderConstructor::ConvexHullFromMesh,
     BlenderTranslationComplete,
 )]
+#[type_path("api")]
 pub struct BlenderProp;
 
 #[derive(Debug, Default, Component, Reflect)]
 #[reflect(Component)]
+#[type_path("api")]
 pub struct BlenderBoxCollider {
     pub size: i32,
 }
@@ -61,14 +67,17 @@ pub struct BlenderBoxCollider {
     ColliderConstructor::ConvexHullFromMesh,
     BlenderTranslationComplete,
 )]
+#[type_path("api")]
 pub struct BlenderColliderConstructor;
 
 #[derive(Debug, Default, Component, Reflect)]
 #[reflect(Component)]
+#[type_path("api")]
 pub struct BlenderNavmesh;
 
 #[derive(Debug, Default, Component, Reflect)]
 #[reflect(Component)]
+#[type_path("api")]
 pub struct BlenderTranslationComplete;
 
 #[derive(Message)]
@@ -98,8 +107,6 @@ pub struct BlenderTranslationPlugin;
 impl Plugin for BlenderTranslationPlugin {
     fn build(&self, app: &mut App) {
         app
-            .add_plugins(SunMovePlugin)
-            .add_plugins(RandomStarsPlugin)
             .register_type::<BlenderCollider>()
             .register_type::<BlenderBoxCollider>()
             .register_type::<BlenderAnimationName>()
