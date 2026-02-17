@@ -43,7 +43,7 @@ fn health_test(
 ) {
     trace!("SYSTEM: health_test");
     if let Ok((player_entity, _player)) = player.single_mut()
-    && key.just_pressed(KeyCode::KeyK) {
+    && key.just_pressed(KeyCode::KeyV) {
         commands.entity(player_entity).trigger(|entity| DamageEvent { entity, ammount: 5 });
     }
 }

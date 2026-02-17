@@ -12,6 +12,7 @@ use crate::{Climbable, Player, PlayerState, level::BlenderTranslationComplete};
     BlenderTranslationComplete,
     Climbable,
 )]
+#[type_path("api")]
 pub struct LadderComponent;
 
 pub struct LadderPlugin;
