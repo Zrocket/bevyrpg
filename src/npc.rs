@@ -1,10 +1,10 @@
-use avian3d::prelude::{Collider, RayCaster, RayHits, SpatialQuery, SpatialQueryFilter};
+use avian3d::prelude::{Collider, SpatialQuery, SpatialQueryFilter};
 use bevy::prelude::*;
 use bevy_bae::{prelude::OperatorInput, task::OperatorStatus, *};
 use bevy_landmass::{Agent, Agent3dBundle, AgentSettings, AgentTarget3d, Archipelago3d, ArchipelagoRef3d};
 use rand::Rng;
 
-use crate::{Player, TnuaNpcController, enemy::Enemy};
+use crate::{Player, TnuaNpcController};
 
 #[derive(Component)]
 pub struct IdleTimer(pub Timer);
@@ -12,8 +12,7 @@ pub struct IdleTimer(pub Timer);
 pub struct NpcPlugin;
 impl Plugin for NpcPlugin {
     fn build(&self, app: &mut App) {
-       app
-           .add_plugins(BaePlugin::default());
+       app;
            //.add_systems(OnEnter(GameState::Gameplay), spawn_agent);
     }
 }
@@ -49,16 +48,29 @@ fn spawn_agent(
 
 pub fn run_from_player(
     In(input): In<OperatorInput>,
-    mut commands: Commands,
     spatial_query: SpatialQuery,
     player_query: Query<(Entity, &Transform), With<Player>>,
     transform_query: Query<&Transform, Without<Player>>,
-) {
-    if let Ok((player_entity, player_transform)) = player_query.single()
+    mut agent_target_query: Query<&mut AgentTarget3d>,
+) -> OperatorStatus {
+    if let Ok((_player_entity, player_transform)) = player_query.single()
+    && let Ok(mut agent_target) = agent_target_query.get_mut(input.entity)
     && let Ok(agent_transform) = transform_query.get(input.entity)
-    && let Ok(direction) = Dir3::new((player_transform.translation - agent_transform.translation).normalize_or_zero()) {
-        spatial_query.cast_ray(agent_transform.translation, direction, 100., true, &SpatialQueryFilter::default());
+    && let Ok(direction) = Dir3::new((player_transform.translation - agent_transform.translation).normalize())
+    && let Some(ray) = spatial_query.cast_ray(
+        agent_transform.translation,
+        direction,
+        100.,
+        true,
+        &SpatialQueryFilter::default().with_excluded_entities([input.entity])
+    )
+    && ray.distance <= 10. {
+        let mut rng = rand::rng();
+        *agent_target = AgentTarget3d::Point(Vec3::new(rng.random_range(-15.0..15.0), 1.75, rng.random_range(-15.0..15.0)));
+        //return OperatorStatus::Ongoing;
+        return OperatorStatus::Success
     }
+    OperatorStatus::Success
 }
 
 pub fn wander(

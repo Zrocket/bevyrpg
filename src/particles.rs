@@ -1,6 +1,7 @@
 use avian3d::prelude::*;
 use bevy::{ecs::{lifecycle::HookContext, world::DeferredWorld}, prelude::*};
 use bevy_hanabi::{AccelModifier, Attribute, ColorBlendMask, ColorOverLifetimeModifier, EffectAsset, EffectMaterial, ExprWriter, HanabiPlugin, OrientModifier, ParticleEffect, ParticleTextureModifier, ScalarType, SetAttributeModifier, SetPositionSphereModifier, SetVelocitySphereModifier, SizeOverLifetimeModifier, SpawnerSettings};
+use bevy_seedling::{prelude::SpatialBasicNode, sample::SamplePlayer, sample_effects};
 
 #[derive(Resource, Default)]
 pub struct FireEffectResource(Handle<EffectAsset>);
@@ -14,6 +15,7 @@ pub struct SmokeEffectResource(Handle<EffectAsset>);
     CollisionEventsEnabled,
 )]
 #[component(on_add = on_particle_tester_add)]
+#[type_path("api")]
 pub struct ParticleTester;
 
 #[derive(Component, Reflect)]
@@ -21,13 +23,13 @@ pub struct ParticleTester;
 #[require(
     CollisionEventsEnabled,
 )]
+#[type_path("api")]
 pub struct Flamable;
 
 pub struct ParticlePlugin;
 impl Plugin for ParticlePlugin {
     fn build(&self, app: &mut App) {
        app
-           .add_plugins(HanabiPlugin)
            .register_type::<ParticleTester>()
            .register_type::<Flamable>()
            .init_resource::<FireEffectResource>()
@@ -45,6 +47,8 @@ fn on_particle_tester_add(
     let fire_resource = world.resource::<FireEffectResource>().0.clone();
     let smoke_resource = world.resource::<SmokeEffectResource>().0.clone();
     let texture_handle: Handle<Image> = asset_server.load("particles/cloud.png");
+    let sample_player = SamplePlayer::new(asset_server.load("audio/fire-1.ogg")).looping();
+
     let fire_emitter = world.commands().spawn((
             ParticleEffect::new(fire_resource),
             EffectMaterial {
@@ -60,6 +64,10 @@ fn on_particle_tester_add(
 
     world.commands()
         .entity(context.entity)
+        .insert((
+            sample_player,
+            sample_effects!(SpatialBasicNode::default())
+        ))
         .add_child(fire_emitter)
         .add_child(smoke_emitter)
         .observe(fire_collision_observer);

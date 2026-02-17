@@ -24,6 +24,7 @@ pub struct DoorGraph(pub Handle<AnimationGraph>);
     Interactable,
     DoorState,
 )]
+#[type_path("api")]
 pub struct DoorComponent;
 
 pub struct DoorPlugin;

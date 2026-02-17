@@ -1,15 +1,17 @@
-use avian3d::prelude::Collider;
+use avian3d::prelude::{Collider, CollisionLayers, LayerMask};
 use bevy::{ecs::{lifecycle::HookContext, world::DeferredWorld}, prelude::*};
 use bevy_landmass::{Agent, Agent3dBundle, AgentSettings, AgentTarget3d, Archipelago3d, ArchipelagoRef3d};
 
-use crate::{CharacterBundle, death_event_observer, TnuaEnemyController, GameState};
+use crate::{CharacterBundle, GameState, TnuaEnemyController, death_event_observer, level::CollisionLayer};
 
 #[derive(Default, Clone, Component, Reflect)]
 #[reflect(Component)]
 #[require(
     TnuaEnemyController,
+    CollisionLayers::new(CollisionLayer::Player, LayerMask::ALL),
 )]
 #[component(on_add = on_enemy_add)]
+#[type_path("api")]
 pub struct Enemy;
 
 pub struct EnemyPlugin;

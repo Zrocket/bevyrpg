@@ -176,19 +176,19 @@ pub fn player_controller_input(
                     player_input.yaw = player_input.yaw.rem_euclid(TAU);
                 }
 
-                let right: f32 = right_action.contains(ActionEvents::FIRED).into();
-                let left: f32 = left_action.contains(ActionEvents::FIRED).into();
-                let up: f32 = up_action.contains(ActionEvents::FIRED).into();
-                let down: f32 = down_action.contains(ActionEvents::FIRED).into();
-                let forward: f32 = forward_action.contains(ActionEvents::FIRED).into();
-                let backward: f32 = backward_action.contains(ActionEvents::FIRED).into();
+                let right: f32 = right_action.contains(ActionEvents::FIRE).into();
+                let left: f32 = left_action.contains(ActionEvents::FIRE).into();
+                let up: f32 = up_action.contains(ActionEvents::FIRE).into();
+                let down: f32 = down_action.contains(ActionEvents::FIRE).into();
+                let forward: f32 = forward_action.contains(ActionEvents::FIRE).into();
+                let backward: f32 = backward_action.contains(ActionEvents::FIRE).into();
 
                 player_input.movement = Vec3::new(
                     right - left,
                     up - down,
                    forward - backward
                 );
-                player_input.sprint = run_action.contains(ActionEvents::STARTED);
+                player_input.sprint = run_action.contains(ActionEvents::START);
             }
 }
 
@@ -272,7 +272,7 @@ pub fn tnua_player_input(
     //println!("Action State: {}", action_state.just_pressed(&Action::Jump));
     //if action_state.just_pressed(&Action::Jump) && air_actions_counter.air_count_for(TnuaBuiltinJump::NAME) == 0 {
     //if action_state.pressed(&LeafwingAction::Jump) {
-    if jump_action.contains(ActionEvents::FIRED) {
+    if jump_action.contains(ActionEvents::FIRE) {
         tnua_controller.action(PlayerControlScheme::Jump(Default::default()));
         if *player_state == PlayerState::Sitting {
             *player_state = PlayerState::Grounded;
@@ -281,11 +281,11 @@ pub fn tnua_player_input(
     }
 
     //if action_state.just_pressed(&LeafwingAction::Crouch) {
-    if crouch_action.contains(ActionEvents::STARTED) {
+    if crouch_action.contains(ActionEvents::START) {
         tnua_controller.action_start(PlayerControlScheme::Crouch(Default::default()));
     }
     //if action_state.just_released(&LeafwingAction::Crouch) {
-    if crouch_action.contains(ActionEvents::COMPLETED) {
+    if crouch_action.contains(ActionEvents::COMPLETE) {
         tnua_controller.action_end(PlayerControlSchemeActionDiscriminant::Crouch);
     }
 
@@ -302,7 +302,7 @@ pub fn tnua_player_input(
     };
 
     //if action_state.just_pressed(&LeafwingAction::Run) {
-    if run_action.contains(ActionEvents::STARTED) {
+    if run_action.contains(ActionEvents::START) {
         tnua_controller.action_trigger(PlayerControlScheme::Dash(TnuaBuiltinDash {
             displacement: movement_direction.normalize_or_zero(),
             ..default()

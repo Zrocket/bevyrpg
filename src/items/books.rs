@@ -13,6 +13,7 @@ pub struct OpenBookEvent {
 #[require(
     Interactable,
 )]
+#[type_path("api")]
 pub struct Book {
     pub title: String,
     pub contents: String,

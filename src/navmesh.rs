@@ -1,13 +1,13 @@
 use avian_rerecast::AvianBackendPlugin;
 use bevy::{input::common_conditions::input_just_pressed, prelude::*};
-use bevy_landmass::{Agent, Agent3dBundle, AgentDesiredVelocity3d, AgentSettings, AgentTarget3d, Archipelago3d, ArchipelagoRef3d, Island, Landmass3dPlugin, Velocity3d, debug::{EnableLandmassDebug, Landmass3dDebugPlugin}};
+use bevy_landmass::{Agent, AgentDesiredVelocity3d, AgentSettings, Archipelago3d, ArchipelagoRef3d, Island, Landmass3dPlugin, Velocity3d, debug::{EnableLandmassDebug, Landmass3dDebugPlugin}};
 use bevy_tnua::{builtins::{TnuaBuiltinWalkConfig, TnuaBuiltinWallSlideConfig}, control_helpers::TnuaSimpleAirActionsCounter, prelude::*};
 use bevy_tnua::TnuaRigidBodyTracker;
 use landmass::{ArchipelagoOptions, FromAgentRadius, PointSampleDistance3d};
 use landmass_rerecast::{Island3dBundle, LandmassRerecastPlugin, NavMeshHandle3d};
 use bevy_rerecast::prelude::*;
 
-use crate::{GameState, Player, PlayerControlScheme, TnuaNpcController};
+use crate::{GameState, Player, PlayerControlScheme};
 
 //#[derive(Resource)]
 //struct NavMeshHandle(Handle<Navmesh>);
@@ -46,11 +46,6 @@ pub struct NavMeshPlugin;
 impl Plugin for NavMeshPlugin {
     fn build(&self, app: &mut App) {
         app
-            .add_plugins(Landmass3dPlugin::default())
-            .add_plugins(Landmass3dDebugPlugin::default())
-            .add_plugins(LandmassRerecastPlugin::default())
-            .add_plugins(NavmeshPlugins::default())
-            .add_plugins(AvianBackendPlugin::default())
             .register_type::<Walk>()
             .register_type::<FloatHeight>()
             .register_type::<DesiredPosition>()
