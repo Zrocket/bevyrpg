@@ -11,7 +11,7 @@ use bevy_tnua::{
 };
 use bevy_tnua_avian3d::{TnuaAvian3dPlugin, TnuaSpatialExtAvian3d};
 
-use crate::{BackwardAction, CrouchAction, DownAction, FlashlightAction, ForwardAction, JumpAction, LeftAction, MovementPool, ObstacleQueryHelper, Player, PlayerFlashlight, PlayerState, RightAction, RunAction, UpAction};
+use crate::{BackwardAction, CrouchAction, DownAction, FlashlightAction, ForwardAction, JumpAction, LeftAction, LookAction, MovementAction, MovementPool, ObstacleQueryHelper, Player, PlayerFlashlight, PlayerState, RightAction, RunAction, UpAction};
 
 // Used as padding by camera pitching (up/down) to avoid spooky math problems
 const ANGLE_EPSILON: f32 = 0.001953125;
@@ -35,7 +35,7 @@ impl Default for PlayerController {
             pitch: 0.0,
             yaw: 0.0,
             enable_input: true,
-            sensitivity: 0.001,
+            sensitivity: 0.01,
         }
     }
 }
@@ -149,12 +149,14 @@ impl Plugin for PlayerControllerPlugin {
 
 #[allow(clippy::complexity)]
 pub fn player_controller_input(
-    left_action: Single<&ActionEvents, With<Action<LeftAction>>>,
-    right_action: Single<&ActionEvents, With<Action<RightAction>>>,
+    movement_action: Single<&Action<MovementAction>>,
+    look_action: Single<&Action<LookAction>>,
+    //left_action: Single<&ActionEvents, With<Action<LeftAction>>>,
+    //right_action: Single<&ActionEvents, With<Action<RightAction>>>,
     down_action: Single<&ActionEvents, With<Action<DownAction>>>,
     up_action: Single<&ActionEvents, With<Action<UpAction>>>,
-    forward_action: Single<&ActionEvents, With<Action<ForwardAction>>>,
-    backward_action: Single<&ActionEvents, With<Action<BackwardAction>>>,
+    //forward_action: Single<&ActionEvents, With<Action<ForwardAction>>>,
+    //backward_action: Single<&ActionEvents, With<Action<BackwardAction>>>,
     run_action: Single<&ActionEvents, With<Action<RunAction>>>,
     mut mouse_events_reader: MessageReader<mouse::MouseMotion>,
     mut player_controller_query: Query<(&PlayerController, &mut PlayerControllerInput)>,
@@ -164,10 +166,17 @@ pub fn player_controller_input(
             .filter(|(controller, _)| controller.enable_input)
             {
                 let mut mouse_delta = Vec2::ZERO;
-                for mouse_event in mouse_events_reader.read() {
-                    mouse_delta += mouse_event.delta;
+                if mouse_events_reader.is_empty() {
+                    mouse_delta[0] += look_action[0];
+                    mouse_delta[1] -= look_action[1];
+                } else {
+                    for mouse_event in mouse_events_reader.read() {
+                        mouse_delta += mouse_event.delta;
+                        mouse_delta *= player_controller.sensitivity;
+                        //mouse_delta[0] += look_action[0];
+                        //mouse_delta[1] += look_action[1];
+                    }
                 }
-                mouse_delta *= player_controller.sensitivity;
 
                 player_input.pitch = (player_input.pitch - mouse_delta.y)
                     .clamp(-FRAC_PI_2 + ANGLE_EPSILON, FRAC_PI_2 - ANGLE_EPSILON);
@@ -176,17 +185,21 @@ pub fn player_controller_input(
                     player_input.yaw = player_input.yaw.rem_euclid(TAU);
                 }
 
-                let right: f32 = right_action.contains(ActionEvents::FIRE).into();
-                let left: f32 = left_action.contains(ActionEvents::FIRE).into();
+                //let right: f32 = right_action.contains(ActionEvents::FIRE).into();
+                //let left: f32 = left_action.contains(ActionEvents::FIRE).into();
                 let up: f32 = up_action.contains(ActionEvents::FIRE).into();
                 let down: f32 = down_action.contains(ActionEvents::FIRE).into();
-                let forward: f32 = forward_action.contains(ActionEvents::FIRE).into();
-                let backward: f32 = backward_action.contains(ActionEvents::FIRE).into();
+                //let forward: f32 = forward_action.contains(ActionEvents::FIRE).into();
+                //let backward: f32 = backward_action.contains(ActionEvents::FIRE).into();
+
+                println!("LOOK: {:?}, {:?}", look_action[0], look_action[1]);
 
                 player_input.movement = Vec3::new(
-                    right - left,
+                    //right - left,
+                    movement_action[0],
                     up - down,
-                   forward - backward
+                   //forward - backward
+                    movement_action[1]
                 );
                 player_input.sprint = run_action.contains(ActionEvents::START);
             }
