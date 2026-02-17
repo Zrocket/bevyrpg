@@ -1,8 +1,8 @@
 use avian3d::prelude::{Collider, SpatialQueryFilter, RigidBody};
-use bevy::{app::Plugin, asset::Assets, ecs::{component::{self, Component}, lifecycle::HookContext, world::DeferredWorld}, input::{gamepad::{Gamepad, GamepadButton}, keyboard::KeyCode, mouse::MouseButton}, time::Timer, utils::default};
-use bevy_enhanced_input::{action::Action, actions, bindings, prelude::{EnhancedInputPlugin, Hold, InputAction, InputContextAppExt, Tap}};
+use bevy::{app::Plugin, asset::Assets, ecs::{component::{self, Component}, lifecycle::HookContext, spawn::{Spawn, SpawnRelated}, world::DeferredWorld}, input::{gamepad::{Gamepad, GamepadButton}, keyboard::KeyCode, mouse::MouseButton}, math::Vec2, time::Timer, utils::default};
+use bevy_enhanced_input::{action::Action, actions, binding::Binding, bindings, prelude::{Axial, Bindings, Cardinal, DeadZone, EnhancedInputPlugin, Hold, InputAction, InputContextAppExt, ModKeys, SmoothNudge, Tap}, modifier::scale::Scale};
 use bevy_tnua::{TnuaConfig, builtins::{TnuaBuiltinClimbConfig, TnuaBuiltinCrouchConfig, TnuaBuiltinDashConfig, TnuaBuiltinJumpConfig, TnuaBuiltinWalkConfig, TnuaBuiltinWallSlideConfig}};
-use bevy_tnua::{TnuaController, TnuaObstacleRadar, control_helpers::{TnuaSimpleAirActionsCounter, TnuaBlipReuseAvoidance, TnuaActionsCounter}};
+use bevy_tnua::{TnuaController, control_helpers::{TnuaSimpleAirActionsCounter, TnuaBlipReuseAvoidance, TnuaActionsCounter}};
 use bevy_tnua_avian3d::TnuaAvian3dSensorShape;
 use avian_pickup::actor::{AvianPickupActor, AvianPickupActorHoldConfig};
 use bevy_bae::{plan::Plan, prelude::{Operator, Sequence}, tasks};
@@ -17,6 +17,14 @@ impl Plugin for InputPlugin {
             .add_input_context::<Player>();
     }
 }
+
+#[derive(InputAction)]
+#[action_output(Vec2)]
+pub struct MovementAction;
+
+#[derive(InputAction)]
+#[action_output(Vec2)]
+pub struct LookAction;
 
 #[derive(InputAction)]
 #[action_output(bool)]
@@ -142,6 +150,26 @@ fn on_tnua_player_controller_add(
 ) {
         let bei_input_map = actions!(Player[
             (
+                Action::<MovementAction>::new(),
+                DeadZone::default(),
+                SmoothNudge::new(30.0),
+                Bindings::spawn((
+                    Cardinal::wasd_keys(),
+                    Axial::left_stick(),
+                )),
+            ),
+            (
+                Action::<LookAction>::new(),
+                DeadZone::default(),
+                //SmoothNudge::new(10.0),
+                SmoothNudge::default(),
+                Scale::splat(0.08),
+                Bindings::spawn((
+                        //Spawn(Binding::mouse_motion()),
+                        Axial::right_stick(),
+                )),
+            ),
+            (
                 Action::<Weapon1Action>::new(),
                 bindings![KeyCode::Digit1, GamepadButton::DPadLeft],
             ),
@@ -183,7 +211,7 @@ fn on_tnua_player_controller_add(
             ),
             (
                 Action::<CrouchAction>::new(),
-                bindings![KeyCode::ControlLeft, GamepadButton::RightThumb],
+                bindings![KeyCode::ControlLeft, GamepadButton::LeftTrigger2],
             ),
             (
                 Action::<UpAction>::new(),
