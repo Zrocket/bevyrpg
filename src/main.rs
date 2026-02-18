@@ -1,4 +1,4 @@
-use avian_pickup::{AvianPickupPlugin, actor::AvianPickupActor};
+use avian_pickup::{AvianPickupPlugin};
 use avian_rerecast::AvianBackendPlugin;
 use avian3d::prelude::*;
 use bevy::{

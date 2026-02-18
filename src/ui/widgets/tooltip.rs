@@ -1,5 +1,3 @@
-use std::default;
-
 use bevy::{app::{Plugin, PostUpdate}, ecs::{component::Component, entity::Entity, observer::On, query::With, resource::Resource, system::{Query, Res, ResMut}}, picking::events::{Out, Over, Pointer}, time::Time};
 
 #[derive(Component)]

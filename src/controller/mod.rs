@@ -58,7 +58,6 @@ impl Plugin for ControllerPlugin {
 fn manage_cursor(
     mut windows: Query<&mut CursorOptions>,
     mut commands: Commands,
-    btn: Res<ButtonInput<MouseButton>>,
     key: Res<ButtonInput<KeyCode>>,
     shoot_action: Single<&ActionEvents, With<Action<ShootAction>>>,
     mut controllers: Query<&mut PlayerController>,
@@ -69,7 +68,6 @@ fn manage_cursor(
 ) {
     if let Ok(mut window) = windows.single_mut() {
         if window.grab_mode != CursorGrabMode::Locked {
-            //if btn.just_pressed(MouseButton::Left) {
                 if shoot_action.contains(ActionEvents::FIRE) {
                 if !active_windoow.is_empty() {
                     return;
@@ -80,7 +78,6 @@ fn manage_cursor(
                     controller.enable_input = true;
                 }
             }
-        //} else if btn.just_pressed(MouseButton::Left) {
         } else if shoot_action.contains(ActionEvents::START) {
             avian_pickup_input_writer.write(AvianPickupInput { action: AvianPickupAction::Throw, actor: *avian_pickup_actor });
             shoot_event_writer.write(shoot::ShootEvent);

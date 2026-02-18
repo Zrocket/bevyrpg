@@ -1,10 +1,9 @@
-use avian_rerecast::AvianBackendPlugin;
 use bevy::{input::common_conditions::input_just_pressed, prelude::*};
-use bevy_landmass::{Agent, AgentDesiredVelocity3d, AgentSettings, Archipelago3d, ArchipelagoRef3d, Island, Landmass3dPlugin, Velocity3d, debug::{EnableLandmassDebug, Landmass3dDebugPlugin}};
-use bevy_tnua::{builtins::{TnuaBuiltinWalkConfig, TnuaBuiltinWallSlideConfig}, control_helpers::TnuaSimpleAirActionsCounter, prelude::*};
+use bevy_landmass::{AgentDesiredVelocity3d, Archipelago3d, ArchipelagoRef3d, Island, Velocity3d, debug::{EnableLandmassDebug}};
+use bevy_tnua::{control_helpers::TnuaSimpleAirActionsCounter, prelude::*};
 use bevy_tnua::TnuaRigidBodyTracker;
 use landmass::{ArchipelagoOptions, FromAgentRadius, PointSampleDistance3d};
-use landmass_rerecast::{Island3dBundle, LandmassRerecastPlugin, NavMeshHandle3d};
+use landmass_rerecast::{Island3dBundle, NavMeshHandle3d};
 use bevy_rerecast::prelude::*;
 
 use crate::{GameState, Player, PlayerControlScheme};
@@ -94,7 +93,7 @@ fn apply_walking(
 
     for (mut controller, desired_velocity, mut agent_velocity, tracker) in &mut character_query {
         controller.initiate_action_feeding();
-        let Ok(direction) = Dir3::new(desired_velocity.velocity()) else { 
+        let Ok(direction) = Dir3::new(desired_velocity.velocity()) else {
             controller.basis = TnuaBuiltinWalk { desired_motion: desired_velocity.velocity().normalize_or_zero(), desired_forward: None };
             agent_velocity.velocity = tracker.velocity;
             return;

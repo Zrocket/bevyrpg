@@ -1,9 +1,6 @@
-use std::marker::PhantomData;
+use bevy::{ecs::{entity::Entity, event::EntityEvent, observer::On, query::With, system::{Commands, Query}}, prelude::{Node, Plugin}, ui::{Overflow, widget::Text}, utils::default};
 
-use bevy::{color::palettes::css::DARK_GRAY, ecs::{component::Component, entity::Entity, event::EntityEvent, hierarchy::{ChildSpawner, Children}, observer::On, query::With, spawn::{SpawnRelated, SpawnWith}, system::{Commands, Query}}, prelude::{Node, Plugin}, reflect::enum_debug, ui::{BackgroundColor, Overflow, widget::Text}, utils::default};
-
-use crate::{Experience, Health, Level, Player, widgets::floating_windows::floating_window_root};
-
+use crate::{Experience, Level, Player, widgets::floating_windows::floating_window_root};
 
 #[derive(EntityEvent)]
 pub struct DisplayStatsEvent {
