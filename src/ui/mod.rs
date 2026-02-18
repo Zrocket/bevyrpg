@@ -17,7 +17,6 @@ pub mod start_menu;
 pub mod game_over;
 pub mod stats_ui;
 
-use bevy_simple_text_input::TextInputPlugin;
 use crosshair::*;
 pub use equip_ui::*;
 pub use inventory_ui::*;

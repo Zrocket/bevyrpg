@@ -1,3 +1,5 @@
+use std::time::Duration;
+
 use bevy::prelude::*;
 use avian3d::collision::collider::Collider;
 
@@ -67,4 +69,10 @@ fn collider_y_offset(collider: &Collider) -> Vec3 {
         } else {
             panic!("Controller must use a cylinder or capsule collider")
         }
+}
+
+fn interpolate_camera(
+    time: Res<Time>,
+    timestamp: Local<Duration>,
+) {
 }

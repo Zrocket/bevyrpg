@@ -1,10 +1,10 @@
 use bevy_asset_loader::{asset_collection::AssetCollection, loading_state::{config::ConfigureLoadingState, LoadingState, LoadingStateAppExt}, standard_dynamic_asset::StandardDynamicAssetCollection};
-use bevy_sun_move::{SkyCenter, SunMovePlugin, TimedSkyConfig, random_stars::{RandomStarsPlugin, StarSpawner}};
+use bevy_sun_move::{SkyCenter, TimedSkyConfig, random_stars::StarSpawner};
 
 use super::GameState;
-use crate::{MiscItem, Obstacle, ladder_collision_observer, ladder_decollision_observer};
-use avian3d::{prelude::{ColliderConstructor, CollidingEntities, CollisionEventsEnabled, CollisionLayers, LayerMask, PhysicsLayer, RigidBody}};
-use bevy::{ecs::{world::DeferredWorld}, gltf::Gltf, prelude::*};
+use crate::{MiscItem, Obstacle};
+use avian3d::{prelude::{ColliderConstructor, CollisionLayers, LayerMask, PhysicsLayer, RigidBody}};
+use bevy::{gltf::Gltf, prelude::*};
 
 #[derive(Debug, PhysicsLayer, Default, Component, Reflect)]
 #[reflect(Component)]
@@ -181,7 +181,6 @@ fn change_level_message_handler(
             night_duration_secs: 5.0, // 5 seconds of nighttime (15s total cycle)
             max_sun_height_deg: 60.0, // Sun reaches 60 degrees at noon
             planet_tilt_degrees: 23.5, // Earth's tilt (default)
-            ..default()
         };
 
         // Calculate  and spawn the SkyCenter

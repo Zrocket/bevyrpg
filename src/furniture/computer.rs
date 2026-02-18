@@ -37,8 +37,6 @@ impl Plugin for ComputerPlugin {
     }
 }
 
-static FONT_DATA: &[u8] = include_bytes!("../../assets/iosevka.ttf");
-
 #[derive(Debug, Clone, Component, Reflect)]
 #[reflect(Component)]
 #[component(on_add = on_computer_add)]

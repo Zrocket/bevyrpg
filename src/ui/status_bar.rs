@@ -1,4 +1,4 @@
-use bevy::{animation::{AnimatedBy, AnimationEntityMut, AnimationEvaluationError, AnimationTargetId, animated_field}, color::palettes::css::{BLUE, DARK_BLUE, GREEN}, ecs::{lifecycle::HookContext, world::DeferredWorld}, prelude::*, render::render_resource::AsBindGroup, ui_render::ui_material};
+use bevy::{color::palettes::css::{BLUE, GREEN}, ecs::{lifecycle::HookContext, world::DeferredWorld}, prelude::*, render::render_resource::AsBindGroup};
 
 use super::*;
 
@@ -200,11 +200,11 @@ fn animate_health_material(
     health_query: Query<(&Health, &MaxHealth), With<Player>>,
     time: Res<Time>,
 ) {
-    let duration = 2.0;
+    //let duration = 2.0;
     for handle in &query {
         if let Some(material) = materials.get_mut(handle)
         && let Ok((health, max_health)) = health_query.single() {
-            let value = (health.0 as f32 / max_health.0 as f32);
+            let value = health.0 as f32 / max_health.0 as f32;
             // rainbow color effect
             let new_color = Color::hsl((time.elapsed_secs() * 60.0) % 360.0, 1., 0.5);
             let border_color = Color::hsl((time.elapsed_secs() * 60.0) % 360.0, 0.75, 0.75);
@@ -225,11 +225,11 @@ fn animate_mana_material(
     mana_query: Query<(&Mana, &MaxMana), With<Player>>,
     time: Res<Time>,
 ) {
-    let duration = 2.0;
+    //let duration = 2.0;
     for handle in &query {
         if let Some(material) = materials.get_mut(handle)
         && let Ok((mana, max_mana)) = mana_query.single() {
-            let value = (mana.0 as f32 / max_mana.0 as f32);
+            let value = mana.0 as f32 / max_mana.0 as f32;
             println!("{:?}", value);
             // rainbow color effect
             let new_color = Color::hsl((time.elapsed_secs() * 60.0) % 360.0, 1., 0.5);

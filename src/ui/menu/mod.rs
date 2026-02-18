@@ -1,5 +1,5 @@
 use bevy::prelude::*;
-use crate::{GameState, PauseMenuState, credits::CreditsMenuUiPlugin, menu::{controller_settings::ControllerSettingsMenuUiPlugin, gameplay_settings::GameplaySettingsMenuUiPlugin, settings::SettingsMenuUiPlugin, sound_settings::SoundSettingsMenuUiPlugin, video_settings::VideoSettingsMenuUiPlugin}};
+use crate::{PauseMenuState, credits::CreditsMenuUiPlugin, menu::{controller_settings::ControllerSettingsMenuUiPlugin, gameplay_settings::GameplaySettingsMenuUiPlugin, settings::SettingsMenuUiPlugin, sound_settings::SoundSettingsMenuUiPlugin, video_settings::VideoSettingsMenuUiPlugin}};
 
 use super::widgets;
 
