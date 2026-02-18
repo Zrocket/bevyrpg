@@ -2,7 +2,7 @@ use bevy::{ecs::{lifecycle::HookContext, world::DeferredWorld}, prelude::*};
 use bevy_seedling::sample::SamplePlayer;
 use rand::Rng;
 
-use crate::{Interactable, InteractionEvent, level::{BlenderAnimationName, LevelGltf}};
+use crate::{Interactable, InteractionEvent, level::{LevelGltf}};
 
 #[derive(Clone, Hash, Debug, Eq, PartialEq, Default, Component, Reflect)]
 #[reflect(Component)]

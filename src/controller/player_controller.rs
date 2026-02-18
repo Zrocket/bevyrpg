@@ -1,17 +1,14 @@
 use std::{cmp::Ordering, f32::consts::*};
-use rand::Rng;
 
 use avian3d::{math::{AdjustPrecision, Vector3}, prelude::RigidBodyDisabled};
 use bevy::{input::mouse, prelude::*};
-use bevy_enhanced_input::{action::Action, prelude::{ActionEvents, Fire, Start}};
-use bevy_flycam::MovementSettings;
-use bevy_seedling::sample::{SamplePlayer, SamplePriority};
+use bevy_enhanced_input::{action::Action, prelude::{ActionEvents, Start}};
 use bevy_tnua::{
     TnuaControllerPlugin, TnuaObstacleRadar, TnuaScheme, TnuaUserControlsSystems, builtins::{TnuaBuiltinClimb, TnuaBuiltinCrouch, TnuaBuiltinDash, TnuaBuiltinJump, TnuaBuiltinKnockback, TnuaBuiltinWalk, TnuaBuiltinWallSlide}, control_helpers::{TnuaAirActionDefinition, TnuaAirActionsTracker, TnuaBlipReuseAvoidance, TnuaHasTargetEntity, TnuaSimpleAirActionsCounter}, controller::TnuaController, math::{AsF32, Float}, radar_lens::{TnuaBlipSpatialRelation, TnuaRadarLens}
 };
 use bevy_tnua_avian3d::{TnuaAvian3dPlugin, TnuaSpatialExtAvian3d};
 
-use crate::{BackwardAction, CrouchAction, DownAction, FlashlightAction, ForwardAction, JumpAction, LeftAction, LookAction, MovementAction, MovementPool, ObstacleQueryHelper, Player, PlayerFlashlight, PlayerState, RightAction, RunAction, UpAction};
+use crate::{CrouchAction, DownAction, FlashlightAction, JumpAction, LookAction, MovementAction, ObstacleQueryHelper, Player, PlayerFlashlight, PlayerState, RunAction, UpAction};
 
 // Used as padding by camera pitching (up/down) to avoid spooky math problems
 const ANGLE_EPSILON: f32 = 0.001953125;
@@ -151,12 +148,8 @@ impl Plugin for PlayerControllerPlugin {
 pub fn player_controller_input(
     movement_action: Single<&Action<MovementAction>>,
     look_action: Single<&Action<LookAction>>,
-    //left_action: Single<&ActionEvents, With<Action<LeftAction>>>,
-    //right_action: Single<&ActionEvents, With<Action<RightAction>>>,
     down_action: Single<&ActionEvents, With<Action<DownAction>>>,
     up_action: Single<&ActionEvents, With<Action<UpAction>>>,
-    //forward_action: Single<&ActionEvents, With<Action<ForwardAction>>>,
-    //backward_action: Single<&ActionEvents, With<Action<BackwardAction>>>,
     run_action: Single<&ActionEvents, With<Action<RunAction>>>,
     mut mouse_events_reader: MessageReader<mouse::MouseMotion>,
     mut player_controller_query: Query<(&PlayerController, &mut PlayerControllerInput)>,
@@ -173,8 +166,6 @@ pub fn player_controller_input(
                     for mouse_event in mouse_events_reader.read() {
                         mouse_delta += mouse_event.delta;
                         mouse_delta *= player_controller.sensitivity;
-                        //mouse_delta[0] += look_action[0];
-                        //mouse_delta[1] += look_action[1];
                     }
                 }
 
@@ -185,20 +176,14 @@ pub fn player_controller_input(
                     player_input.yaw = player_input.yaw.rem_euclid(TAU);
                 }
 
-                //let right: f32 = right_action.contains(ActionEvents::FIRE).into();
-                //let left: f32 = left_action.contains(ActionEvents::FIRE).into();
                 let up: f32 = up_action.contains(ActionEvents::FIRE).into();
                 let down: f32 = down_action.contains(ActionEvents::FIRE).into();
-                //let forward: f32 = forward_action.contains(ActionEvents::FIRE).into();
-                //let backward: f32 = backward_action.contains(ActionEvents::FIRE).into();
 
                 println!("LOOK: {:?}, {:?}", look_action[0], look_action[1]);
 
                 player_input.movement = Vec3::new(
-                    //right - left,
                     movement_action[0],
                     up - down,
-                   //forward - backward
                     movement_action[1]
                 );
                 player_input.sprint = run_action.contains(ActionEvents::START);

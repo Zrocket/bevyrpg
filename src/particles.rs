@@ -1,6 +1,6 @@
 use avian3d::prelude::*;
 use bevy::{ecs::{lifecycle::HookContext, world::DeferredWorld}, prelude::*};
-use bevy_hanabi::{AccelModifier, Attribute, ColorBlendMask, ColorOverLifetimeModifier, EffectAsset, EffectMaterial, ExprWriter, HanabiPlugin, OrientModifier, ParticleEffect, ParticleTextureModifier, ScalarType, SetAttributeModifier, SetPositionSphereModifier, SetVelocitySphereModifier, SizeOverLifetimeModifier, SpawnerSettings};
+use bevy_hanabi::{AccelModifier, Attribute, ColorBlendMask, ColorOverLifetimeModifier, EffectAsset, EffectMaterial, ExprWriter, OrientModifier, ParticleEffect, ParticleTextureModifier, ScalarType, SetAttributeModifier, SetPositionSphereModifier, SetVelocitySphereModifier, SizeOverLifetimeModifier, SpawnerSettings};
 use bevy_seedling::{prelude::SpatialBasicNode, sample::SamplePlayer, sample_effects};
 
 #[derive(Resource, Default)]
