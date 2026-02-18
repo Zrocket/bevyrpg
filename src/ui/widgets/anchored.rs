@@ -1,4 +1,4 @@
-use bevy::{app::{Plugin, PostUpdate}, ecs::{component::Component, entity::Entity, hierarchy::Children, query::With, system::{Query, Single}}, math::{BVec2, Vec2, bounding::{Aabb2d, BoundingVolume}}, transform::components::GlobalTransform, ui::{ComputedNode, ComputedUiRenderTargetInfo, LayoutConfig, Node, UiGlobalTransform, Val}, window::{PrimaryWindow, Window}};
+use bevy::{app::{Plugin, PostUpdate}, ecs::{component::Component, entity::Entity, hierarchy::Children, query::With, system::{Query, Single}}, math::{BVec2, Vec2, bounding::{Aabb2d, BoundingVolume}}, ui::{ComputedNode, ComputedUiRenderTargetInfo, LayoutConfig, Node, UiGlobalTransform, Val}, window::{PrimaryWindow, Window}};
 
 use crate::widgets::{floating_windows::apply_position, utils::aabb_overlap};
 

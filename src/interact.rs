@@ -1,5 +1,4 @@
 use bevy::prelude::*;
-use avian_pickup::prelude::*;
 
 #[derive(Component, Default)]
 pub struct Interactable;

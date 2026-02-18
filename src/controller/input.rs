@@ -1,13 +1,12 @@
-use avian3d::prelude::{Collider, SpatialQueryFilter, RigidBody};
-use bevy::{app::Plugin, asset::Assets, ecs::{component::{self, Component}, lifecycle::HookContext, spawn::{Spawn, SpawnRelated}, world::DeferredWorld}, input::{gamepad::{Gamepad, GamepadButton}, keyboard::KeyCode, mouse::MouseButton}, math::Vec2, time::Timer, utils::default};
-use bevy_enhanced_input::{action::Action, actions, binding::Binding, bindings, prelude::{Axial, Bindings, Cardinal, DeadZone, EnhancedInputPlugin, Hold, InputAction, InputContextAppExt, ModKeys, SmoothNudge, Tap}, modifier::scale::Scale};
+use avian3d::prelude::{Collider, RigidBody};
+use bevy::{app::Plugin, asset::Assets, ecs::{component::Component, lifecycle::HookContext, spawn::SpawnRelated, world::DeferredWorld}, input::{gamepad::{GamepadButton}, keyboard::KeyCode, mouse::MouseButton}, math::Vec2, time::Timer, utils::default};
+use bevy_enhanced_input::{action::Action, actions, bindings, prelude::{Axial, Bindings, Cardinal, DeadZone, EnhancedInputPlugin, Hold, InputAction, InputContextAppExt, SmoothNudge, Tap}, modifier::scale::Scale};
 use bevy_tnua::{TnuaConfig, builtins::{TnuaBuiltinClimbConfig, TnuaBuiltinCrouchConfig, TnuaBuiltinDashConfig, TnuaBuiltinJumpConfig, TnuaBuiltinWalkConfig, TnuaBuiltinWallSlideConfig}};
-use bevy_tnua::{TnuaController, control_helpers::{TnuaSimpleAirActionsCounter, TnuaBlipReuseAvoidance, TnuaActionsCounter}};
+use bevy_tnua::{TnuaController, control_helpers::{TnuaSimpleAirActionsCounter}};
 use bevy_tnua_avian3d::TnuaAvian3dSensorShape;
-use avian_pickup::actor::{AvianPickupActor, AvianPickupActorHoldConfig};
 use bevy_bae::{plan::Plan, prelude::{Operator, Sequence}, tasks};
 
-use crate::{IdleTimer, Player, PlayerControlScheme, PlayerControlSchemeConfig, PlayerController, PlayerControllerConfig, PlayerControllerInput, RayHit, Walk, idle, level::CollisionLayer, run_from_player, wander};
+use crate::{IdleTimer, Player, PlayerControlScheme, PlayerControlSchemeConfig, Walk, idle, run_from_player, wander};
 
 pub struct InputPlugin;
 impl Plugin for InputPlugin {

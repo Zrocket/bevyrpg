@@ -122,6 +122,7 @@ fn register_socket_items(
     }
 }
 
+#[allow(clippy::type_complexity)]
 fn socket_test(
     trigger: On<CollisionStart>,
     mut commands: Commands,

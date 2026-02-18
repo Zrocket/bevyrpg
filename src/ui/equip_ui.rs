@@ -1,6 +1,4 @@
-use std::marker::PhantomData;
-
-use bevy::{color::palettes::css::{DARK_GRAY, DARK_GREEN}, ecs::{component::Component, entity::Entity, event::EntityEvent, hierarchy::{ChildSpawner, Children}, name::Name, observer::On, query::With, relationship::RelationshipTarget, spawn::{SpawnRelated, SpawnWith}, system::{Commands, Query}}, prelude::{Node, Plugin, Text}, reflect::enum_debug, ui::{BackgroundColor, Overflow}, utils::default};
+use bevy::{color::palettes::css::DARK_GREEN, ecs::{entity::Entity, event::EntityEvent, hierarchy::{ChildSpawner, Children}, name::Name, observer::On, query::With, relationship::RelationshipTarget, spawn::{SpawnRelated, SpawnWith}, system::{Commands, Query}}, prelude::{Node, Plugin, Text}, ui::{BackgroundColor, Overflow}, utils::default};
 
 use crate::{Equiptment, Player, widgets::floating_windows::floating_window_root};
 
@@ -13,7 +11,7 @@ pub struct DisplayEquipEvent {
 pub struct EquipUiPlugin;
 impl Plugin for EquipUiPlugin {
     fn build(&self, app: &mut bevy::app::App) {
-       app; 
+       app;
     }
 }
 
