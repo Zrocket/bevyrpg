@@ -159,7 +159,7 @@ impl Plugin for GamePlayerPlugin {
             .add_systems(Update, spawn_player_observer.run_if(resource_exists::<DAGunAssets>))
             .add_systems(OnEnter(GameState::Postload), init_player)
             .add_systems(Update, (
-                    player_forward.run_if(in_state(GameState::Gameplay)),
+                    player_forward.run_if(/*in_state(GameState::Gameplay)*/ in_state(CameraState::Player)),
                     check_player_triggers.run_if(in_state(GameState::Gameplay)),
                 )
             )
@@ -316,14 +316,6 @@ fn player_forward(
             let forward = cam_transform.forward();
             player_transform.look_to(*forward, Vec3::Y);
     }
-
-
-    /*if let Ok(cam_transform) = cam_transform.single() {
-        let forward = cam_transform.forward();
-        if let Ok(mut player_transform) = player_transform.single_mut() {
-            player_transform.look_to(*forward, Vec3::Y);
-        }
-    }*/
 }
 
 fn check_player_triggers(
