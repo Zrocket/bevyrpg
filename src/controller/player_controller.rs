@@ -179,8 +179,6 @@ pub fn player_controller_input(
                 let up: f32 = up_action.contains(ActionEvents::FIRE).into();
                 let down: f32 = down_action.contains(ActionEvents::FIRE).into();
 
-                println!("LOOK: {:?}, {:?}", look_action[0], look_action[1]);
-
                 player_input.movement = Vec3::new(
                     movement_action[0],
                     up - down,
