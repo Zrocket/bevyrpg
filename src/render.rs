@@ -1,6 +1,6 @@
 use std::time::Duration;
 
-use bevy::prelude::*;
+use bevy::{ecs::{lifecycle::HookContext, world::DeferredWorld}, prelude::*};
 use avian3d::collision::collider::Collider;
 
 use crate::{CameraState, PlayerController};
@@ -11,6 +11,15 @@ pub const RESOLUTION_WIDTH: u32 = 1280;
 #[derive(Component)]
 pub struct CameraConfig {
     pub height_offset: f32,
+}
+
+#[derive(Component)]
+#[component(on_add = on_camera_interpolation_add)]
+pub struct CameraInterpolation {
+    pub duration: Duration,
+    pub start_time: Duration,
+    //pub start_pos: Transform,
+    //pub desired_pos: Transform,
 }
 
 #[derive(Component)]
@@ -25,9 +34,18 @@ impl Plugin for GameRenderPlugin {
         app.add_systems(
             Update,
             //player_controller_render.run_if(in_state(GameState::Gameplay)),
-            player_controller_render
-        );
+            player_controller_render.run_if(in_state(CameraState::Player)
+        ))
+        .add_systems(Update, interpolate_camera.run_if(in_state(CameraState::Indipendent)));
     }
+}
+
+fn on_camera_interpolation_add(
+    mut world: DeferredWorld,
+    _context: HookContext,
+) {
+    let mut camera_state = world.resource_mut::<NextState<CameraState>>();
+    camera_state.set(CameraState::Indipendent);
 }
 
 pub fn player_controller_render(
@@ -37,10 +55,8 @@ pub fn player_controller_render(
         (&Transform, &Collider, &PlayerController, &CameraConfig),
         Without<RenderPlayer>,
     >,
-    camera_state: ResMut<State<CameraState>>,
 ) {
     trace!("SYSTEM: player_controller_render");
-    if camera_state.get() == &CameraState::Indipendent { return };
 
     for (mut render_transform, render_player) in render_query.iter_mut() {
         if let Ok((logical_transform, collider, controller, camera_config)) =
@@ -72,7 +88,44 @@ fn collider_y_offset(collider: &Collider) -> Vec3 {
 }
 
 fn interpolate_camera(
+    mut commands: Commands,
     time: Res<Time>,
-    timestamp: Local<Duration>,
+    mut camera_query: Query<(Entity, &CameraInterpolation, &mut Transform, &mut RenderPlayer)>,
+    logical_query: Query<
+        (&Transform, &Collider, &PlayerController, &CameraConfig),
+        Without<RenderPlayer>,
+    >,
+    mut camera_state: ResMut<NextState<CameraState>>,
 ) {
+    for (
+        camera_entity,
+        camera_interp,
+        mut camera_transform,
+        render_player,
+    ) in camera_query.iter_mut() {
+        if let Ok((logical_transform, logical_collider, logical_controller, logical_camera_config)) = logical_query.get(render_player.logical_entity) {
+
+            if camera_interp.duration <= time.elapsed() {
+                commands.entity(camera_entity).remove::<CameraInterpolation>();
+                camera_state.set(CameraState::Player);
+                return;
+            }
+
+            let collider_offset = collider_y_offset(logical_collider);
+            let camera_offset = Vec3::Y * logical_camera_config.height_offset;
+            let desired_transform = logical_transform.translation + collider_offset + camera_offset;
+            let desired_rotation = Quat::from_euler(EulerRot::YXZ, logical_controller.yaw, logical_controller.pitch, 0.0);
+            let normalized_time = (time.elapsed() - camera_interp.start_time).div_duration_f32(camera_interp.duration - time.elapsed());
+            let ease_function = EaseFunction::SmoothStep;
+
+            if let Some(ease_normal) = ease_function.sample(normalized_time) {
+                camera_transform.translation = camera_transform.translation.slerp(desired_transform, ease_normal);
+                camera_transform.rotation = camera_transform.rotation.slerp(desired_rotation, ease_normal);
+            } else {
+                commands.entity(camera_entity).remove::<CameraInterpolation>();
+                camera_state.set(CameraState::Player);
+                return;
+            }
+        }
+    }
 }
