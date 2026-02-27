@@ -60,6 +60,12 @@ pub struct DamageEvent {
 }
 
 #[derive(EntityEvent)]
+pub struct HealEvent {
+    pub entity: Entity,
+    pub ammount: i32,
+}
+
+#[derive(EntityEvent)]
 pub struct LevelUpEvent {
     pub entity: Entity,
 }
@@ -94,7 +100,8 @@ fn on_health_add(
 ) {
     world.commands()
         .entity(context.entity)
-        .observe(damage_observer);
+        .observe(damage_observer)
+        .observe(heal_observer);
 }
 
 fn on_level_add(
@@ -120,6 +127,19 @@ fn damage_observer(
             commands.entity(trigger.entity).trigger(|entity| DeathEvent { entity });
         } else {
             health.0 -= trigger.event().ammount;
+        }
+    }
+}
+
+fn heal_observer(
+    trigger: On<HealEvent>,
+    mut health_query: Query<(&mut Health, &MaxHealth)>,
+) {
+    println!("{:?}", trigger.entity);
+    if let Ok((mut health, max_health)) = health_query.get_mut(trigger.entity) {
+        health.0 += trigger.event().ammount;
+        if health.0 >= max_health.0 {
+            health.0 = max_health.0;
         }
     }
 }

@@ -2,38 +2,39 @@ use avian_pickup::{input::{AvianPickupAction, AvianPickupInput}, prop::HeldProp}
 use avian3d::prelude::RigidBodyDisabled;
 use bevy::{color::palettes::css::CRIMSON, ecs::{lifecycle::HookContext, world::DeferredWorld}, prelude::*};
 
-use crate::{AddToInventoryEvent, InspectEvent, Interactable, InteractionEvent, ItemDetails, PickupEvent, Shelf, UiInspect, widgets};
+use crate::{AddToInventoryEvent, HealEvent, InspectEvent, Interactable, InteractionEvent, ItemDetails, PickupEvent, Shelf, UiInspect, UseEvent, widgets};
 
 #[derive(Component, Reflect, Default)]
 #[reflect(Component)]
-#[component(on_add = on_misc_add)]
+#[component(on_add = on_health_item_add)]
 #[require(
     Interactable,
 )]
 #[type_path("api")]
-pub struct MiscItem;
+pub struct HealthItem;
 
-pub struct MiscItemPlugin;
+pub struct HealthItemPlugin;
 
-impl Plugin for MiscItemPlugin {
+impl Plugin for HealthItemPlugin {
     fn build(&self, app: &mut App) {
-        app.register_type::<MiscItem>();
+        app.register_type::<HealthItem>();
     }
 }
 
-fn on_misc_add(
+fn on_health_item_add(
     mut world: DeferredWorld,
     context: HookContext,
 ) {
-    trace!("HOOK: on_misc_add");
+    trace!("HOOK: on_health_item_add");
     world.commands()
         .entity(context.entity)
-        .observe(misc_interaction_observer)
-        .observe(misc_pickup_observer)
-        .observe(misc_inspection_observer);
+        .observe(health_item_interaction_observer)
+        .observe(health_item_pickup_observer)
+        .observe(health_item_inspection_observer)
+        .observe(health_item_use_observer);
 }
 
-fn misc_interaction_observer(
+fn health_item_interaction_observer(
     trigger: On<InteractionEvent>,
     mut commands: Commands,
     parent_query: Query<&ChildOf>,
@@ -55,7 +56,7 @@ fn misc_interaction_observer(
     }
 }
 
-fn misc_pickup_observer(
+fn health_item_pickup_observer(
     trigger: On<PickupEvent>,
     mut commands: Commands,
     mut avian_pickup_input_writer: MessageWriter<AvianPickupInput>,
@@ -67,7 +68,7 @@ fn misc_pickup_observer(
     avian_pickup_input_writer.write(AvianPickupInput { actor, action: AvianPickupAction::Pull });
 }
 
-fn misc_inspection_observer(
+fn health_item_inspection_observer(
     trigger: On<InspectEvent>,
     name_query: Query<&ItemDetails>,
     mut commands: Commands,
@@ -93,4 +94,13 @@ fn misc_inspection_observer(
                 ]
         ));
     }
+}
+
+fn health_item_use_observer(
+    trigger: On<UseEvent>,
+    mut commands: Commands,
+) {
+    trace!("OBSERVER: health_item_use_observer");
+    commands.entity(trigger.actor).trigger(|entity| HealEvent { entity, ammount: 10 });
+    commands.entity(trigger.entity).despawn();
 }

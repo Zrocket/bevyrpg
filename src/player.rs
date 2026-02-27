@@ -1,13 +1,13 @@
 use avian_pickup::actor::{AvianPickupActor, AvianPickupActorHoldConfig};
 use avian3d::prelude::{CoefficientCombine, Collider, CollisionLayers, Friction, GravityScale, LayerMask, LockedAxes, RigidBody, SpatialQuery, SpatialQueryFilter};
-use bevy::{camera::Exposure, core_pipeline::tonemapping::Tonemapping, ecs::{lifecycle::HookContext, world::DeferredWorld}, input::common_conditions::input_just_pressed, pbr::{Atmosphere, AtmosphereSettings, ScatteringMedium}, post_process::bloom::Bloom, prelude::*, render::view::Hdr};
+use bevy::{camera::Exposure, core_pipeline::tonemapping::Tonemapping, ecs::{lifecycle::HookContext, system::entity_command::observe, world::DeferredWorld}, input::common_conditions::input_just_pressed, math::DVec3, pbr::{Atmosphere, AtmosphereSettings, ScatteringMedium}, post_process::bloom::Bloom, prelude::*, render::view::Hdr};
 use bevy_egui::PrimaryEguiContext;
 use bevy_flycam::{FlyCam, NoCameraPlayerPlugin};
-use bevy_tnua::{TnuaController, TnuaObstacleRadar, control_helpers::{TnuaBlipReuseAvoidance, TnuaSimpleAirActionsCounter}};
+use bevy_tnua::{TnuaController, TnuaObstacleRadar, control_helpers::{TnuaBlipReuseAvoidance, TnuaSimpleAirActionsCounter}, TnuaGravity};
 use bevy_tnua_avian3d::TnuaAvian3dSensorShape;
-use bevy_seedling::spatial::SpatialListener3D;
+use bevy_seedling::{configuration::FetchAudioIoEvent, spatial::SpatialListener3D};
 
-use crate::{CameraConfig, CharacterBundle, CollisionLayer, DeathEvent, Description, Experience, FloatHeight, GameState, Health, Item, Mana, MaxHealth, MaxMana, PlayerControlScheme, PlayerController, PlayerControllerConfig, PlayerControllerInput, RayHit, RenderPlayer, TnuaPlayerController, Walk, Weight, add_to_inventory_observer, display_equip_event_observer, display_inventory_event_observer, display_quest_event_observer, display_stats_event_observer, level::DAGunAssets, remove_from_inventory_observer};
+use crate::{CameraConfig, CharacterBundle, CollisionLayer, DeathEvent, Description, Experience, FectchQuest, FloatHeight, GameState, Health, ItemDetails, Mana, MaxHealth, MaxMana, PlayerControlScheme, PlayerController, PlayerControllerConfig, PlayerControllerInput, Quest, QuestOf, RayHit, RenderPlayer, TnuaPlayerController, Walk, Weight, add_to_inventory_observer, display_equip_event_observer, display_inventory_event_observer, display_quest_event_observer, display_stats_event_observer, level::DAGunAssets, remove_from_inventory_observer};
 
 #[derive(Clone, Component, Hash, Debug, Eq, PartialEq, Default, States)]
 pub enum PlayerState {
@@ -41,13 +41,14 @@ pub enum CameraState {
         ..default()
     },
     SpatialListener3D,
-    RayHit(None),
+RayHit(None),
     Walk::default(),
     FloatHeight(1.5),
     RigidBody::Dynamic,
     LockedAxes::ROTATION_LOCKED,
     CollisionLayers::new(CollisionLayer::Player, LayerMask::ALL),
     GravityScale(1.0),
+    //TnuaGravity(Vec3::ZERO),
     PlayerState::Grounded,
     TnuaObstacleRadar::new(1.0, 3.0),
     TnuaBlipReuseAvoidance::<PlayerControlScheme>::default(),
@@ -244,7 +245,8 @@ fn spawn_player_observer(
                 Transform::from_translation(vec3(0.1, -0.2, -0.5)),
                 //SceneRoot(asset_server.load("guns/uzi.glb#Scene0")),
                 SceneRoot(asset_server.load(uzi)),
-                Item {
+                ItemDetails {
+                    name: "gun".to_string(),
                     description: Description("gun".to_string()),
                     weight: Weight(0),
                 },
@@ -252,6 +254,7 @@ fn spawn_player_observer(
                 ActiveWeapon,
             ))
             .id();
+
 
         // Player
         debug!("Creating Player");
@@ -264,6 +267,11 @@ fn spawn_player_observer(
                 ),
             ))
             .id();
+
+        commands.spawn((
+            Quest { quest_type: FectchQuest::new(1, "Water".to_string())},
+            QuestOf(logical_entity),
+            ));
 
         // Camera
 

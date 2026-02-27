@@ -46,19 +46,23 @@ pub fn display_inventory_event_observer(
     trigger: On<DisplayInventoryEvent>,
     mut commands: Commands,
     name_query: Query<&Name>,
+    item_query: Query<&ItemDetails>,
     inventory: Query<&Inventory>,
 ) {
     trace!("OBSERVER: display_inventory_event_observer");
     let Ok(name) = name_query.get(trigger.entity) else {
         return;
     };
+    //let Ok(tmpname) = item_query.get(trigger.entity) else {
+    //    return;
+    //};
 
     let mut item_vec = vec![];
 
     if let Ok(inventory_handle) = inventory.get(trigger.entity) {
         for item in inventory_handle.iter() {
-            if let Ok(item_name) = name_query.get(item) {
-                trace!("Pushing item: {:?}, item_name: {:?}, to item_vec", item, item_name);
+            if let Ok(item_name) = item_query.get(item) {
+                trace!("Pushing item: {:?}, item_name: {:?}, to item_vec", item, item_name.name);
                 item_vec.push((item_name.clone(), item.clone(), trigger.entity.clone()));
             }
         }
@@ -77,7 +81,7 @@ pub fn display_inventory_event_observer(
                                 //width: Val::Percent(100.),
                                 ..default()
                             },
-                            Text(item.to_string()),
+                            Text(item.name),
                             BackgroundColor::from(DARK_GREEN),
                             Owner { item_owner: entity, inv_owner: inv },
                             Propagate( Owner { item_owner: entity, inv_owner: inv }),
@@ -126,7 +130,8 @@ fn refresh_window_observer(
     trigger: On<RefreshInventory>,
     mut commands: Commands,
     mut children_query: Query<(Entity, Option<&mut Children>, &mut InvRef)>,
-    name_query: Query<&Name>,
+    //name_query: Query<&Name>,
+    item_query: Query<&ItemDetails>,
     inventory: Query<&Inventory>,
 ) {
     trace!("OBSERVER: refresh_window_observer");
@@ -144,8 +149,8 @@ fn refresh_window_observer(
 
         if let Ok(inventory_handle) = inventory.get(invref.0) {
             for item in inventory_handle.iter() {
-                if let Ok(item_name) = name_query.get(item) {
-                    trace!("Pushing item: {:?}, item_name: {:?}, to item_vec", item, item_name);
+                if let Ok(item_name) = item_query.get(item) {
+                    trace!("Pushing item: {:?}, item_name: {:?}, to item_vec", item, item_name.name);
                     item_vec.push((item_name.clone(), item.clone(), invref.0.clone()));
                 }
             }
@@ -158,7 +163,7 @@ fn refresh_window_observer(
                         //width: Val::Percent(100.),
                         ..default()
                     },
-                    Text(item.to_string()),
+                    Text(item.name),
                     BackgroundColor::from(DARK_GREEN),
                     Owner { item_owner: entity, inv_owner: inv },
                     Propagate( Owner { item_owner: entity, inv_owner: inv }),
@@ -200,7 +205,7 @@ fn transfer_item_observer(
 fn inventory_tooltip_observer(
     trigger: On<Pointer<Over>>,
     mut commands: Commands,
-    item_query: Query<&Item>,
+    item_query: Query<&ItemDetails>,
     owner_query: Query<&Owner>,
 ) {
     trace!("OBSERVER: inventory_tooltip_observer");
