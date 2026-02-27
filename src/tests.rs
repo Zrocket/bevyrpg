@@ -1,7 +1,7 @@
 use bevy::{input::common_conditions::input_just_pressed, prelude::*};
 use bevy_asset_loader::dynamic_asset::DynamicAssetCollections;
 
-use crate::{AddToInventoryEvent, DamageEvent, Description, DisplayEquipEvent, Equiptable, GameState, Health, Item, Player};
+use crate::{AddToInventoryEvent, DamageEvent, Description, DisplayEquipEvent, Equiptable, GameState, Health, ItemDetails, Player};
 use super::Weight;
 
 pub struct TestsPlugin;
@@ -56,7 +56,8 @@ fn inventory_add_test(
     trace!("SYSTEM: inventory_add_test");
     if let Ok(player) = player_query.single_mut() && key.just_pressed(KeyCode::KeyJ) {
         let item = commands.spawn((
-                Item {
+                ItemDetails {
+                    name: "Test".to_string(),
                     description: Description("Test".to_string()),
                     weight: Weight(0),
                 },

@@ -3,6 +3,7 @@ mod armor;
 mod books;
 mod container;
 mod equip;
+mod health_pack;
 mod misc;
 mod weapons;
 
@@ -56,8 +57,10 @@ pub struct PlugSocketEvent {
     entity: Entity,
 }
 
-#[derive(Component, Clone, Default)]
-pub struct Item {
+#[derive(Component, Reflect, Clone, Default)]
+#[reflect(Component)]
+pub struct ItemDetails {
+    pub name: String,
     pub description: Description,
     pub weight: Weight,
 }
@@ -66,6 +69,7 @@ pub struct ItemPlugin;
 impl Plugin for ItemPlugin {
     fn build(&self, app: &mut App) {
         app
+            .register_type::<ItemDetails>()
             .register_type::<SocketItem>()
             .register_type::<PlugItem>()
             .register_type::<MountPoint>()
