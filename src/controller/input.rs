@@ -51,22 +51,6 @@ pub struct JumpAction;
 
 #[derive(InputAction)]
 #[action_output(bool)]
-pub struct ForwardAction;
-
-#[derive(InputAction)]
-#[action_output(bool)]
-pub struct BackwardAction;
-
-#[derive(InputAction)]
-#[action_output(bool)]
-pub struct LeftAction;
-
-#[derive(InputAction)]
-#[action_output(bool)]
-pub struct RightAction;
-
-#[derive(InputAction)]
-#[action_output(bool)]
 pub struct CrouchAction;
 
 #[derive(InputAction)]
@@ -151,7 +135,7 @@ fn on_tnua_player_controller_add(
             (
                 Action::<MovementAction>::new(),
                 DeadZone::default(),
-                SmoothNudge::new(30.0),
+                //SmoothNudge::new(30.0),
                 Bindings::spawn((
                     Cardinal::wasd_keys(),
                     Axial::left_stick(),
@@ -191,22 +175,6 @@ fn on_tnua_player_controller_add(
             (
                 Action::<RunAction>::new(),
                 bindings![KeyCode::ShiftLeft, GamepadButton::LeftThumb],
-            ),
-            (
-                Action::<LeftAction>::new(),
-                bindings![KeyCode::KeyA],
-            ),
-            (
-                Action::<RightAction>::new(),
-                bindings![KeyCode::KeyD],
-            ),
-            (
-                Action::<ForwardAction>::new(),
-                bindings![KeyCode::KeyW],
-            ),
-            (
-                Action::<BackwardAction>::new(),
-                bindings![KeyCode::KeyS],
             ),
             (
                 Action::<CrouchAction>::new(),
