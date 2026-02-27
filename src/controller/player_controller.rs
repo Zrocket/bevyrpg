@@ -228,7 +228,6 @@ pub fn tnua_player_input(
         ), With<Player>>,
     spatial_ext: TnuaSpatialExtAvian3d,
     obstacle_query: Query<ObstacleQueryHelper>,
-    asset_server: Res<AssetServer>,
 ) {
     // Get player's tnua controller, otherwise return
     let Ok((player_controller_config,

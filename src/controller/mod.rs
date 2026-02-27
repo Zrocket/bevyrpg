@@ -1,3 +1,4 @@
+mod basis;
 mod equip_controller;
 mod input;
 mod interact_controller;
@@ -20,7 +21,7 @@ pub use stats_controller::*;
 
 use bevy::window::{CursorGrabMode, CursorOptions};
 
-use crate::{ActiveWeapon, Item, PlayerCamera, ShootEvent, level::DAGunAssets, shoot, widgets::floating_windows::FloatingWindow};
+use crate::{ActiveWeapon, ItemDetails, PlayerCamera, ShootEvent, level::DAGunAssets, shoot, widgets::floating_windows::FloatingWindow};
 
 pub struct ControllerPlugin;
 impl Plugin for ControllerPlugin {
@@ -111,7 +112,8 @@ fn weapon_1(
         let gun = commands.spawn((
                 Transform::from_translation(vec3(0.1, -0.2, -0.5)),
                 SceneRoot(asset_server.load(path)),
-                Item {
+                ItemDetails {
+                    name: "Uzi".to_string(),
                     description: crate::Description("gun".to_string()),
                     weight: crate::Weight(0),
                 },
@@ -142,7 +144,8 @@ fn weapon_2(
         let gun = commands.spawn((
                 Transform::from_translation(vec3(0.1, -0.2, -0.5)),
                 SceneRoot(asset_server.load(path)),
-                Item {
+                ItemDetails {
+                    name: "Shotgun".to_string(),
                     description: crate::Description("gun".to_string()),
                     weight: crate::Weight(0),
                 },
@@ -173,7 +176,8 @@ fn weapon_3(
         let gun = commands.spawn((
                 Transform::from_translation(vec3(0.1, -0.2, -0.5)),
                 SceneRoot(asset_server.load(path)),
-                Item {
+                ItemDetails {
+                    name: "Sniper".to_string(),
                     description: crate::Description("gun".to_string()),
                     weight: crate::Weight(0),
                 },
@@ -204,7 +208,8 @@ fn weapon_4(
         let gun = commands.spawn((
                 Transform::from_translation(vec3(0.1, -0.2, -0.5)),
                 SceneRoot(asset_server.load(path)),
-                Item {
+                ItemDetails {
+                    name: "MP5".to_string(),
                     description: crate::Description("gun".to_string()),
                     weight: crate::Weight(0),
                 },
