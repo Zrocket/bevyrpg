@@ -4,6 +4,7 @@ use bevy::{ecs::{lifecycle::HookContext, world::DeferredWorld}, prelude::*};
 use bevy_sprite3d::*;
 
 use rand::Rng;
+use rand::random_range;
 
 use crate::*;
 
@@ -69,7 +70,7 @@ fn on_character_sprite_add(
         if character_sprite.frames > 1 {
             let mut rng = rand::rng();
             let mut timer = Timer::from_seconds(0.4, TimerMode::Repeating);
-            timer.set_elapsed(Duration::from_secs_f32(rng.random_range(0.0..0.4)));
+            timer.set_elapsed(Duration::from_secs_f32(random_range(0.0..0.4)));
 
 
             world.commands()
@@ -142,7 +143,7 @@ fn on_item_sprite_add(
         if item_sprite.frames > 1 {
             let mut rng = rand::rng();
             let mut timer = Timer::from_seconds(0.4, TimerMode::Repeating);
-            timer.set_elapsed(Duration::from_secs_f32(rng.random_range(0.0..0.4)));
+            timer.set_elapsed(Duration::from_secs_f32(random_range(0.0..0.4)));
 
             let frames = item_sprite.frames;
             let tile_x = item_sprite.tile_x;
@@ -253,7 +254,7 @@ fn sprite_handler(
 
         let mut timer = Timer::from_seconds(0.4, TimerMode::Repeating);
         info!("Timer declared");
-        timer.set_elapsed(Duration::from_secs_f32(rng.random_range(0.0..0.4)));
+        timer.set_elapsed(Duration::from_secs_f32(random_range(0.0..0.4)));
         info!("atlas layout decalred");
 
         match event.sprite_type {

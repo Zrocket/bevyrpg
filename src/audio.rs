@@ -3,6 +3,7 @@ use bevy_enhanced_input::{action::InputAction, prelude::{Fire, Start}};
 use bevy_seedling::{SeedlingPlugin, pool::SamplerPool, prelude::PoolLabel, sample::SamplePlayer};
 use bevy_tnua::TnuaController;
 use rand::Rng;
+use rand::random_range;
 
 use crate::{FlashlightAction, JumpAction, MovementAction, Player, PlayerControlScheme, RunAction};
 
@@ -64,7 +65,7 @@ fn walk_audio<T: InputAction>(
     }
 
     let mut rng = rand::rng();
-    let file = format!("audio/footsteps/tile/{}.ogg", rng.random_range(0..8));
+    let file = format!("audio/footsteps/tile/{}.ogg", random_range(0..8));
     commands.spawn(
         (
             MovementPool,
