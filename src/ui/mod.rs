@@ -11,7 +11,7 @@ pub mod status_bar;
 pub mod widgets;
 pub mod menu;
 pub mod palette;
-pub mod quest;
+pub mod quest_ui;
 pub mod inspect;
 pub mod start_menu;
 pub mod game_over;
@@ -23,7 +23,7 @@ pub use inventory_ui::*;
 use status_bar::*;
 //use dialog_ui::*;
 pub use menu::*;
-pub use quest::*;
+pub use quest_ui::*;
 pub use inspect::*;
 pub use start_menu::*;
 pub use game_over::*;
@@ -39,6 +39,8 @@ pub struct DAUiAssets {
     health_2: Handle<Image>,
     #[asset(key = "health_3")]
     health_3: Handle<Image>,
+    #[asset(key = "mana_1")]
+    mana_1: Handle<Image>,
 }
 
 #[derive(Debug, Clone, Component, Reflect)]
@@ -75,7 +77,7 @@ impl Plugin for UiPlugin {
                     EquipUiPlugin,
             ))
             .add_loading_state(
-                LoadingState::new(GameState::Preload)
+                LoadingState::new(BootStrap::Preload)
                     .with_dynamic_assets_file::<StandardDynamicAssetCollection>("uiassets.ron")
                     .load_collection::<DAUiAssets>()
             );

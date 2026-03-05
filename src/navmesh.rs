@@ -6,7 +6,7 @@ use landmass::{ArchipelagoOptions, FromAgentRadius, PointSampleDistance3d};
 use landmass_rerecast::{Island3dBundle, NavMeshHandle3d};
 use bevy_rerecast::prelude::*;
 
-use crate::{GameState, Player, PlayerControlScheme};
+use crate::{BootStrap, Player, PlayerControlScheme};
 
 //#[derive(Resource)]
 //struct NavMeshHandle(Handle<Navmesh>);
@@ -48,7 +48,7 @@ impl Plugin for NavMeshPlugin {
             .register_type::<Walk>()
             .register_type::<FloatHeight>()
             .register_type::<DesiredPosition>()
-            .add_systems(OnExit(GameState::Postload), landmass_rerecast_setup)
+            .add_systems(OnExit(BootStrap::Postload), landmass_rerecast_setup)
             .add_systems(Update, apply_walking)
             .add_systems(Update, toggle_landmass_debug.run_if(input_just_pressed(KeyCode::F12)));
 

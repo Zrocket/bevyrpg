@@ -2,7 +2,7 @@ use bevy::prelude::*;
 
 use super::widgets;
 
-use crate::{PauseMenuState};
+use crate::{MenuState};
 
 #[derive(Component, Reflect)]
 pub struct UiSettings;
@@ -12,7 +12,7 @@ impl Plugin for SettingsMenuUiPlugin {
     fn build(&self, app: &mut bevy::app::App) {
        app
            .register_type::<UiSettings>()
-           .add_systems(OnEnter(PauseMenuState::Settings), spawn_settings_menu);
+           .add_systems(OnEnter(MenuState::Settings), spawn_settings_menu);
     }
 }
 
@@ -21,7 +21,7 @@ fn spawn_settings_menu(
 ) {
     commands.spawn((
             widgets::ui_root("Settings Menu"),
-            DespawnOnExit(PauseMenuState::Settings),
+            DespawnOnExit(MenuState::Settings),
             GlobalZIndex(2),
             UiSettings,
             children![
@@ -29,42 +29,42 @@ fn spawn_settings_menu(
                 widgets::button("Controller Settings", enter_controller_settings_menu),
                 widgets::button("Video Settings", enter_video_settings_menu),
                 widgets::button("Sound Settings", enter_sound_settings_menu),
-                widgets::button("Back", back_to_main_menu),
+                widgets::button("Back", exit_settings_menu),
             ]
     ));
 }
 
-fn back_to_main_menu(
+fn exit_settings_menu(
     _: On<Pointer<Click>>,
-    mut pause_menu_state: ResMut<NextState<PauseMenuState>>,
+    mut pause_menu_state: ResMut<NextState<MenuState>>,
 ) {
-    pause_menu_state.set(PauseMenuState::MainMenu);
+    pause_menu_state.set(MenuState::Off);
 }
 
 fn enter_sound_settings_menu(
     _: On<Pointer<Click>>,
-    mut pause_menu_state: ResMut<NextState<PauseMenuState>>,
+    mut pause_menu_state: ResMut<NextState<MenuState>>,
 ) {
-    pause_menu_state.set(PauseMenuState::SoundSettings);
+    pause_menu_state.set(MenuState::SoundSettings);
 }
 
 fn enter_video_settings_menu(
     _: On<Pointer<Click>>,
-    mut pause_menu_state: ResMut<NextState<PauseMenuState>>,
+    mut pause_menu_state: ResMut<NextState<MenuState>>,
 ) {
-    pause_menu_state.set(PauseMenuState::VideoSettings);
+    pause_menu_state.set(MenuState::VideoSettings);
 }
 
 fn enter_controller_settings_menu(
     _: On<Pointer<Click>>,
-    mut pause_menu_state: ResMut<NextState<PauseMenuState>>,
+    mut pause_menu_state: ResMut<NextState<MenuState>>,
 ) {
-    pause_menu_state.set(PauseMenuState::ControllerSettings);
+    pause_menu_state.set(MenuState::ControllerSettings);
 }
 
 fn enter_gameplay_settings_menu(
     _: On<Pointer<Click>>,
-    mut pause_menu_state: ResMut<NextState<PauseMenuState>>,
+    mut pause_menu_state: ResMut<NextState<MenuState>>,
 ) {
-    pause_menu_state.set(PauseMenuState::GameplaySettings);
+    pause_menu_state.set(MenuState::GameplaySettings);
 }

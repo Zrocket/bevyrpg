@@ -1,6 +1,6 @@
 use bevy::prelude::*;
 
-use crate::{PauseMenuState, widgets::{self, ui_root}};
+use crate::{MenuState, widgets::{self, ui_root}};
 
 #[derive(Component, Reflect)]
 pub struct UiSoundSettings;
@@ -10,7 +10,7 @@ impl Plugin for SoundSettingsMenuUiPlugin {
     fn build(&self, app: &mut bevy::app::App) {
        app
            .register_type::<UiSoundSettings>()
-           .add_systems(OnEnter(PauseMenuState::SoundSettings), spawn_sound_settings_menu);
+           .add_systems(OnEnter(MenuState::SoundSettings), spawn_sound_settings_menu);
     }
 }
 
@@ -19,7 +19,7 @@ fn spawn_sound_settings_menu(
 ) {
     commands.spawn((
             ui_root("Sound Settings"),
-            DespawnOnExit(PauseMenuState::SoundSettings),
+            DespawnOnExit(MenuState::SoundSettings),
             GlobalZIndex(2),
             UiSoundSettings,
             children![
@@ -51,7 +51,7 @@ fn spawn_sound_settings_menu(
 
 fn back_to_settings_menu(
     _: On<Pointer<Click>>,
-    mut pause_menu_state: ResMut<NextState<PauseMenuState>>,
+    mut pause_menu_state: ResMut<NextState<MenuState>>,
 ) {
-    pause_menu_state.set(PauseMenuState::Settings);
+    pause_menu_state.set(MenuState::Settings);
 }
