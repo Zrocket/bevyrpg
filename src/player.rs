@@ -1,13 +1,13 @@
 use avian_pickup::actor::{AvianPickupActor, AvianPickupActorHoldConfig};
 use avian3d::prelude::{CoefficientCombine, Collider, CollisionLayers, Friction, GravityScale, LayerMask, LockedAxes, RigidBody, SpatialQuery, SpatialQueryFilter};
-use bevy::{camera::Exposure, core_pipeline::tonemapping::Tonemapping, ecs::{lifecycle::HookContext, system::entity_command::observe, world::DeferredWorld}, input::common_conditions::input_just_pressed, math::DVec3, pbr::{Atmosphere, AtmosphereSettings, ScatteringMedium}, post_process::bloom::Bloom, prelude::*, render::view::Hdr};
+use bevy::{camera::Exposure, core_pipeline::tonemapping::Tonemapping, ecs::{lifecycle::HookContext, world::DeferredWorld}, input::common_conditions::input_just_pressed, pbr::{Atmosphere, AtmosphereSettings, ScatteringMedium}, post_process::bloom::Bloom, prelude::*, render::view::Hdr};
 use bevy_egui::PrimaryEguiContext;
 use bevy_flycam::{FlyCam, NoCameraPlayerPlugin};
-use bevy_tnua::{TnuaController, TnuaObstacleRadar, control_helpers::{TnuaBlipReuseAvoidance, TnuaSimpleAirActionsCounter}, TnuaGravity};
+use bevy_tnua::{TnuaController, TnuaObstacleRadar, control_helpers::{TnuaBlipReuseAvoidance, TnuaSimpleAirActionsCounter}};
 use bevy_tnua_avian3d::TnuaAvian3dSensorShape;
-use bevy_seedling::{configuration::FetchAudioIoEvent, spatial::SpatialListener3D};
+use bevy_seedling::spatial::SpatialListener3D;
 
-use crate::{CameraConfig, CharacterBundle, CollisionLayer, DeathEvent, Description, Experience, FectchQuest, FloatHeight, GameState, Health, ItemDetails, Mana, MaxHealth, MaxMana, PlayerControlScheme, PlayerController, PlayerControllerConfig, PlayerControllerInput, Quest, QuestOf, RayHit, RenderPlayer, TnuaPlayerController, Walk, Weight, add_to_inventory_observer, display_equip_event_observer, display_inventory_event_observer, display_quest_event_observer, display_stats_event_observer, level::DAGunAssets, remove_from_inventory_observer};
+use crate::{BootStrap, CameraConfig, CharacterBundle, CollisionLayer, DeathEvent, Description, Experience, FetchQuest, FloatHeight, GameState, Health, ItemDetails, Mana, MaxHealth, MaxMana, PlayerControlScheme, PlayerController, PlayerControllerConfig, PlayerControllerInput, Quest, QuestOf, RayHit, RenderPlayer, TnuaPlayerController, Walk, Weight, add_to_inventory_observer, display_equip_event_observer, display_inventory_event_observer, display_quest_event_observer, display_stats_event_observer, level::DAGunAssets, remove_from_inventory_observer};
 
 #[derive(Clone, Component, Hash, Debug, Eq, PartialEq, Default, States)]
 pub enum PlayerState {
@@ -41,7 +41,7 @@ pub enum CameraState {
         ..default()
     },
     SpatialListener3D,
-RayHit(None),
+    RayHit(None),
     Walk::default(),
     FloatHeight(1.5),
     RigidBody::Dynamic,
@@ -134,12 +134,6 @@ pub struct ActiveWeapon;
 #[derive(Message)]
 pub struct SpawnPlayerMessage;
 
-#[derive(EntityEvent)]
-pub struct CameraTransition {
-    pub entity: Entity,
-    pub transform: Transform,
-}
-
 pub struct GamePlayerPlugin;
 impl Plugin for GamePlayerPlugin {
     fn build(&self, app: &mut App) {
@@ -156,9 +150,8 @@ impl Plugin for GamePlayerPlugin {
             .register_type::<PlayerSpawner>()
             .register_type::<PlayerTrigger>()
             .add_message::<SpawnPlayerMessage>()
-            //.add_systems(OnEnter(GameState::Postload), spawn_player_observer)
             .add_systems(Update, spawn_player_observer.run_if(resource_exists::<DAGunAssets>))
-            .add_systems(OnEnter(GameState::Postload), init_player)
+            .add_systems(OnEnter(BootStrap::Postload), init_player)
             .add_systems(Update, (
                     player_forward.run_if(/*in_state(GameState::Gameplay)*/ in_state(CameraState::Player)),
                     check_player_triggers.run_if(in_state(GameState::Gameplay)),
@@ -269,7 +262,10 @@ fn spawn_player_observer(
             .id();
 
         commands.spawn((
-            Quest { quest_type: FectchQuest::new(1, "Water".to_string())},
+            Quest {
+                description: "TEST".to_string()
+            },
+            FetchQuest::new(1, "Water".to_string()),
             QuestOf(logical_entity),
             ));
 
@@ -346,11 +342,4 @@ fn player_death_event_observer(
     mut game_state: ResMut<NextState<GameState>>,
 ) {
     game_state.set(GameState::GameOver);
-}
-
-fn camera_transition_observer(
-    trigger: On<CameraTransition>,
-    mut commands: Commands,
-    //query: Query<>,
-) {
 }

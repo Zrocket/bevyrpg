@@ -227,7 +227,7 @@ impl Plugin for SpritesPlugin {
         app
             .insert_resource(ImageAssets::default())
             .add_loading_state(
-                LoadingState::new(GameState::Preload)
+                LoadingState::new(BootStrap::Preload)
                     .load_collection::<ImageAssets>(),
             )
             .add_message::<SpriteMessage>()

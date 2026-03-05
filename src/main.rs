@@ -8,8 +8,10 @@ use bevy_asset_loader::prelude::*;
 use bevy_bae::BaePlugin;
 use bevy_egui::EguiGlobalSettings;
 use bevy_hanabi::HanabiPlugin;
+use bevy_hotpatching_experiments::SimpleSubsecondPlugin;
 use bevy_inspector_egui::quick::WorldInspectorPlugin;
 use bevy_landmass::{Landmass3dPlugin, debug::Landmass3dDebugPlugin};
+use bevy_mod_scripting::BMSPlugin;
 use bevy_rerecast::NavmeshPlugins;
 use bevy_simple_text_input::TextInputPlugin;
 use bevy_skein::SkeinPlugin;
@@ -43,6 +45,7 @@ mod render;
 mod rover;
 mod shoot;
 mod sprites;
+mod states;
 mod tests;
 mod ui;
 mod utils;
@@ -65,6 +68,7 @@ pub use render::*;
 pub use rover::*;
 pub use shoot::*;
 pub use sprites::*;
+pub use states::*;
 pub use ui::*;
 pub use utils::*;
 use level::*;
@@ -80,33 +84,6 @@ struct Args {
     inspector: bool,
     #[clap(long)]
     level: Option<String>,
-}
-
-#[derive(Clone, Hash, Debug, Eq, PartialEq, Default, SubStates, Reflect)]
-#[source(GameState = GameState::Paused)]
-pub enum PauseMenuState {
-    ControllerSettings,
-    Credits,
-    GameplaySettings,
-    #[default]
-    MainMenu,
-    Settings,
-    SoundSettings,
-    VideoSettings,
-}
-
-#[derive(Clone, Hash, Debug, Eq, PartialEq, Default, States, Reflect)]
-pub enum GameState {
-    Console,
-    Gameplay,
-    Loading,
-    MainMenu,
-    Paused,
-    #[default]
-    Preload,
-    Postload,
-    GameOver,
-    StartMenu,
 }
 
 fn main() {
@@ -165,6 +142,8 @@ fn main() {
     ))
     .add_plugins((
         SkeinPlugin::default(),
+        SimpleSubsecondPlugin::default(),
+        BMSPlugin,
     ))
     // Crate Plugins
     .add_plugins((
@@ -185,14 +164,16 @@ fn main() {
         TestsPlugin,
     ))
     .add_plugins((
+        StatesPlugin,
         DialogPlugin,
         NavMeshPlugin,
         SpritesPlugin,
         EnemyPlugin,
         ParticlePlugin,
         NpcPlugin,
+        QuestPlugin,
     ));
-    app.add_systems(Update, pause_game);
+    app.add_systems(Update, pause_game.run_if(in_state(GameState::Gameplay)));
 
     if args.editor {
         app.add_plugins((
@@ -205,26 +186,7 @@ fn main() {
     if args.inspector {
         app.add_plugins(WorldInspectorPlugin::new());
     }
-    app.register_type::<RigidBody>()
-        .register_type::<GameState>()
-        .register_type::<PauseMenuState>()
-        .init_state::<GameState>()
-        .add_sub_state::<PauseMenuState>()
-        .add_loading_state(
-            LoadingState::new(GameState::Preload)
-                .continue_to_state(GameState::Loading)
-                .on_failure_continue_to_state(GameState::Loading)
-        )
-        .add_loading_state(
-            LoadingState::new(GameState::Loading)
-                .continue_to_state(GameState::Postload)
-                .on_failure_continue_to_state(GameState::Postload)
-        )
-        .add_loading_state(
-            LoadingState::new(GameState::Postload)
-                .continue_to_state(GameState::StartMenu)
-                .on_failure_continue_to_state(GameState::StartMenu)
-        );
+    app.register_type::<RigidBody>();
 
         if let Some(level) = args.level {
             app.world_mut().write_message(ChangeLevelMessage(level));
@@ -240,8 +202,6 @@ fn pause_game(
     game_state: ResMut<State<GameState>>,
     mut  game_state_setter: ResMut<NextState<GameState>>,
     mut physics_time: ResMut<Time<Physics>>,
-    //pause_menu_state: ResMut<State<PauseMenuState>>,
-    //mut pause_menu_state_setter: ResMut<NextState<PauseMenuState>>,
 ) {
     trace!("SYSTEM: pause_game");
     if key.just_pressed(KeyCode::Comma) {
