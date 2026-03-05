@@ -11,7 +11,7 @@ pub struct TooltipParent(Vec<Entity>);
 /// Marks entity as tooltip source. When hovered.
 ///
 /// It will count towards timers for deploying tooltip.
-#[derive(Component)]
+#[derive(Component, Default)]
 pub struct TooltipSource;
 
 /// Global settings when tooltips should be displayed
