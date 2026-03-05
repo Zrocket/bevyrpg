@@ -109,6 +109,8 @@ bevy-tnua = "0.30.0"
 bevy_skein = "0.5.0"
 bevy_simple_text_input = "0.13.0"
 bevy_bae = "0.1.0"
+bevy_hotpatching_experiments = "0.4.0"
+bevy_mod_scripting = { version = "0.19.0", features = ["rhai"] }
 
 [profile.dev]
 opt-level=3
