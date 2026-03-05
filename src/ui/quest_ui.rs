@@ -1,6 +1,6 @@
 use bevy::{color::palettes::css::{DARK_GREEN, DARK_VIOLET}, prelude::*};
 
-use crate::widgets::floating_windows::floating_window_root;
+use crate::{UiState, widgets::floating_windows::floating_window_root};
 
 #[derive(Component, Reflect)]
 pub struct UiQuest;
@@ -20,10 +20,19 @@ impl Plugin for QuestUiPlugin {
 pub fn display_quest_event_observer(
     _trigger: On<DisplayQuestEvent>,
     mut commands: Commands,
+    menu_state: Res<State<UiState>>,
+    mut menu_state_setter: ResMut<NextState<UiState>>,
 ) {
     trace!("OBSERVER: display_quest_event_observer");
 
-    commands.spawn(
+    if *menu_state == UiState::QuestLog {
+        return;
+    }
+
+    menu_state_setter.set(UiState::QuestLog);
+
+    commands.spawn((
+        DespawnOnExit(UiState::QuestLog),
 floating_window_root("Quest Log".into(),
 (
         Node {
@@ -92,5 +101,5 @@ floating_window_root("Quest Log".into(),
                     })),
             ));
         }))
-    )));
+    ))));
 }
