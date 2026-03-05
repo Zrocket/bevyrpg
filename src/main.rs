@@ -2,7 +2,8 @@ use avian_pickup::{AvianPickupPlugin};
 use avian_rerecast::AvianBackendPlugin;
 use avian3d::prelude::*;
 use bevy::{
-    log::LogPlugin, prelude::*, window::{ CursorGrabMode, CursorOptions, WindowResolution,}
+    color::palettes::css::GREEN, log::LogPlugin, prelude::*, text::FontSmoothing, window::{ CursorGrabMode, CursorOptions, WindowResolution,},
+    dev_tools::fps_overlay::{FpsOverlayPlugin, FpsOverlayConfig, FrameTimeGraphConfig},
 };
 use bevy_asset_loader::prelude::*;
 use bevy_bae::BaePlugin;
@@ -84,6 +85,8 @@ struct Args {
     inspector: bool,
     #[clap(long)]
     level: Option<String>,
+    #[clap(long)]
+    fps: bool,
 }
 
 fn main() {
@@ -185,6 +188,28 @@ fn main() {
     }
     if args.inspector {
         app.add_plugins(WorldInspectorPlugin::new());
+    }
+    if args.fps {
+        app.add_plugins(FpsOverlayPlugin {
+            config: FpsOverlayConfig {
+                text_config: TextFont {
+                    font_size: 42.0,
+                    font: default(),
+                    font_smoothing: FontSmoothing::default(),
+                    ..default()
+                },
+                text_color: Color::srgb(0.0, 1.0, 0.0),
+                refresh_interval: core::time::Duration::from_millis(100),
+                enabled: true,
+                frame_time_graph_config: FrameTimeGraphConfig {
+                    enabled: true,
+                    // The minimum acceptable fps
+                    min_fps: 30.0,
+                    // The target fps
+                    target_fps: 144.0,
+                },
+            }
+        });
     }
     app.register_type::<RigidBody>();
 

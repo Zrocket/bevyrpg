@@ -1,5 +1,6 @@
 use bevy::{color::palettes::css::{CRIMSON, DARK_CYAN, DARK_GREEN, DARK_VIOLET}, feathers::cursor::{self, CursorIconPlugin}, math::{I8Vec2, bounding::Aabb2d}, picking::hover::Hovered, prelude::*, ui::Pressed, window::SystemCursorIcon};
 use rand::Rng;
+use rand::random_range;
 
 use crate::widgets::floating_window_ordering::UiZOrderLayer;
 
@@ -129,8 +130,8 @@ pub fn init_floating_window(
         node.max_width = window.initial_width;
         node.max_height = window.initial_height;
 
-        node.left = px(rng.random_range(10..500i32) as f32);
-        node.top = px(rng.random_range(10..500i32) as f32);
+        node.left = px(random_range(10..500i32) as f32);
+        node.top = px(random_range(10..500i32) as f32);
     }
 }
 

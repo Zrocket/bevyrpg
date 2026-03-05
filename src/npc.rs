@@ -3,6 +3,7 @@ use bevy::prelude::*;
 use bevy_bae::{prelude::OperatorInput, task::OperatorStatus};
 use bevy_landmass::{Agent, Agent3dBundle, AgentSettings, AgentTarget3d, Archipelago3d, ArchipelagoRef3d};
 use rand::Rng;
+use rand::random_range;
 
 use crate::{Player, TnuaNpcController};
 
@@ -66,7 +67,7 @@ pub fn run_from_player(
     )
     && ray.distance <= 10. {
         let mut rng = rand::rng();
-        *agent_target = AgentTarget3d::Point(Vec3::new(rng.random_range(-15.0..15.0), 1.75, rng.random_range(-15.0..15.0)));
+        *agent_target = AgentTarget3d::Point(Vec3::new(random_range(-15.0..15.0), 1.75, random_range(-15.0..15.0)));
         //return OperatorStatus::Ongoing;
         return OperatorStatus::Success
     }
@@ -79,7 +80,7 @@ pub fn wander(
 ) -> OperatorStatus {
     if let Ok(mut agent_target) = agent_target_query.get_mut(input.entity) {
         let mut rng = rand::rng();
-        *agent_target = AgentTarget3d::Point(Vec3::new(rng.random_range(-15.0..15.0), 1.75, rng.random_range(-15.0..15.0)));
+        *agent_target = AgentTarget3d::Point(Vec3::new(random_range(-15.0..15.0), 1.75, random_range(-15.0..15.0)));
         return OperatorStatus::Success;
     }
     OperatorStatus::Failure
