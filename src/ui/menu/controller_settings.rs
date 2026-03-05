@@ -1,6 +1,6 @@
 use bevy::prelude::*;
 
-use crate::{PauseMenuState, widgets::{self, ui_root}};
+use crate::{MenuState, widgets::{self, ui_root}};
 
 #[derive(Component, Reflect)]
 pub struct UiControllerSettings;
@@ -10,7 +10,7 @@ impl Plugin for ControllerSettingsMenuUiPlugin {
     fn build(&self, app: &mut bevy::app::App) {
        app
            .register_type::<UiControllerSettings>()
-           .add_systems(OnEnter(PauseMenuState::ControllerSettings), spawn_controller_settings_menu);
+           .add_systems(OnEnter(MenuState::ControllerSettings), spawn_controller_settings_menu);
     }
 }
 
@@ -19,7 +19,7 @@ fn spawn_controller_settings_menu(
 ) {
     commands.spawn((
             ui_root("Controller Settings"),
-            DespawnOnExit(PauseMenuState::ControllerSettings),
+            DespawnOnExit(MenuState::ControllerSettings),
             GlobalZIndex(2),
             UiControllerSettings,
             children![
@@ -44,7 +44,7 @@ fn spawn_controller_settings_menu(
 
 fn back_to_settings_menu(
     _: On<Pointer<Click>>,
-    mut pause_menu_state: ResMut<NextState<PauseMenuState>>,
+    mut pause_menu_state: ResMut<NextState<MenuState>>,
 ) {
-    pause_menu_state.set(PauseMenuState::Settings);
+    pause_menu_state.set(MenuState::Settings);
 }

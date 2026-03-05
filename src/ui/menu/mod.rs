@@ -1,11 +1,12 @@
 use bevy::prelude::*;
-use crate::{PauseMenuState, credits::CreditsMenuUiPlugin, menu::{controller_settings::ControllerSettingsMenuUiPlugin, gameplay_settings::GameplaySettingsMenuUiPlugin, settings::SettingsMenuUiPlugin, sound_settings::SoundSettingsMenuUiPlugin, video_settings::VideoSettingsMenuUiPlugin}};
+use crate::{MenuState, credits::CreditsMenuUiPlugin, menu::{controller_settings::ControllerSettingsMenuUiPlugin, gameplay_settings::GameplaySettingsMenuUiPlugin, settings::SettingsMenuUiPlugin, sound_settings::SoundSettingsMenuUiPlugin, video_settings::VideoSettingsMenuUiPlugin}};
 
 use super::widgets;
 
 pub mod controller_settings;
 pub mod credits;
 pub mod gameplay_settings;
+pub mod loading;
 pub mod settings;
 pub mod sound_settings;
 pub mod video_settings;
@@ -18,7 +19,7 @@ impl Plugin for MenuUiPlugin {
     fn build(&self, app: &mut App) {
         app
             .register_type::<UiMenu>()
-            .add_systems(OnEnter(PauseMenuState::MainMenu), spawn_pause_menu)
+            .add_systems(OnEnter(MenuState::MainMenu), spawn_pause_menu)
             .add_plugins((
                     SettingsMenuUiPlugin,
                     ControllerSettingsMenuUiPlugin,
@@ -35,7 +36,7 @@ fn spawn_pause_menu(
 ) {
     commands.spawn((
             widgets::ui_root("Pause Menu"),
-            DespawnOnExit(PauseMenuState::MainMenu),
+            DespawnOnExit(MenuState::MainMenu),
             GlobalZIndex(2),
             children![
                 widgets::button("Settings", enter_settings_menu),
@@ -46,14 +47,14 @@ fn spawn_pause_menu(
 
 fn enter_settings_menu(
     _: On<Pointer<Click>>,
-    mut pause_menu_state: ResMut<NextState<PauseMenuState>>,
+    mut pause_menu_state: ResMut<NextState<MenuState>>,
 ) {
-    pause_menu_state.set(PauseMenuState::Settings);
+    pause_menu_state.set(MenuState::Settings);
 }
 
 fn enter_pause_menu(
     _: On<Pointer<Click>>,
-    mut pause_menu_state: ResMut<NextState<PauseMenuState>>,
+    mut pause_menu_state: ResMut<NextState<MenuState>>,
 ) {
-    pause_menu_state.set(PauseMenuState::Credits);
+    pause_menu_state.set(MenuState::Credits);
 }

@@ -1,8 +1,7 @@
 use bevy_asset_loader::{asset_collection::AssetCollection, loading_state::{config::ConfigureLoadingState, LoadingState, LoadingStateAppExt}, standard_dynamic_asset::StandardDynamicAssetCollection};
 use bevy_sun_move::{SkyCenter, TimedSkyConfig, random_stars::StarSpawner};
 
-use super::GameState;
-use crate::{MiscItem, Obstacle};
+use crate::{BootStrap, MiscItem, Obstacle};
 use avian3d::{prelude::{ColliderConstructor, CollisionLayers, LayerMask, PhysicsLayer, RigidBody}};
 use bevy::{gltf::Gltf, prelude::*};
 
@@ -120,7 +119,7 @@ impl Plugin for BlenderTranslationPlugin {
             .add_message::<ChangeLevelMessage>()
             .add_systems(Update, change_level_message_handler)
             .add_loading_state(
-                LoadingState::new(GameState::Preload)
+                LoadingState::new(BootStrap::Preload)
                     .with_dynamic_assets_file::<StandardDynamicAssetCollection>("gunassets.ron")
                     .with_dynamic_assets_file::<StandardDynamicAssetCollection>("devroom.ron")
                     .load_collection::<DAGunAssets>()
@@ -151,19 +150,6 @@ fn change_level_message_handler(
             )),
             CurrentLevel,
         ));
-
-        /*commands.spawn((
-            DirectionalLight {
-                //illuminance: light_consts::lux::OVERCAST_DAY,
-                shadows_enabled: true,
-                ..default()
-            },
-            Transform {
-                translation: Vec3::new(0.0, 200.0, 0.0),
-                rotation: Quat::from_rotation_x(-PI / 4.),
-                ..default()
-            },
-        ));*/
 
         let sun_id = commands.spawn((
                 DirectionalLight {
@@ -200,20 +186,3 @@ fn change_level_message_handler(
 
     }
 }
-
-/*fn animation_preload(
-    mut commands: Commands,
-    level_gltf: Res<LevelGltf>,
-    gltf_assets: Res<Assets<Gltf>>,
-    blender_animation_query: Query<(Entity, &BlenderAnimationName), Without<AnimationGraphHandle>>,
-    mut animation_graphs: ResMut<Assets<AnimationGraph>>,
-){
-    trace!("SYSTEM: animation_preload");
-    if let Some(gltf) = gltf_assets.get(&level_gltf.0) {
-        for (entity, _animation_name) in blender_animation_query.iter() {
-            let animation_clip_handle = gltf.named_animations["opendoor"].clone();
-            let (animation_graph, _index) = AnimationGraph::from_clip(animation_clip_handle);
-            commands.entity(entity).insert(AnimationGraphHandle(animation_graphs.add(animation_graph)));
-        }
-    }
-}*/

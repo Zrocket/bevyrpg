@@ -13,7 +13,13 @@ use bevy::asset::RenderAssetUsages;
 use bevy::camera::RenderTarget;
 use std::f32::consts::PI;
 
-use crate::{GameState, Interactable, InteractionEvent};
+use crate::{BootStrap, Interactable, InteractionEvent};
+
+#[derive(Resource, Deref)]
+struct ComputerScreenMaterial(Handle<StandardMaterial>);
+
+#[derive(Resource, Deref)]
+struct ComputerModel(Handle<Gltf>);
 
 #[derive(Clone, Hash, Debug, Eq, PartialEq, Default, States)]
 pub enum ComputerState {
@@ -33,7 +39,9 @@ impl Plugin for ComputerPlugin {
         app.init_resource::<SoftTerminal>()
             .register_type::<ComputerCube>()
             .register_type::<ComputerTextureCam>()
-            .add_systems(OnEnter(GameState::Loading), spawn_computer);
+            .init_resource::<ComputerImage>()
+            .init_resource::<MyProcGenMaterial>()
+            .add_systems(OnEnter(BootStrap::Loading), spawn_computer);
     }
 }
 
@@ -42,15 +50,96 @@ impl Plugin for ComputerPlugin {
 #[component(on_add = on_computer_add)]
 #[require(
     Interactable,
+    RigidBody::Static,
+    Name::new("ComputerCube"),
+    Collider::cuboid(4.0, 4.0, 4.0),
 )]
 pub struct ComputerCube;
 
 #[derive(Debug, Clone, Component, Reflect)]
 #[reflect(Component)]
+#[component(on_add = on_computer_ui_node_add)]
+#[require(
+    Node {
+        // Cover the whole image
+        width: Val::Percent(100.),
+        height: Val::Percent(100.),
+        flex_direction: FlexDirection::Column,
+        justify_content: JustifyContent::Center,
+        align_items: AlignItems::Center,
+        ..default()
+    },
+    BackgroundColor(GOLD.into()),
+    Name::new("ComputerUiNode"),
+)]
+pub struct ComputerUiNode;
+
+#[derive(Debug, Clone, Component, Reflect)]
+#[reflect(Component)]
+#[require(
+    Camera2d,
+    Name::new("ComputerTextureCam"),
+)]
+#[component(on_add = on_computer_texture_cam_add)]
 pub struct ComputerTextureCam;
 
 #[derive(Resource)]
+pub struct ComputerImage(pub Handle<Image>);
+
+impl FromWorld for  ComputerImage {
+    fn from_world(world: &mut World) -> Self {
+        let mut softatui = world.resource_mut::<SoftTerminal>();
+
+        let width = softatui.backend().get_pixmap_width() as u32;
+        let height = softatui.backend().get_pixmap_height() as u32;
+        let data = softatui.backend().get_pixmap_data_as_rgba();
+
+        softatui.draw(draw_computer_screen)
+            .expect("oops");
+
+        let mut image = Image::new(
+            Extent3d {
+                width,
+                height,
+                depth_or_array_layers: 1,
+            },
+            bevy::render::render_resource::TextureDimension::D2,
+            data,
+            TextureFormat::Rgba8UnormSrgb,
+            RenderAssetUsages::RENDER_WORLD | RenderAssetUsages::MAIN_WORLD,
+        );
+        // You need to set these texture usage flags in order to use the image as a render target
+        image.texture_descriptor.usage =
+            TextureUsages::TEXTURE_BINDING | TextureUsages::COPY_DST | TextureUsages::RENDER_ATTACHMENT;
+
+        let mut images = world.resource_mut::<Assets<Image>>();
+
+        let image_handle = images.add(image);
+
+        Self(image_handle)
+    }
+}
+
+#[derive(Resource)]
 pub struct MyProcGenMaterial(pub Handle<StandardMaterial>);
+
+impl FromWorld for MyProcGenMaterial {
+    fn from_world(world: &mut World) -> Self {
+        let computer_image = world.resource::<ComputerImage>();
+        let computer_image = computer_image.0.clone();
+
+        let mut materials = world.resource_mut::<Assets<StandardMaterial>>();
+
+        let material_handle = materials.add(StandardMaterial {
+            base_color_texture: Some(computer_image),
+            reflectance: 0.02,
+            unlit: false,
+            ..default()
+        });
+
+        Self(material_handle.clone())
+    }
+}
 
 #[derive(Event)]
 pub struct ChangeScreenEvent {
@@ -83,9 +172,35 @@ fn on_computer_add(
     context: HookContext,
 ) {
     trace!("HOOK: on_computer_add");
+
+    let mut meshes = world.resource_mut::<Assets<Mesh>>();
+
+    let cube_size = 4.0;
+    let cube_handle = meshes.add(Cuboid::new(cube_size, cube_size, cube_size));
+
     world.commands()
         .entity(context.entity)
+        .insert(Mesh3d(cube_handle))
         .observe(change_computer_screen);
+}
+
+fn on_computer_texture_cam_add(
+    mut world: DeferredWorld,
+    context: HookContext,
+) {
+    let computer_image = world.resource::<ComputerImage>().0.clone();
+
+    world.commands()
+        .entity(context.entity)
+        .insert(RenderTarget::Image(computer_image.into()));
+}
+
+fn on_computer_ui_node_add(
+    mut world: DeferredWorld,
+    context: HookContext,
+) {
+    world.commands()
+        .entity(context.entity);
 }
 
 fn change_computer_screen (
@@ -97,7 +212,8 @@ fn change_computer_screen (
 ) {
     trace!("SYSTEM: computer_test");
 
-    softatui.draw(new_computer_screen)
+    //softatui.draw(new_computer_screen)
+    softatui.draw(draw_computer_screen)
         .expect("oops");
 
     let width = softatui.backend().get_pixmap_width() as u32;
@@ -130,91 +246,31 @@ fn change_computer_screen (
 
 fn spawn_computer(
     mut commands: Commands,
-    mut meshes: ResMut<Assets<Mesh>>,
-    mut materials: ResMut<Assets<StandardMaterial>>,
-    mut softatui: ResMut<SoftTerminal>,
-    mut images: ResMut<Assets<Image>>,
+    computer_image: Res<ComputerImage>,
+    my_proc_gen_material: Res<MyProcGenMaterial>,
 ) {
     trace!("SYSTEM: spawn_computer");
-    softatui
-        .draw(draw_computer_screen)
-        .expect("epic fail");
-
-    let width = softatui.backend().get_pixmap_width() as u32;
-    let height = softatui.backend().get_pixmap_height() as u32;
-    let data = softatui.backend().get_pixmap_data_as_rgba();
-
-    let mut image = Image::new(
-        Extent3d {
-            width,
-            height,
-            depth_or_array_layers: 1,
-        },
-        bevy::render::render_resource::TextureDimension::D2,
-        data,
-        TextureFormat::Rgba8UnormSrgb,
-        RenderAssetUsages::RENDER_WORLD | RenderAssetUsages::MAIN_WORLD,
-    );
-    // You need to set these texture usage flags in order to use the image as a render target
-    image.texture_descriptor.usage =
-        TextureUsages::TEXTURE_BINDING | TextureUsages::COPY_DST | TextureUsages::RENDER_ATTACHMENT;
-
-    let image_handle = images.add(image);
-
-    // Light
-    commands.spawn(DirectionalLight::default());
 
     let texture_camera = commands
         .spawn((
-            Camera2d,
-            RenderTarget::Image(image_handle.clone().into()),
             ComputerTextureCam,
-            Name::new("ComputerTextureCam"),
         ))
         .id();
 
     commands
         .spawn((
-            Node {
-                // Cover the whole image
-                width: Val::Percent(100.),
-                height: Val::Percent(100.),
-                flex_direction: FlexDirection::Column,
-                justify_content: JustifyContent::Center,
-                align_items: AlignItems::Center,
-                ..default()
-            },
-            BackgroundColor(GOLD.into()),
+            ComputerUiNode,
             UiTargetCamera(texture_camera),
-            Name::new("ComputerBox"),
         ))
         .with_children(|parent| {
-            parent.spawn(ImageNode::new(image_handle.clone()));
+            parent.spawn(ImageNode::new(computer_image.0.clone()));
         });
-
-    let cube_size = 4.0;
-    let cube_handle = meshes.add(Cuboid::new(cube_size, cube_size, cube_size));
-
-    // This material has the texture that has been rendered.
-    let material_handle = materials.add(StandardMaterial {
-        base_color_texture: Some(image_handle.clone()),
-        reflectance: 0.02,
-        unlit: false,
-
-        ..default()
-    });
-
-    commands.insert_resource(MyProcGenMaterial(material_handle.clone()));
 
     // Cube with material containing the rendered UI texture.
     commands.spawn((
-        Mesh3d(cube_handle),
-        MeshMaterial3d(material_handle),
+        MeshMaterial3d(my_proc_gen_material.0.clone()),
         Transform::from_xyz(15.0, 2.0, 1.5).with_rotation(Quat::from_rotation_y(PI)),
-        Collider::cuboid(4.0, 4.0, 4.0),
-        RigidBody::Static,
         ComputerCube,
-        Name::new("ComputerCube"),
     ));
 }
 
