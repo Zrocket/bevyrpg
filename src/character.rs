@@ -28,6 +28,14 @@ pub struct Experience(pub i32);
 #[component(on_add = on_level_add)]
 pub struct Level(pub i32);
 
+#[derive(Default, Clone, Component, Reflect)]
+#[reflect(Component)]
+pub struct Hunger(pub i32);
+
+#[derive(Default, Clone, Component, Reflect)]
+#[reflect(Component)]
+pub struct Thirst(pub i32);
+
 #[derive(Bundle)]
 pub struct CharacterBundle {
     pub experience: Experience,
@@ -37,6 +45,8 @@ pub struct CharacterBundle {
     pub max_mana: MaxMana,
     pub max_health: MaxHealth,
     pub ammo_pouch: AmmoPouch,
+    pub hunger: Hunger,
+    pub thirst: Thirst,
 }
 
 impl Default for CharacterBundle {
@@ -49,12 +59,20 @@ impl Default for CharacterBundle {
             max_mana: MaxMana(100),
             max_health: MaxHealth(100),
             ammo_pouch: AmmoPouch(100),
+            hunger: Hunger(0),
+            thirst: Thirst(0),
         }
     }
 }
 
 #[derive(EntityEvent)]
 pub struct DamageEvent {
+    pub entity: Entity,
+    pub ammount: i32,
+}
+
+#[derive(EntityEvent)]
+pub struct ManaEvent {
     pub entity: Entity,
     pub ammount: i32,
 }
@@ -90,7 +108,9 @@ impl Plugin for CharacterPlugin {
             .register_type::<Mana>()
             .register_type::<MaxMana>()
             .register_type::<Experience>()
-            .register_type::<Level>();
+            .register_type::<Level>()
+            .register_type::<Hunger>()
+            .register_type::<Thirst>();
     }
 }
 
@@ -101,7 +121,8 @@ fn on_health_add(
     world.commands()
         .entity(context.entity)
         .observe(damage_observer)
-        .observe(heal_observer);
+        .observe(heal_observer)
+        .observe(mana_event_observer);
 }
 
 fn on_level_add(
@@ -119,7 +140,6 @@ fn damage_observer(
     mut commands: Commands,
     mut health_query: Query<&mut Health>,
 ) {
-    println!("{:?}", trigger.entity);
     if let Ok(mut health) = health_query.get_mut(trigger.entity) {
         if health.0 <= trigger.ammount {
             health.0 = 0;
@@ -131,11 +151,23 @@ fn damage_observer(
     }
 }
 
+fn mana_event_observer(
+    trigger: On<ManaEvent>,
+    mut mana_query: Query<&mut Mana>,
+) {
+    if let Ok(mut mana) = mana_query.get_mut(trigger.entity) {
+        if mana.0 <= trigger.ammount {
+            mana.0 = 0;
+        } else {
+            mana.0 -= trigger.event().ammount;
+        }
+    }
+}
+
 fn heal_observer(
     trigger: On<HealEvent>,
     mut health_query: Query<(&mut Health, &MaxHealth)>,
 ) {
-    println!("{:?}", trigger.entity);
     if let Ok((mut health, max_health)) = health_query.get_mut(trigger.entity) {
         health.0 += trigger.event().ammount;
         if health.0 >= max_health.0 {
@@ -174,4 +206,10 @@ fn level_up_observer(
         level.0 += 1;
         info!("Entity {:?} leveled up!", trigger.entity);
     }
+}
+
+fn sustinance_timer(
+    query: Query<(&mut Hunger, &mut Thirst)>,
+    time: Res<Time>
+) {
 }
