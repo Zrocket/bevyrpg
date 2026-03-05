@@ -8,4 +8,7 @@
     "health_3": File (
         path: "HP/Style_3.png"
     ),
+    "mana_1": File (
+        path: "Mana/Style_1.png"
+    ),
  })
