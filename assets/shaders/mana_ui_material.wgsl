@@ -12,7 +12,7 @@
 fn fragment(in: UiVertexOutput) -> @location(0) vec4<f32> {
     // sample the texture at this position if it's to the left of the slider value
     // otherwise return a fully transparent color
-    let output_color = textureSample(material_color_texture, material_color_sampler, in.uv);// * color;
+    let output_color = textureSample(material_color_texture, material_color_sampler, in.uv) * color;
     if in.uv.x < slider.x {
         return output_color;
     } else {
