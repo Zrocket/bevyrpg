@@ -4,6 +4,7 @@ mod books;
 mod container;
 mod equip;
 mod health_pack;
+mod mana_pack;
 mod misc;
 mod weapons;
 
