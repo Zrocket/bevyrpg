@@ -1,6 +1,7 @@
 use bevy::{ecs::{lifecycle::HookContext, world::DeferredWorld}, prelude::*};
 use bevy_seedling::sample::SamplePlayer;
 use rand::Rng;
+use rand::random_range;
 
 use crate::{Interactable, InteractionEvent, level::{LevelGltf}};
 
@@ -136,7 +137,7 @@ fn door_interaction_observer(
             return;
         }
         let mut rng = rand::rng();
-        let file = format!("audio/door/qubodup-DoorOpen0{}.ogg", rng.random_range(0..8));
+        let file = format!("audio/door/qubodup-DoorOpen0{}.ogg", random_range(0..8));
         if *door_state == DoorState::Closed {
             door_animation_player.stop_all();
             door_animation_player.play(1.into());
