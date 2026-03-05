@@ -1,4 +1,4 @@
-use bevy::{color::palettes::css::{BLUE, GREEN}, ecs::{lifecycle::HookContext, world::DeferredWorld}, prelude::*, render::render_resource::AsBindGroup};
+use bevy::{color::palettes::css::GREEN, ecs::{lifecycle::HookContext, world::DeferredWorld}, prelude::*, render::render_resource::AsBindGroup};
 
 use super::*;
 
@@ -75,7 +75,7 @@ pub struct UiStatus;
     Button,
     Text("Player Mana".to_string()),
     TextColor(Color::WHITE),
-    BackgroundColor::from(BLUE),
+    //BackgroundColor::from(BLUE),
     ZIndex(10),
 )]
 #[component(on_add = on_mana_ui_node_add)]
@@ -143,13 +143,27 @@ fn on_mana_ui_node_add(
     let asset_server = world.resource::<AssetServer>();
     let font = asset_server.load("FiraSans-Bold.ttf");
 
+    let ui_assets = world.resource::<DAUiAssets>();
+    let image = ui_assets.mana_1.clone();
+
+    let mut ui_materials = world.resource_mut::<Assets<ManaUiMaterial>>();
+    let material = ui_materials.add(ManaUiMaterial {
+        color: LinearRgba::WHITE.to_f32_array().into(),
+        slider: Vec4::splat(0.5),
+        color_texture: image,
+        border_color: LinearRgba::WHITE.to_f32_array().into(),
+    });
+
     world.commands()
         .entity(context.entity)
         .insert(TextFont {
             font,
             font_size: 50.0,
             ..default()
-        });
+        })
+    .insert((
+            MaterialNode(material),
+    ));
 }
 
 fn on_ui_status_add(
@@ -192,8 +206,6 @@ pub fn draw_status_ui(
     }
 }
 
-// Fills the slider slowly over 2 seconds and resets it
-// Also updates the color of the image to a rainbow color
 fn animate_health_material(
     mut materials: ResMut<Assets<HealthUiMaterial>>,
     query: Query<&MaterialNode<HealthUiMaterial>>,
@@ -217,8 +229,6 @@ fn animate_health_material(
     }
 }
 
-// Fills the slider slowly over 2 seconds and resets it
-// Also updates the color of the image to a rainbow color
 fn animate_mana_material(
     mut materials: ResMut<Assets<ManaUiMaterial>>,
     query: Query<&MaterialNode<ManaUiMaterial>>,
@@ -230,7 +240,7 @@ fn animate_mana_material(
         if let Some(material) = materials.get_mut(handle)
         && let Ok((mana, max_mana)) = mana_query.single() {
             let value = mana.0 as f32 / max_mana.0 as f32;
-            println!("{:?}", value);
+            //println!("{:?}", value);
             // rainbow color effect
             let new_color = Color::hsl((time.elapsed_secs() * 60.0) % 360.0, 1., 0.5);
             let border_color = Color::hsl((time.elapsed_secs() * 60.0) % 360.0, 0.75, 0.75);
