@@ -123,7 +123,7 @@ pub fn init_floating_window(
     mut window_query: Query<(&mut FloatingWindow, &mut Node), Added<FloatingWindow>>,
 ) {
     let mut rng = rand::rng();
-    for (mut window, mut node) in window_query.iter_mut() {
+    for (window, mut node) in window_query.iter_mut() {
         node.min_width = window.initial_width;
         node.min_height = window.initial_height;
         node.max_width = window.initial_width;
