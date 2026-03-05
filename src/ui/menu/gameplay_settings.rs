@@ -1,6 +1,6 @@
 use bevy::prelude::*;
 
-use crate::{PauseMenuState, widgets::{self, ui_root}};
+use crate::{MenuState, widgets::{self, ui_root}};
 
 #[derive(Component, Reflect)]
 pub struct UiGameplaySettings;
@@ -10,7 +10,7 @@ impl Plugin for GameplaySettingsMenuUiPlugin {
     fn build(&self, app: &mut bevy::app::App) {
        app
            .register_type::<UiGameplaySettings>()
-           .add_systems(OnEnter(PauseMenuState::GameplaySettings), spawn_gameplay_settings_menu);
+           .add_systems(OnEnter(MenuState::GameplaySettings), spawn_gameplay_settings_menu);
     }
 }
 
@@ -19,7 +19,7 @@ fn spawn_gameplay_settings_menu(
 ) {
     commands.spawn((
             ui_root("Gameplay Settings"),
-            DespawnOnExit(PauseMenuState::GameplaySettings),
+            DespawnOnExit(MenuState::GameplaySettings),
             GlobalZIndex(2),
             UiGameplaySettings,
             children![
@@ -30,7 +30,7 @@ fn spawn_gameplay_settings_menu(
 
 fn back_to_settings_menu(
     _: On<Pointer<Click>>,
-    mut pause_menu_state: ResMut<NextState<PauseMenuState>>,
+    mut pause_menu_state: ResMut<NextState<MenuState>>,
 ) {
-    pause_menu_state.set(PauseMenuState::Settings);
+    pause_menu_state.set(MenuState::Settings);
 }
