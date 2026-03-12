@@ -1,9 +1,24 @@
-use bevy::{color::palettes::css::{DARK_GREEN, DARK_VIOLET}, prelude::*};
+use bevy::{color::palettes::css::{DARK_GREEN, DARK_VIOLET}, ecs::{lifecycle::HookContext, world::DeferredWorld}, prelude::*};
 
 use crate::{UiState, widgets::floating_windows::floating_window_root};
 
 #[derive(Component, Reflect)]
+#[require(
+    Node {
+        flex_grow: 1.,
+        ..default()
+    }
+)]
+#[component(on_add = on_ui_quest_add)]
 pub struct UiQuest;
+
+fn on_ui_quest_add(
+    mut world: DeferredWorld,
+    context: HookContext,
+) {
+    world.commands()
+        .entity(context.entity);
+}
 
 #[derive(EntityEvent)]
 pub struct DisplayQuestEvent {
@@ -35,10 +50,7 @@ pub fn display_quest_event_observer(
         DespawnOnExit(UiState::QuestLog),
 floating_window_root("Quest Log".into(),
 (
-        Node {
-            flex_grow: 1.,
-            ..default()
-        },
+        UiQuest,
         Children::spawn(SpawnWith(|parent: &mut ChildSpawner| {
             parent.spawn((
                     Node {
