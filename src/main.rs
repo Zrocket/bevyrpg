@@ -10,6 +10,7 @@ use bevy_bae::BaePlugin;
 use bevy_egui::EguiGlobalSettings;
 use bevy_hanabi::HanabiPlugin;
 use bevy_hotpatching_experiments::SimpleSubsecondPlugin;
+use bevy_ingame_clock::InGameClockPlugin;
 use bevy_inspector_egui::quick::WorldInspectorPlugin;
 use bevy_landmass::{Landmass3dPlugin, debug::Landmass3dDebugPlugin};
 use bevy_mod_scripting::BMSPlugin;
@@ -147,6 +148,7 @@ fn main() {
         SkeinPlugin::default(),
         SimpleSubsecondPlugin::default(),
         BMSPlugin,
+        InGameClockPlugin,
     ))
     // Crate Plugins
     .add_plugins((
@@ -175,6 +177,7 @@ fn main() {
         ParticlePlugin,
         NpcPlugin,
         QuestPlugin,
+        RoverPlugin,
     ));
     app.add_systems(Update, pause_game.run_if(in_state(GameState::Gameplay)));
 
