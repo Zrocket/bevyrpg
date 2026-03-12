@@ -123,7 +123,7 @@ impl Default for FloatingWindow {
 pub fn init_floating_window(
     mut window_query: Query<(&mut FloatingWindow, &mut Node), Added<FloatingWindow>>,
 ) {
-    let mut rng = rand::rng();
+    //let mut rng = rand::rng();
     for (window, mut node) in window_query.iter_mut() {
         node.min_width = window.initial_width;
         node.min_height = window.initial_height;
@@ -780,6 +780,106 @@ pub fn floating_window_root(title: String, contents_bundle: impl Bundle) -> impl
         FloatingWindow {
             initial_width: Val::Vw(40.),
             initial_height: Val::Vh(30.),
+            min_width: Val::Px(200.),
+            min_height: Val::Px(30.),
+            ..default()
+        },
+        BackgroundColor::from(CRIMSON),
+        Children::spawn( SpawnWith(|parent: &mut ChildSpawner| {
+            parent.spawn((resizable_borders(5., BackgroundColor::from(DARK_GREEN)), WindowResize));
+            parent.spawn(title_bar(title));
+            parent.spawn(contents_bundle)
+                .observe(block_pointer_events);
+        })),
+        bevy::ui_widgets::observe(|trigger: On<CloseWindowEvent>, mut commands: Commands| {
+            commands.entity(trigger.entity).despawn();
+        }),
+        bevy::ui_widgets::observe(
+            |trigger: On<MinimizeWindowEvent>,
+            mut window_query: Query<&mut Node>,
+            | {
+                if let Ok(mut window_node) = window_query.get_mut(trigger.entity) {
+                    window_node.height = Val::Px(30.);
+                    window_node.min_height = Val::Px(30.);
+                }
+        }),
+        bevy::ui_widgets::observe(
+            |trigger: On<MaximizeWindowEvent>,
+            mut window_query: Query<&mut Node>,
+            | {
+                if let Ok(mut window_node) = window_query.get_mut(trigger.entity) {
+                    window_node.height = Val::Vh(100.);
+                    window_node.width = Val::Vw(100.);
+                    window_node.min_height = Val::Px(30.);
+                    window_node.min_width = Val::Px(200.);
+                }
+            }
+        )
+    )
+}
+
+pub fn floating_computer_window_root(title: String, contents_bundle: impl Bundle) -> impl Bundle {
+    (
+        Node {
+            flex_direction: FlexDirection::Column,
+            position_type: PositionType::Absolute,
+            min_height: Val::Px(30.),
+            //overflow: Overflow { x: OverflowAxis::Hidden, y: OverflowAxis::Hidden },
+            ..default()
+        },
+        FloatingWindow {
+            initial_width: Val::Vw(40.),
+            initial_height: Val::Vh(30.),
+            min_width: Val::Px(200.),
+            min_height: Val::Px(30.),
+            ..default()
+        },
+        BackgroundColor::from(CRIMSON),
+        Children::spawn( SpawnWith(|parent: &mut ChildSpawner| {
+            parent.spawn((resizable_borders(5., BackgroundColor::from(DARK_GREEN)), WindowResize));
+            parent.spawn(title_bar(title));
+            parent.spawn(contents_bundle)
+                .observe(block_pointer_events);
+        })),
+        bevy::ui_widgets::observe(|trigger: On<CloseWindowEvent>, mut commands: Commands| {
+            commands.entity(trigger.entity).despawn();
+        }),
+        bevy::ui_widgets::observe(
+            |trigger: On<MinimizeWindowEvent>,
+            mut window_query: Query<&mut Node>,
+            | {
+                if let Ok(mut window_node) = window_query.get_mut(trigger.entity) {
+                    window_node.height = Val::Px(30.);
+                    window_node.min_height = Val::Px(30.);
+                }
+        }),
+        bevy::ui_widgets::observe(
+            |trigger: On<MaximizeWindowEvent>,
+            mut window_query: Query<&mut Node>,
+            | {
+                if let Ok(mut window_node) = window_query.get_mut(trigger.entity) {
+                    window_node.height = Val::Vh(100.);
+                    window_node.width = Val::Vw(100.);
+                    window_node.min_height = Val::Px(30.);
+                    window_node.min_width = Val::Px(200.);
+                }
+            }
+        )
+    )
+}
+
+pub fn floating_computer_rover_window_root(title: String, contents_bundle: impl Bundle) -> impl Bundle {
+    (
+        Node {
+            flex_direction: FlexDirection::Column,
+            position_type: PositionType::Absolute,
+            min_height: Val::Px(30.),
+            //overflow: Overflow { x: OverflowAxis::Hidden, y: OverflowAxis::Hidden },
+            ..default()
+        },
+        FloatingWindow {
+            initial_width: Val::Vw(60.),
+            initial_height: Val::Vh(60.),
             min_width: Val::Px(200.),
             min_height: Val::Px(30.),
             ..default()
