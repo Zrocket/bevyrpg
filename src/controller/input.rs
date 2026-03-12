@@ -1,8 +1,7 @@
 use avian3d::prelude::{Collider, RigidBody};
 use bevy::{app::Plugin, asset::Assets, ecs::{component::Component, lifecycle::HookContext, spawn::SpawnRelated, world::DeferredWorld}, input::{gamepad::{GamepadButton}, keyboard::KeyCode, mouse::MouseButton}, math::Vec2, time::Timer, utils::default};
 use bevy_enhanced_input::{action::Action, actions, bindings, prelude::{Axial, Bindings, Cardinal, DeadZone, EnhancedInputPlugin, Hold, InputAction, InputContextAppExt, SmoothNudge, Tap}, modifier::scale::Scale};
-use bevy_tnua::{TnuaConfig, builtins::{TnuaBuiltinClimbConfig, TnuaBuiltinCrouchConfig, TnuaBuiltinDashConfig, TnuaBuiltinJumpConfig, TnuaBuiltinWalkConfig, TnuaBuiltinWallSlideConfig}};
-use bevy_tnua::{TnuaController, control_helpers::{TnuaSimpleAirActionsCounter}};
+use bevy_tnua::{TnuaConfig, TnuaController, builtins::{TnuaBuiltinClimbConfig, TnuaBuiltinCrouchConfig, TnuaBuiltinDashConfig, TnuaBuiltinJumpConfig, TnuaBuiltinWalkConfig, TnuaBuiltinWallSlideConfig}, control_helpers::TnuaSimpleAirActionsCounter};
 use bevy_tnua_avian3d::TnuaAvian3dSensorShape;
 use bevy_bae::{plan::Plan, prelude::{Operator, Sequence}, tasks};
 
@@ -14,9 +13,8 @@ impl Plugin for InputPlugin {
         app
             .add_plugins(EnhancedInputPlugin)
             .add_input_context::<Player>();
-    }
 }
-
+}
 #[derive(InputAction)]
 #[action_output(Vec2)]
 pub struct MovementAction;
@@ -120,6 +118,17 @@ pub struct TnuaNpcController;
     Plan::new(),
 )]
 pub struct TnuaEnemyController;
+
+#[derive(Component)]
+#[require(
+    TnuaController::<PlayerControlScheme>::default(),
+    TnuaAvian3dSensorShape(Collider::cuboid(0.5, 0.5, 0.5)),
+    TnuaSimpleAirActionsCounter::<PlayerControlScheme>::default(),
+    RigidBody::Dynamic,
+    Walk::default(),
+)]
+#[component(on_add = on_tnua_rover_controller_add)]
+pub struct TnuaRoverController;
 
 #[derive(Component, Default)]
 #[require(
@@ -386,4 +395,61 @@ fn on_tnua_enemy_controller_add(
             ],
             IdleTimer(Timer::from_seconds(5.0, bevy::time::TimerMode::Once))
         ));
+}
+
+fn on_tnua_rover_controller_add(
+    mut world: DeferredWorld,
+    context: HookContext,
+) {
+    let mut control_scheme_configs = world.resource_mut::<Assets<PlayerControlSchemeConfig>>();
+    let handle = control_scheme_configs.add(PlayerControlSchemeConfig {
+        basis: TnuaBuiltinWalkConfig {
+            speed: 10.0,
+            float_height: 1.5,
+            ..default()
+        },
+        jump: TnuaBuiltinJumpConfig {
+            height: 2.0,
+            ..default()
+        },
+        crouch: TnuaBuiltinCrouchConfig {
+            float_offset: -0.7,
+            ..default()
+        },
+        dash: TnuaBuiltinDashConfig {
+            horizontal_distance: 5.0,
+            ..default()
+        },
+        knockback: Default::default(),
+        wall_slide: TnuaBuiltinWallSlideConfig {
+            maintain_distance: Some(0.7),
+            ..default()
+        },
+        wall_jump: TnuaBuiltinJumpConfig {
+            height: 4.0,
+            takeoff_extra_gravity: 90.0, // 3 times the default
+            takeoff_above_velocity: 0.0,
+            horizontal_distance: 2.0,
+            ..default()
+        },
+        climb: TnuaBuiltinClimbConfig {
+            climb_speed: 10.0,
+            ..default()
+        },
+    });
+
+    world.commands()
+        .entity(context.entity)
+        .insert((
+                TnuaConfig::<PlayerControlScheme>(handle),
+        ));
+        //.insert((
+        //    Sequence,
+        //    tasks![
+        //        //Operator::new(wander),
+        //        Operator::new(idle),
+        //        Operator::new(run_from_player),
+        //    ],
+        //    IdleTimer(Timer::from_seconds(5.0, bevy::time::TimerMode::Once))
+        //));
 }
