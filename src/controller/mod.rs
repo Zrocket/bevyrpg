@@ -21,7 +21,7 @@ pub use stats_controller::*;
 
 use bevy::window::{CursorGrabMode, CursorOptions};
 
-use crate::{ActiveWeapon, ItemDetails, PlayerCamera, ShootEvent, level::DAGunAssets, shoot, widgets::floating_windows::FloatingWindow};
+use crate::{ActiveWeapon, ComputerNode, ItemDetails, PlayerCamera, ShootEvent, level::DAGunAssets, shoot, widgets::floating_windows::FloatingWindow};
 
 pub struct ControllerPlugin;
 impl Plugin for ControllerPlugin {
@@ -65,7 +65,7 @@ fn manage_cursor(
     mut shoot_event_writer: MessageWriter<shoot::ShootEvent>,
     avian_pickup_actor: Single<Entity, With<AvianPickupActor>>,
     mut avian_pickup_input_writer: MessageWriter<AvianPickupInput>,
-    active_windoow: Query<Entity, With<FloatingWindow>>,
+    active_windoow: Query<Entity, (With<FloatingWindow>, Without<ComputerNode>)>,
 ) {
     if let Ok(mut window) = windows.single_mut() {
         if window.grab_mode != CursorGrabMode::Locked {
