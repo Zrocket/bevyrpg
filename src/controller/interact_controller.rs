@@ -6,7 +6,7 @@ use avian_pickup::{
     prop::HeldProp,
 };
 use bevy::prelude::*;
-use bevy_enhanced_input::prelude::Fire;
+use bevy_enhanced_input::prelude::{Fire};
 
 pub struct InteractControllerPlugin;
 impl Plugin for InteractControllerPlugin {
