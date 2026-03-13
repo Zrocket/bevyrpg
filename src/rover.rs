@@ -19,7 +19,12 @@ fn on_rover_add(
 
     world.commands()
         .entity(context.entity)
-        .add_child(rover_camera);
+        .add_child(rover_camera)
+        .observe(on_rover_forward_observer)
+        .observe(on_rover_backward_observer)
+        .observe(on_rover_left_observer)
+        .observe(on_rover_right_observer)
+        .observe(on_rover_pickup_observer);
 }
 
 #[derive(Resource)]
@@ -90,6 +95,11 @@ pub struct RoverRightEvent {
     pub entity: Entity,
 }
 
+#[derive(EntityEvent)]
+pub struct RoverPickupEvent {
+    pub entity: Entity,
+}
+
 pub struct RoverPlugin;
 impl Plugin for RoverPlugin {
     fn build(&self, app: &mut App) {
@@ -121,6 +131,12 @@ fn on_rover_right_observer(
 
 fn on_rover_left_observer(
     trigger: On<RoverLeftEvent>,
+    rover_query: Query<Entity, With<Rover>>,
+) {
+}
+
+fn on_rover_pickup_observer(
+    trigger: On<RoverPickupEvent>,
     rover_query: Query<Entity, With<Rover>>,
 ) {
 }

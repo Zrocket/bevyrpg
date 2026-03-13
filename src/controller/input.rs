@@ -199,12 +199,12 @@ fn on_tnua_player_controller_add(
             ),
             (
                 Action::<InteractAction>::new(),
-                Tap::new(0.5),
+                Tap::new(0.3),
                 bindings![KeyCode::KeyE, GamepadButton::West],
             ),
             (
                 Action::<Interact2Action>::new(),
-                Hold::new(0.5),
+                Hold::new(0.5).one_shot(true),
                 //Tap::new(0.5),
                 bindings![KeyCode::KeyE, GamepadButton::West],
             ),
