@@ -248,10 +248,11 @@ pub fn tnua_player_input(
     // Creates a 3D rotation matrix from a normalized rotation axis and angle (in radians).
     // returns a 3x3 column major matrix.
     let mut move_to_world = Mat3::from_axis_angle(Vec3::Y, player_controller_input.yaw);
-    println!("MATRIX: {:?}", move_to_world);
+    //println!("MATRIX: {:?}", move_to_world);
     move_to_world.z_axis *= -1.0; // Forward is -Z
     move_to_world.y_axis = Vec3::Y; // Vertical movement aligned with world up
     let movement_direction = move_to_world * player_controller_input.movement;
+    //println!("{:?}\n", player_controller_input.movement);
 
     air_actions_counter.update(tnua_controller.as_mut());
 
