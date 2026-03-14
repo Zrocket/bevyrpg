@@ -1,12 +1,18 @@
 use bevy::{asset::RenderAssetUsages, camera::RenderTarget, ecs::{lifecycle::HookContext, world::DeferredWorld}, prelude::*, render::render_resource::{TextureDimension, TextureFormat, TextureUsages}};
 use bevy_enhanced_input::prelude::Start;
-use bevy_tnua::TnuaController;
+use bevy_tnua::{TnuaController, prelude::TnuaBuiltinWalk};
+use bevy_landmass::{AgentTarget3d};
+use avian3d::prelude::Collider;
 
-use crate::{GameState, PlayerControlScheme};
+use crate::{GameState, PlayerControlScheme, TnuaRoverController};
 
 #[derive(Component, Reflect, Debug)]
 #[reflect(Component)]
 #[require(
+    TnuaRoverController,
+    RoverMovementInput,
+    AgentTarget3d,
+    Collider::cuboid(0.5, 0.5, 0.5),
 )]
 #[component(on_add = on_rover_add)]
 pub struct Rover;
@@ -24,7 +30,21 @@ fn on_rover_add(
         .observe(on_rover_backward_observer)
         .observe(on_rover_left_observer)
         .observe(on_rover_right_observer)
-        .observe(on_rover_pickup_observer);
+        .observe(on_rover_pickup_observer)
+        .insert(Collider::cuboid(1.0, 1.0, 1.0));
+}
+
+fn spawn_rover(
+    mut commands: Commands,
+    mut meshes: ResMut<Assets<Mesh>>,
+    mut materials: ResMut<Assets<StandardMaterial>>,
+) {
+    commands.spawn((
+            Rover,
+            Transform::from_xyz(15.0, 1.75, 15.0),
+            Mesh3d(meshes.add(Cuboid::new(1.0, 1.0, 1.0))),
+            MeshMaterial3d(materials.add(Color::WHITE)),
+    ));
 }
 
 #[derive(Resource)]
@@ -100,43 +120,108 @@ pub struct RoverPickupEvent {
     pub entity: Entity,
 }
 
+#[derive(Component, Default, Debug)]
+pub struct RoverMovementInput {
+    pub rotation: Quat,
+    pub movement: Vec3,
+}
+
 pub struct RoverPlugin;
 impl Plugin for RoverPlugin {
     fn build(&self, app: &mut App) {
         app
             .register_type::<Rover>()
-            .init_resource::<RoverCamreaRenderImage>();
+            .init_resource::<RoverCamreaRenderImage>()
+            .add_systems(Update, rover_test)
+            .add_systems(OnEnter(GameState::Gameplay), spawn_rover)
+            .add_systems(Update, apply_rover_movement.run_if(in_state(GameState::Gameplay)));
+    }
+}
+
+fn apply_rover_movement(
+    mut rover_query: Query<(&mut TnuaController<PlayerControlScheme>, &mut RoverMovementInput, &mut Transform), With<Rover>>,
+) {
+    if let Ok((mut tnua_controller, mut input, mut transform)) = rover_query.single_mut() {
+        tnua_controller.initiate_action_feeding();
+
+        tnua_controller.basis = TnuaBuiltinWalk {
+            desired_motion: input.movement.normalize_or_zero(),
+            ..default()
+        };
+
+        transform.rotate(input.rotation);
+
+        input.movement = Vec3::ZERO;
+        input.rotation = Quat::from_rotation_y(0.);
+    }
+}
+
+fn rover_test(
+    mut commands: Commands,
+    key: Res<ButtonInput<KeyCode>>,
+    rover: Query<Entity, With<Rover>>,
+) {
+    if let Ok(rover) = rover.single() {
+        if key.pressed(KeyCode::ArrowUp) {
+            commands.entity(rover).trigger(|entity| RoverForwardEvent { entity });
+        } else if key.pressed(KeyCode::ArrowDown) {
+            commands.entity(rover).trigger(|entity| RoverBackwardEvent{ entity });
+        } else if key.pressed(KeyCode::ArrowLeft) {
+            commands.entity(rover).trigger(|entity| RoverLeftEvent{ entity });
+        } else if key.pressed(KeyCode::ArrowRight) {
+            commands.entity(rover).trigger(|entity| RoverRightEvent{ entity });
+        }
     }
 }
 
 fn on_rover_forward_observer(
-    trigger: On<RoverForwardEvent>,
-    mut rover_query: Query<(Entity, &mut TnuaController<PlayerControlScheme>), With<Rover>>,
+    _trigger: On<RoverForwardEvent>,
+    mut rover_query: Query<(&GlobalTransform, &mut RoverMovementInput), With<Rover>>,
 ) {
-    if let Ok((rover_entity, tnua_controller)) = rover_query.single_mut() {
+    if let Ok((global_transform, mut input)) = rover_query.single_mut() {
+        let mut move_to_world = Mat3::from_quat(global_transform.rotation());
+        move_to_world.z_axis *= -1.0;
+        move_to_world.y_axis = Vec3::Y;
+        let movement_direction = move_to_world * Vec3::Z;
+
+        input.movement = movement_direction;
     }
 }
 
 fn on_rover_backward_observer(
-    trigger: On<RoverBackwardEvent>,
-    rover_query: Query<Entity, With<Rover>>,
+    _trigger: On<RoverBackwardEvent>,
+    mut rover_query: Query<(&GlobalTransform, &mut RoverMovementInput), With<Rover>>,
 ) {
+    if let Ok((global_transform, mut input)) = rover_query.single_mut() {
+        let mut move_to_world = Mat3::from_quat(global_transform.rotation());
+        move_to_world.z_axis *= -1.0;
+        move_to_world.y_axis = Vec3::Y;
+        let movement_direction = move_to_world * -Vec3::Z;
+
+        input.movement = movement_direction;
+    }
 }
 
 fn on_rover_right_observer(
-    trigger: On<RoverRightEvent>,
-    rover_query: Query<Entity, With<Rover>>,
+    _trigger: On<RoverRightEvent>,
+    mut rover_query: Query<&mut RoverMovementInput, With<Rover>>,
 ) {
+    if let Ok(mut input) = rover_query.single_mut() {
+        input.rotation = Quat::from_rotation_y(-0.1);
+    }
 }
 
 fn on_rover_left_observer(
-    trigger: On<RoverLeftEvent>,
-    rover_query: Query<Entity, With<Rover>>,
+    _trigger: On<RoverLeftEvent>,
+    mut rover_query: Query<&mut RoverMovementInput, With<Rover>>,
 ) {
+    if let Ok(mut input) = rover_query.single_mut() {
+        input.rotation = Quat::from_rotation_y(0.1);
+    }
 }
 
 fn on_rover_pickup_observer(
-    trigger: On<RoverPickupEvent>,
-    rover_query: Query<Entity, With<Rover>>,
+    _trigger: On<RoverPickupEvent>,
+    mut rover_query: Query<(Entity, &mut TnuaController<PlayerControlScheme>, &GlobalTransform), With<Rover>>,
 ) {
 }
