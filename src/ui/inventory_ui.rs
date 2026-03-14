@@ -41,8 +41,8 @@ pub struct UiInventory;
 #[derive(Component, Reflect)]
 #[require(
     Node {
-        //height: Val::Percent(100.),
-        //width: Val::Percent(100.),
+        height: Val::Px(80.),
+        width: Val::Px(80.),
         ..default()
     },
     BackgroundColor::from(DARK_GREEN),
