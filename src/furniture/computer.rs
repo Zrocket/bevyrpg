@@ -9,7 +9,7 @@ use bevy::picking::PickingSystems;
 use bevy::picking::backend::ray::RayMap;
 use bevy::picking::pointer::{Location, PointerAction, PointerId, PointerInput};
 use bevy::prelude::*;
-use bevy::render::render_resource::{Extent3d, TextureFormat, TextureUsages};
+use bevy::render::render_resource::{AsBindGroup, Extent3d, TextureFormat, TextureUsages};
 use bevy::color::palettes::css::{BLUE, GOLDENROD, GRAY, GREEN, RED};
 use bevy::window::{PrimaryWindow, WindowEvent};
 use bevy_ingame_clock::InGameClock;
@@ -22,7 +22,18 @@ use bevy::asset::RenderAssetUsages;
 use bevy::camera::RenderTarget;
 
 use crate::widgets::floating_windows::{FloatingWindow, floating_computer_rover_window_root, floating_computer_window_root};
-use crate::{Interactable, InteractionEvent, RoverCamera, RoverCamreaRenderImage, widgets};
+use crate::{Interactable, InteractionEvent, Rover, RoverBackwardEvent, RoverCamera, RoverCamreaRenderImage, RoverForwardEvent, RoverLeftEvent, RoverRightEvent, widgets};
+
+/*
+#[derive(AsBindGroup, Asset, TypePath, Debug, Clone)]
+struct ComputerScreenMaterial {
+}
+
+impl UiMaterial for ComputerScreenMaterial {
+    fn fragment_shader() -> bevy::shader::ShaderRef {
+    }
+}
+*/
 
 #[derive(Component)]
 pub struct ComputerNode;
@@ -240,18 +251,96 @@ fn icon_double_click_observer(
                             height: px(300),
                             border: UiRect::all(px(5)),
                             overflow: Overflow { x: OverflowAxis::Hidden, y: OverflowAxis::Hidden },
+                            flex_direction: FlexDirection::ColumnReverse,
                             ..default()
                         },
                         ViewportNode::new(rover_camrea),
                         BorderColor::all(Color::WHITE),
-                        Children::spawn(SpawnWith(|parent: &mut ChildSpawner| {
-                            parent.spawn((
+                        Children::spawn(SpawnWith(|root_parent: &mut ChildSpawner| {
+                            // Button pane
+                            root_parent.spawn((
                                 Node {
                                     width: px(300),
                                     height: px(50),
+                                    flex_direction: FlexDirection::Row,
                                     ..default()
                                 },
-                                BackgroundColor(GREEN.into()),
+                                Children::spawn(SpawnWith(|buttons_parent: &mut ChildSpawner| {
+                                    // Left Buttons
+                                    buttons_parent.spawn((
+                                        Node {
+                                            width: px(300),
+                                            height: px(50),
+                                            flex_direction: FlexDirection::Column,
+                                            ..default()
+                                        },
+                                        Children::spawn(SpawnWith(|parent: &mut ChildSpawner| {
+                                            parent.spawn((
+                                                Node {
+                                                    //width: px(300),
+                                                    //height: px(50),
+                                                    flex_direction: FlexDirection::Column,
+                                                    ..default()
+                                                },
+                                                BackgroundColor(GREEN.into()),
+                                                Text("FORWARD".into()),
+                                            ))
+                                            .observe(icon_over)
+                                            .observe(icon_out)
+                                            .observe(forward_pressed);
+                                            parent.spawn((
+                                                Node {
+                                                    //width: px(300),
+                                                    //height: px(50),
+                                                    flex_direction: FlexDirection::Column,
+                                                    ..default()
+                                                },
+                                                BackgroundColor(GREEN.into()),
+                                                Text("BACKWARD".into()),
+                                            ))
+                                            .observe(icon_over)
+                                            .observe(icon_out)
+                                            .observe(backward_pressed);
+                                        })),
+                                    ));
+                                    // Right Buttons
+                                    buttons_parent.spawn((
+                                        Node {
+                                            width: px(300),
+                                            height: px(50),
+                                            flex_direction: FlexDirection::Column,
+                                            ..default()
+                                        },
+                                        Children::spawn(SpawnWith(|parent: &mut ChildSpawner| {
+                                            parent.spawn((
+                                                Node {
+                                                    //width: px(300),
+                                                    //height: px(50),
+                                                    flex_direction: FlexDirection::Column,
+                                                    ..default()
+                                                },
+                                                BackgroundColor(GREEN.into()),
+                                                Text("LEFT".into()),
+                                            ))
+                                            .observe(icon_over)
+                                            .observe(icon_out)
+                                            .observe(left_pressed);
+                                            parent.spawn((
+                                                Node {
+                                                    //width: px(300),
+                                                    //height: px(50),
+                                                    flex_direction: FlexDirection::Column,
+                                                    ..default()
+                                                },
+                                                BackgroundColor(GREEN.into()),
+                                                Text("RIGHT".into()),
+                                            ))
+                                            .observe(icon_over)
+                                            .observe(icon_out)
+                                            .observe(right_pressed);
+                                        })),
+                                    ));
+                                })),
                             ));
                         })),
                     )),
@@ -287,6 +376,46 @@ fn icon_out(
 ) {
     if let Ok(mut colors) = colors.get_mut(out.entity) {
         colors.0 = BLUE.into();
+    }
+}
+
+fn forward_pressed(
+    _trigger: On<Pointer<Click>>,
+    mut commands: Commands,
+    rover_query: Query<Entity, With<Rover>>,
+) {
+    if let Ok(rover_entity) = rover_query.single() {
+        commands.entity(rover_entity).trigger(|entity| RoverForwardEvent { entity });
+    }
+}
+
+fn backward_pressed(
+    _trigger: On<Pointer<Click>>,
+    mut commands: Commands,
+    rover_query: Query<Entity, With<Rover>>,
+) {
+    if let Ok(rover_entity) = rover_query.single() {
+        commands.entity(rover_entity).trigger(|entity| RoverBackwardEvent { entity });
+    }
+}
+
+fn left_pressed(
+    _trigger: On<Pointer<Click>>,
+    mut commands: Commands,
+    rover_query: Query<Entity, With<Rover>>,
+) {
+    if let Ok(rover_entity) = rover_query.single() {
+        commands.entity(rover_entity).trigger(|entity| RoverLeftEvent { entity });
+    }
+}
+
+fn right_pressed(
+    _trigger: On<Pointer<Click>>,
+    mut commands: Commands,
+    rover_query: Query<Entity, With<Rover>>,
+) {
+    if let Ok(rover_entity) = rover_query.single() {
+        commands.entity(rover_entity).trigger(|entity| RoverRightEvent { entity });
     }
 }
 
