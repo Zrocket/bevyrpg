@@ -87,7 +87,15 @@ fn toggle_landmass_debug(mut debug: ResMut<EnableLandmassDebug>) {
 }
 
 fn apply_walking(
-    mut character_query: Query<(&mut TnuaController<PlayerControlScheme>, &AgentDesiredVelocity3d, &mut Velocity3d, &TnuaRigidBodyTracker), Without<Player>>,
+    mut character_query: Query<
+    (
+        &mut TnuaController<PlayerControlScheme>,
+        &AgentDesiredVelocity3d,
+        &mut Velocity3d,
+        &TnuaRigidBodyTracker
+    ),
+        Without<Player>
+    >,
 ) {
     trace!("SYSTEM: apply_walking");
 
