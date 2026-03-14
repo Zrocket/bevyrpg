@@ -119,7 +119,7 @@ pub struct TnuaNpcController;
 )]
 pub struct TnuaEnemyController;
 
-#[derive(Component)]
+#[derive(Component, Default)]
 #[require(
     TnuaController::<PlayerControlScheme>::default(),
     TnuaAvian3dSensorShape(Collider::cuboid(0.5, 0.5, 0.5)),
@@ -443,13 +443,4 @@ fn on_tnua_rover_controller_add(
         .insert((
                 TnuaConfig::<PlayerControlScheme>(handle),
         ));
-        //.insert((
-        //    Sequence,
-        //    tasks![
-        //        //Operator::new(wander),
-        //        Operator::new(idle),
-        //        Operator::new(run_from_player),
-        //    ],
-        //    IdleTimer(Timer::from_seconds(5.0, bevy::time::TimerMode::Once))
-        //));
 }
