@@ -9,7 +9,7 @@ use bevy_asset_loader::prelude::*;
 use bevy_bae::BaePlugin;
 use bevy_egui::EguiGlobalSettings;
 use bevy_hanabi::HanabiPlugin;
-use bevy_hotpatching_experiments::SimpleSubsecondPlugin;
+//use bevy_hotpatching_experiments::SimpleSubsecondPlugin;
 use bevy_ingame_clock::InGameClockPlugin;
 use bevy_inspector_egui::quick::WorldInspectorPlugin;
 use bevy_landmass::{Landmass3dPlugin, debug::Landmass3dDebugPlugin};
@@ -146,7 +146,7 @@ fn main() {
     ))
     .add_plugins((
         SkeinPlugin::default(),
-        SimpleSubsecondPlugin::default(),
+        //SimpleSubsecondPlugin::default(),
         BMSPlugin,
         InGameClockPlugin,
     ))
