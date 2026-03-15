@@ -496,7 +496,6 @@ fn forward_pressed(
     rover_query: Query<Entity, With<Rover>>,
 ) {
     if let Ok(rover_entity) = rover_query.single() {
-        println!("PRESS");
         commands.entity(rover_entity).trigger(|entity| RoverForwardEvent { entity });
     }
 }
@@ -507,7 +506,6 @@ fn forward_released(
     rover_query: Query<Entity, With<Rover>>,
 ) {
     if let Ok(rover_entity) = rover_query.single() {
-        println!("RELEASE");
         commands.entity(rover_entity).trigger(|entity| RoverForwardEvent { entity });
     }
 }
