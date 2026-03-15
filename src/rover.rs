@@ -95,6 +95,18 @@ fn on_rover_camrea_add(
         ));
 }
 
+#[derive(Component)]
+pub struct ForwardHeld;
+
+#[derive(Component)]
+pub struct BackwardHeld;
+
+#[derive(Component)]
+pub struct LeftHeld;
+
+#[derive(Component)]
+pub struct RightHeld;
+
 #[derive(EntityEvent)]
 pub struct RoverForwardEvent {
     pub entity: Entity,
@@ -132,16 +144,15 @@ impl Plugin for RoverPlugin {
         app
             .register_type::<Rover>()
             .init_resource::<RoverCamreaRenderImage>()
-            .add_systems(Update, rover_test)
             .add_systems(OnEnter(GameState::Gameplay), spawn_rover)
             .add_systems(Update, apply_rover_movement.run_if(in_state(GameState::Gameplay)));
     }
 }
 
 fn apply_rover_movement(
-    mut rover_query: Query<(&mut TnuaController<PlayerControlScheme>, &mut RoverMovementInput, &mut Transform), With<Rover>>,
+    mut rover_query: Query<(&mut TnuaController<PlayerControlScheme>, &RoverMovementInput, &mut Transform), With<Rover>>,
 ) {
-    if let Ok((mut tnua_controller, mut input, mut transform)) = rover_query.single_mut() {
+    if let Ok((mut tnua_controller, input, mut transform)) = rover_query.single_mut() {
         tnua_controller.initiate_action_feeding();
 
         tnua_controller.basis = TnuaBuiltinWalk {
@@ -150,33 +161,13 @@ fn apply_rover_movement(
         };
 
         transform.rotate(input.rotation);
-
-        input.movement = Vec3::ZERO;
-        input.rotation = Quat::from_rotation_y(0.);
-    }
-}
-
-fn rover_test(
-    mut commands: Commands,
-    key: Res<ButtonInput<KeyCode>>,
-    rover: Query<Entity, With<Rover>>,
-) {
-    if let Ok(rover) = rover.single() {
-        if key.pressed(KeyCode::ArrowUp) {
-            commands.entity(rover).trigger(|entity| RoverForwardEvent { entity });
-        } else if key.pressed(KeyCode::ArrowDown) {
-            commands.entity(rover).trigger(|entity| RoverBackwardEvent{ entity });
-        } else if key.pressed(KeyCode::ArrowLeft) {
-            commands.entity(rover).trigger(|entity| RoverLeftEvent{ entity });
-        } else if key.pressed(KeyCode::ArrowRight) {
-            commands.entity(rover).trigger(|entity| RoverRightEvent{ entity });
-        }
     }
 }
 
 fn on_rover_forward_observer(
     _trigger: On<RoverForwardEvent>,
     mut rover_query: Query<(&GlobalTransform, &mut RoverMovementInput), With<Rover>>,
+    mut toggle: Local<bool>,
 ) {
     if let Ok((global_transform, mut input)) = rover_query.single_mut() {
         let mut move_to_world = Mat3::from_quat(global_transform.rotation());
@@ -184,13 +175,21 @@ fn on_rover_forward_observer(
         move_to_world.y_axis = Vec3::Y;
         let movement_direction = move_to_world * Vec3::Z;
 
-        input.movement = movement_direction;
+        if !*toggle {
+            input.movement = movement_direction;
+            *toggle = true;
+        } else {
+            input.movement = Vec3::ZERO;
+            *toggle = false;
+        }
+
     }
 }
 
 fn on_rover_backward_observer(
     _trigger: On<RoverBackwardEvent>,
     mut rover_query: Query<(&GlobalTransform, &mut RoverMovementInput), With<Rover>>,
+    mut toggle: Local<bool>,
 ) {
     if let Ok((global_transform, mut input)) = rover_query.single_mut() {
         let mut move_to_world = Mat3::from_quat(global_transform.rotation());
@@ -198,25 +197,45 @@ fn on_rover_backward_observer(
         move_to_world.y_axis = Vec3::Y;
         let movement_direction = move_to_world * -Vec3::Z;
 
-        input.movement = movement_direction;
+        if !*toggle {
+            input.movement = movement_direction;
+            *toggle = true;
+        } else {
+            input.movement = Vec3::ZERO;
+            *toggle = false;
+        }
     }
 }
 
 fn on_rover_right_observer(
     _trigger: On<RoverRightEvent>,
     mut rover_query: Query<&mut RoverMovementInput, With<Rover>>,
+    mut toggle: Local<bool>,
 ) {
     if let Ok(mut input) = rover_query.single_mut() {
-        input.rotation = Quat::from_rotation_y(-0.1);
+        if !*toggle {
+            input.rotation = Quat::from_rotation_y(-0.1);
+            *toggle = true;
+        } else {
+            input.rotation = Quat::from_rotation_y(0.);
+            *toggle = false;
+        }
     }
 }
 
 fn on_rover_left_observer(
     _trigger: On<RoverLeftEvent>,
     mut rover_query: Query<&mut RoverMovementInput, With<Rover>>,
+    mut toggle: Local<bool>,
 ) {
     if let Ok(mut input) = rover_query.single_mut() {
-        input.rotation = Quat::from_rotation_y(0.1);
+        if !*toggle {
+            input.rotation = Quat::from_rotation_y(0.1);
+            *toggle = true;
+        } else {
+            input.rotation = Quat::from_rotation_y(0.);
+            *toggle = false;
+        }
     }
 }
 
