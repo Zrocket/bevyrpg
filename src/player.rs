@@ -65,6 +65,7 @@ pub enum CameraState {
         hold: AvianPickupActorHoldConfig {
             pitch_range: -40.0_f32.to_radians()..=75.0_f32.to_radians(),
             distance_to_allow_holding: 100.0,
+            preferred_distance: 1.5,
             ..default()
         },
         ..default()
