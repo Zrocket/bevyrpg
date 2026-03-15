@@ -1,10 +1,10 @@
 use bevy_asset_loader::{asset_collection::AssetCollection, loading_state::{config::ConfigureLoadingState, LoadingState, LoadingStateAppExt}, standard_dynamic_asset::StandardDynamicAssetCollection};
-use bevy_sun_move::{SkyCenter, SunMovePlugin, TimedSkyConfig, random_stars::{RandomStarsPlugin, StarSpawner}};
+use bevy_sun_move::{SkyCenter, TimedSkyConfig, random_stars::StarSpawner};
 
-use super::GameState;
-use crate::{Climbable, LadderComponent, MiscItem, Obstacle, ladder_collision_observer, ladder_decollision_observer};
-use avian3d::{prelude::{ColliderConstructor, CollidingEntities, CollisionEventsEnabled, CollisionLayers, LayerMask, PhysicsLayer, RigidBody}};
-use bevy::{ecs::{lifecycle::HookContext, world::DeferredWorld}, gltf::Gltf, prelude::*};
+use crate::{BootStrap, MiscItem, Obstacle};
+use avian3d::{prelude::{ColliderConstructor, CollisionLayers, LayerMask, PhysicsLayer, RigidBody}};
+use bevy::{gltf::Gltf, prelude::*};
+
 #[derive(Debug, PhysicsLayer, Default, Component, Reflect)]
 #[reflect(Component)]
 pub enum CollisionLayer {
@@ -22,10 +22,12 @@ pub struct CurrentLevel;
 
 #[derive(Debug, Default, Component, Reflect)]
 #[reflect(Component)]
+#[type_path("api")]
 pub struct BlenderAnimations(pub Vec<String>);
 
 #[derive(Debug, Default, Component, Reflect)]
 #[reflect(Component)]
+#[type_path("api")]
 pub struct BlenderAnimationName(pub String);
 
 #[derive(Debug, Default, Component, Reflect)]
@@ -34,6 +36,7 @@ pub struct BlenderAnimationName(pub String);
     ColliderConstructor::ConvexHullFromMesh,
     BlenderTranslationComplete,
 )]
+#[type_path("api")]
 pub struct BlenderCollider;
 
 #[derive(Debug, Default, Component, Reflect)]
@@ -45,10 +48,12 @@ pub struct BlenderCollider;
     ColliderConstructor::ConvexHullFromMesh,
     BlenderTranslationComplete,
 )]
+#[type_path("api")]
 pub struct BlenderProp;
 
 #[derive(Debug, Default, Component, Reflect)]
 #[reflect(Component)]
+#[type_path("api")]
 pub struct BlenderBoxCollider {
     pub size: i32,
 }
@@ -61,14 +66,17 @@ pub struct BlenderBoxCollider {
     ColliderConstructor::ConvexHullFromMesh,
     BlenderTranslationComplete,
 )]
+#[type_path("api")]
 pub struct BlenderColliderConstructor;
 
 #[derive(Debug, Default, Component, Reflect)]
 #[reflect(Component)]
+#[type_path("api")]
 pub struct BlenderNavmesh;
 
 #[derive(Debug, Default, Component, Reflect)]
 #[reflect(Component)]
+#[type_path("api")]
 pub struct BlenderTranslationComplete;
 
 #[derive(Message)]
@@ -98,8 +106,6 @@ pub struct BlenderTranslationPlugin;
 impl Plugin for BlenderTranslationPlugin {
     fn build(&self, app: &mut App) {
         app
-            .add_plugins(SunMovePlugin)
-            .add_plugins(RandomStarsPlugin)
             .register_type::<BlenderCollider>()
             .register_type::<BlenderBoxCollider>()
             .register_type::<BlenderAnimationName>()
@@ -113,7 +119,7 @@ impl Plugin for BlenderTranslationPlugin {
             .add_message::<ChangeLevelMessage>()
             .add_systems(Update, change_level_message_handler)
             .add_loading_state(
-                LoadingState::new(GameState::Preload)
+                LoadingState::new(BootStrap::Preload)
                     .with_dynamic_assets_file::<StandardDynamicAssetCollection>("gunassets.ron")
                     .with_dynamic_assets_file::<StandardDynamicAssetCollection>("devroom.ron")
                     .load_collection::<DAGunAssets>()
@@ -145,19 +151,6 @@ fn change_level_message_handler(
             CurrentLevel,
         ));
 
-        /*commands.spawn((
-            DirectionalLight {
-                //illuminance: light_consts::lux::OVERCAST_DAY,
-                shadows_enabled: true,
-                ..default()
-            },
-            Transform {
-                translation: Vec3::new(0.0, 200.0, 0.0),
-                rotation: Quat::from_rotation_x(-PI / 4.),
-                ..default()
-            },
-        ));*/
-
         let sun_id = commands.spawn((
                 DirectionalLight {
                     shadows_enabled: true,
@@ -174,7 +167,6 @@ fn change_level_message_handler(
             night_duration_secs: 5.0, // 5 seconds of nighttime (15s total cycle)
             max_sun_height_deg: 60.0, // Sun reaches 60 degrees at noon
             planet_tilt_degrees: 23.5, // Earth's tilt (default)
-            ..default()
         };
 
         // Calculate  and spawn the SkyCenter
@@ -194,20 +186,3 @@ fn change_level_message_handler(
 
     }
 }
-
-/*fn animation_preload(
-    mut commands: Commands,
-    level_gltf: Res<LevelGltf>,
-    gltf_assets: Res<Assets<Gltf>>,
-    blender_animation_query: Query<(Entity, &BlenderAnimationName), Without<AnimationGraphHandle>>,
-    mut animation_graphs: ResMut<Assets<AnimationGraph>>,
-){
-    trace!("SYSTEM: animation_preload");
-    if let Some(gltf) = gltf_assets.get(&level_gltf.0) {
-        for (entity, _animation_name) in blender_animation_query.iter() {
-            let animation_clip_handle = gltf.named_animations["opendoor"].clone();
-            let (animation_graph, _index) = AnimationGraph::from_clip(animation_clip_handle);
-            commands.entity(entity).insert(AnimationGraphHandle(animation_graphs.add(animation_graph)));
-        }
-    }
-}*/

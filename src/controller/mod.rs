@@ -1,3 +1,4 @@
+mod basis;
 mod equip_controller;
 mod input;
 mod interact_controller;
@@ -6,7 +7,7 @@ mod player_controller;
 mod quest_controller;
 mod stats_controller;
 
-use bevy_enhanced_input::prelude::Fire;
+use bevy_enhanced_input::{action::Action, prelude::{ActionEvents, Fire}};
 use equip_controller::*;
 pub use input::*;
 use avian_pickup::prelude::*;
@@ -20,7 +21,7 @@ pub use stats_controller::*;
 
 use bevy::window::{CursorGrabMode, CursorOptions};
 
-use crate::{ActiveWeapon, Item, PlayerCamera, ShootEvent, level::DAGunAssets, shoot, widgets::floating_windows::FloatingWindow};
+use crate::{ActiveWeapon, ComputerNode, ItemDetails, PlayerCamera, ShootEvent, level::DAGunAssets, shoot, widgets::floating_windows::FloatingWindow};
 
 pub struct ControllerPlugin;
 impl Plugin for ControllerPlugin {
@@ -33,6 +34,7 @@ impl Plugin for ControllerPlugin {
             .add_plugins(InventoryControllerPlugin)
             .add_plugins(EquipControllerPlugin)
             .add_plugins(StatsControllerPlugin)
+            .add_plugins(QuestControllerPlugin)
             .add_observer(weapon_1)
             .add_observer(weapon_2)
             .add_observer(weapon_3)
@@ -57,17 +59,17 @@ impl Plugin for ControllerPlugin {
 fn manage_cursor(
     mut windows: Query<&mut CursorOptions>,
     mut commands: Commands,
-    btn: Res<ButtonInput<MouseButton>>,
     key: Res<ButtonInput<KeyCode>>,
+    shoot_action: Single<&ActionEvents, With<Action<ShootAction>>>,
     mut controllers: Query<&mut PlayerController>,
     mut shoot_event_writer: MessageWriter<shoot::ShootEvent>,
     avian_pickup_actor: Single<Entity, With<AvianPickupActor>>,
     mut avian_pickup_input_writer: MessageWriter<AvianPickupInput>,
-    active_windoow: Query<Entity, With<FloatingWindow>>,
+    active_windoow: Query<Entity, (With<FloatingWindow>, Without<ComputerNode>)>,
 ) {
     if let Ok(mut window) = windows.single_mut() {
         if window.grab_mode != CursorGrabMode::Locked {
-            if btn.just_pressed(MouseButton::Left) {
+                if shoot_action.contains(ActionEvents::FIRE) {
                 if !active_windoow.is_empty() {
                     return;
                 }
@@ -77,7 +79,7 @@ fn manage_cursor(
                     controller.enable_input = true;
                 }
             }
-        } else if btn.just_pressed(MouseButton::Left) {
+        } else if shoot_action.contains(ActionEvents::START) {
             avian_pickup_input_writer.write(AvianPickupInput { action: AvianPickupAction::Throw, actor: *avian_pickup_actor });
             shoot_event_writer.write(shoot::ShootEvent);
             commands.trigger(ShootEvent);
@@ -110,7 +112,8 @@ fn weapon_1(
         let gun = commands.spawn((
                 Transform::from_translation(vec3(0.1, -0.2, -0.5)),
                 SceneRoot(asset_server.load(path)),
-                Item {
+                ItemDetails {
+                    name: "Uzi".to_string(),
                     description: crate::Description("gun".to_string()),
                     weight: crate::Weight(0),
                 },
@@ -141,7 +144,8 @@ fn weapon_2(
         let gun = commands.spawn((
                 Transform::from_translation(vec3(0.1, -0.2, -0.5)),
                 SceneRoot(asset_server.load(path)),
-                Item {
+                ItemDetails {
+                    name: "Shotgun".to_string(),
                     description: crate::Description("gun".to_string()),
                     weight: crate::Weight(0),
                 },
@@ -172,7 +176,8 @@ fn weapon_3(
         let gun = commands.spawn((
                 Transform::from_translation(vec3(0.1, -0.2, -0.5)),
                 SceneRoot(asset_server.load(path)),
-                Item {
+                ItemDetails {
+                    name: "Sniper".to_string(),
                     description: crate::Description("gun".to_string()),
                     weight: crate::Weight(0),
                 },
@@ -203,7 +208,8 @@ fn weapon_4(
         let gun = commands.spawn((
                 Transform::from_translation(vec3(0.1, -0.2, -0.5)),
                 SceneRoot(asset_server.load(path)),
-                Item {
+                ItemDetails {
+                    name: "MP5".to_string(),
                     description: crate::Description("gun".to_string()),
                     weight: crate::Weight(0),
                 },

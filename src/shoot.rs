@@ -73,9 +73,7 @@ impl Plugin for ShootPlugin {
             .register_type::<Grenade>()
             .register_type::<Rocket>()
             .register_type::<Cooldown>()
-            //.add_systems(Update, shoot.run_if(in_state(GameState::Gameplay)));
             .add_systems(Update, (
-                //shoot_grenade.run_if(in_state(GameState::Gameplay)),
                 shoot_rocket.run_if(in_state(GameState::Gameplay)),
                 grenade_fuse.run_if(in_state(GameState::Gameplay)),
                 ),
@@ -133,8 +131,6 @@ pub fn shoot_grenade(
     mut commands: Commands,
     mut shoot_messages: MessageReader<ShootEvent>,
     camera_transform_query: Query<&GlobalTransform, With<PlayerCamera>>,
-    mut meshes: ResMut<Assets<Mesh>>,
-    mut materials: ResMut<Assets<StandardMaterial>>,
 ) {
     trace!("Message Handler: shoot_grenade");
     for _message in shoot_messages.read() {

@@ -1,7 +1,6 @@
 use bevy::prelude::*;
 use serde::{Deserialize, Serialize};
 use bevy_yarnspinner::prelude::*;
-use bevy_yarnspinner_example_dialogue_view::prelude::*;
 
 #[derive(Debug, Component, Reflect, Eq, PartialEq, Serialize, Deserialize)]
 #[reflect(Component, Serialize, Deserialize)]
@@ -22,10 +21,10 @@ pub struct DialogPlugin;
 impl Plugin for DialogPlugin {
     fn build(&self, app: &mut App) {
         app
-            .add_plugins((
-                    YarnSpinnerPlugin::new(),
-                    ExampleYarnSpinnerDialogueViewPlugin::new(),
-                    ))
+            //.add_plugins((
+            //        YarnSpinnerPlugin::new(),
+            //        ExampleYarnSpinnerDialogueViewPlugin::new(),
+            //        ))
             .register_type::<YarnNode>()
             .add_message::<DialogMessage>()
             .add_observer(dialog_message_observer)
