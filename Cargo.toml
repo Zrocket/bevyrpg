@@ -7,7 +7,6 @@ edition = "2024"
 
 [dependencies]
 anyhow = "1.0.100"
-#bevy = { version = "0.15.0", features = ["jpeg"] }
 bevy = { version = "0.18.0", default-features = false, features = [
   "std",
   "async_executor",
@@ -69,9 +68,6 @@ serde = "*"
 standard-dist = "*"
 nom = "*"
 
-#[target.'cfg(all(target_family = "wasm", any(target_os = "unknown", target_os = "none")))'.dependencies]
-#getrandom01 = { package = "getrandom", version = "^0.2", features = ["js"] }
-#getrandom02 = { package = "getrandom", version = "^0.3", features = ["wasm_js"] }
 
 polyanya = "0.16.1"
 itertools = "0.14.0"
@@ -120,3 +116,7 @@ bevy_ingame_clock = { git = "https://github.com/GuillaumeDelorme/bevy_ingame_clo
 
 [profile.dev]
 opt-level=3
+
+#[target.'cfg(all(target_family = "wasm", any(target_os = "unknown", target_os = "none")))'.dependencies]
+#getrandom01 = { package = "getrandom", version = "^0.2", features = ["js"] }
+#getrandom02 = { package = "getrandom", version = "^0.3", features = ["wasm_js"] }
