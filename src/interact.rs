@@ -1,5 +1,4 @@
 use bevy::prelude::*;
-use avian_pickup::prelude::*;
 
 #[derive(Component, Default)]
 pub struct Interactable;
@@ -59,7 +58,6 @@ impl Plugin for InteractPlugin {
     fn build(&self, app: &mut App) {
         trace!("InteractPlugin build");
         app
-            .add_plugins(AvianPickupPlugin::default())
             .add_message::<UnInspectMessage>();
     }
 }

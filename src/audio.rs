@@ -3,8 +3,9 @@ use bevy_enhanced_input::{action::InputAction, prelude::{Fire, Start}};
 use bevy_seedling::{SeedlingPlugin, pool::SamplerPool, prelude::PoolLabel, sample::SamplePlayer};
 use bevy_tnua::TnuaController;
 use rand::Rng;
+use rand::random_range;
 
-use crate::{BackwardAction, FlashlightAction, ForwardAction, JumpAction, LeftAction, Player, PlayerControlScheme, RightAction, RunAction};
+use crate::{FlashlightAction, JumpAction, MovementAction, Player, PlayerControlScheme, RunAction};
 
 #[derive(Debug, Reflect, Resource)]
 pub struct VolumeSettings {
@@ -29,10 +30,7 @@ impl Plugin for AudioPlugin {
            .register_type::<VolumeSettings>()
            .add_plugins(SeedlingPlugin::default())
            .add_systems(Startup, init_audio)
-           .add_observer(walk_audio::<ForwardAction>)
-           .add_observer(walk_audio::<BackwardAction>)
-           .add_observer(walk_audio::<LeftAction>)
-           .add_observer(walk_audio::<RightAction>)
+           .add_observer(walk_audio::<MovementAction>)
            .add_observer(jump_audio)
            .add_observer(dash_audio)
            .add_observer(flashlight_audio);
@@ -59,7 +57,7 @@ fn walk_audio<T: InputAction>(
     pool_query: Query<&SamplePlayer, With<MovementPool>>,
     tnua_query: Query<&TnuaController<PlayerControlScheme>, With<Player>>,
 ) {
-    if let Ok(_) = pool_query.single() {
+    if pool_query.single().is_ok() {
         return;
     } else if let Ok(tnua_controller) = tnua_query.single()
     && tnua_controller.is_airborne().unwrap() {
@@ -67,7 +65,7 @@ fn walk_audio<T: InputAction>(
     }
 
     let mut rng = rand::rng();
-    let file = format!("audio/footsteps/tile/{}.ogg", rng.random_range(0..8));
+    let file = format!("audio/footsteps/tile/{}.ogg", random_range(0..8));
     commands.spawn(
         (
             MovementPool,
@@ -82,7 +80,7 @@ fn jump_audio(
     pool_query: Query<&SamplePlayer, With<JumpPool>>,
     tnua_query: Query<&TnuaController<PlayerControlScheme>, With<Player>>,
 ) {
-    if let Ok(_) = pool_query.single() {
+    if pool_query.single().is_ok() {
         return;
     } else if let Ok(tnua_controller) = tnua_query.single()
     && tnua_controller.is_airborne().unwrap() {

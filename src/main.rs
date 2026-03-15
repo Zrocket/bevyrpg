@@ -1,15 +1,29 @@
+use avian_pickup::{AvianPickupPlugin};
+use avian_rerecast::AvianBackendPlugin;
 use avian3d::prelude::*;
 use bevy::{
-    log::LogPlugin, prelude::*, window::{ CursorGrabMode, CursorOptions, WindowResolution,}
+    color::palettes::css::GREEN, log::LogPlugin, prelude::*, text::FontSmoothing, window::{ CursorGrabMode, CursorOptions, WindowResolution,},
+    dev_tools::fps_overlay::{FpsOverlayPlugin, FpsOverlayConfig, FrameTimeGraphConfig},
 };
 use bevy_asset_loader::prelude::*;
+use bevy_bae::BaePlugin;
 use bevy_egui::EguiGlobalSettings;
+use bevy_hanabi::HanabiPlugin;
+use bevy_hotpatching_experiments::SimpleSubsecondPlugin;
+use bevy_ingame_clock::InGameClockPlugin;
 use bevy_inspector_egui::quick::WorldInspectorPlugin;
-use bevy_seedling::SeedlingPlugin;
+use bevy_landmass::{Landmass3dPlugin, debug::Landmass3dDebugPlugin};
+use bevy_mod_scripting::BMSPlugin;
+use bevy_rerecast::NavmeshPlugins;
+use bevy_simple_text_input::TextInputPlugin;
 use bevy_skein::SkeinPlugin;
 use bevy_sprite3d::Sprite3dPlugin;
+use bevy_sun_move::{SunMovePlugin, random_stars::RandomStarsPlugin};
+use bevy_yarnspinner::prelude::YarnSpinnerPlugin;
+use bevy_yarnspinner_example_dialogue_view::ExampleYarnSpinnerDialogueViewPlugin;
 use bevy_yoleck::prelude::*;
 use clap::Parser;
+use landmass_rerecast::LandmassRerecastPlugin;
 
 mod audio;
 mod character;
@@ -28,10 +42,12 @@ mod navmesh;
 mod npc;
 mod particles;
 mod player;
+mod quest;
 mod render;
 mod rover;
 mod shoot;
 mod sprites;
+mod states;
 mod tests;
 mod ui;
 mod utils;
@@ -49,10 +65,12 @@ pub use items::*;
 pub use navmesh::*;
 pub use npc::*;
 pub use player::*;
+pub use quest::*;
 pub use render::*;
 pub use rover::*;
 pub use shoot::*;
 pub use sprites::*;
+pub use states::*;
 pub use ui::*;
 pub use utils::*;
 use level::*;
@@ -68,33 +86,8 @@ struct Args {
     inspector: bool,
     #[clap(long)]
     level: Option<String>,
-}
-
-#[derive(Clone, Hash, Debug, Eq, PartialEq, Default, SubStates, Reflect)]
-#[source(GameState = GameState::Paused)]
-pub enum PauseMenuState {
-    ControllerSettings,
-    GameplaySettings,
-    #[default]
-    MainMenu,
-    Settings,
-    SoundSettings,
-    VideoSettings,
-}
-
-#[derive(Clone, Hash, Debug, Eq, PartialEq, Default, States, Reflect)]
-pub enum GameState {
-    Console,
-    Gameplay,
-    //Inventory,
-    Loading,
-    MainMenu,
-    Paused,
-    #[default]
-    Preload,
-    Postload,
-    GameOver,
-    StartMenu,
+    #[clap(long)]
+    fps: bool,
 }
 
 fn main() {
@@ -128,13 +121,37 @@ fn main() {
                 ..default()
             }),
     )
-    .insert_resource(AmbientLight {
+    .insert_resource(GlobalAmbientLight {
         color: Color::WHITE,
         brightness: 0.5,
         ..default()
     })
+    // Library Plugins
     .add_plugins((
         PhysicsPlugins::default(),
+        AvianPickupPlugin::default(),
+        YarnSpinnerPlugin::new(),
+        ExampleYarnSpinnerDialogueViewPlugin::new(),
+        Sprite3dPlugin,
+        SunMovePlugin,
+        RandomStarsPlugin,
+        Landmass3dPlugin::default(),
+        Landmass3dDebugPlugin::default(),
+        LandmassRerecastPlugin::default(),
+        NavmeshPlugins::default(),
+        AvianBackendPlugin::default(),
+        BaePlugin::default(),
+        HanabiPlugin,
+        TextInputPlugin,
+    ))
+    .add_plugins((
+        SkeinPlugin::default(),
+        SimpleSubsecondPlugin::default(),
+        BMSPlugin,
+        InGameClockPlugin,
+    ))
+    // Crate Plugins
+    .add_plugins((
         GamePlayerPlugin,
         CharacterPlugin,
         DevRoomPlugin,
@@ -148,20 +165,21 @@ fn main() {
         GameRenderPlugin,
         FurniturePlugin,
         ItemPlugin,
-        SkeinPlugin::default(),
+        AudioPlugin,
+        TestsPlugin,
     ))
     .add_plugins((
-            AudioPlugin,
-            TestsPlugin,
-            Sprite3dPlugin,
-            DialogPlugin,
-            NavMeshPlugin,
-            SpritesPlugin,
-            EnemyPlugin,
-            ParticlePlugin,
-            NpcPlugin,
+        StatesPlugin,
+        DialogPlugin,
+        NavMeshPlugin,
+        SpritesPlugin,
+        EnemyPlugin,
+        ParticlePlugin,
+        NpcPlugin,
+        QuestPlugin,
+        RoverPlugin,
     ));
-    app.add_systems(Update, pause_game);
+    app.add_systems(Update, pause_game.run_if(in_state(GameState::Gameplay)));
 
     if args.editor {
         app.add_plugins((
@@ -174,26 +192,29 @@ fn main() {
     if args.inspector {
         app.add_plugins(WorldInspectorPlugin::new());
     }
-    app.register_type::<RigidBody>()
-        .register_type::<GameState>()
-        .register_type::<PauseMenuState>()
-        .init_state::<GameState>()
-        .add_sub_state::<PauseMenuState>()
-        .add_loading_state(
-            LoadingState::new(GameState::Preload)
-                .continue_to_state(GameState::Loading)
-                .on_failure_continue_to_state(GameState::Loading)
-        )
-        .add_loading_state(
-            LoadingState::new(GameState::Loading)
-                .continue_to_state(GameState::Postload)
-                .on_failure_continue_to_state(GameState::Postload)
-        )
-        .add_loading_state(
-            LoadingState::new(GameState::Postload)
-                .continue_to_state(GameState::StartMenu)
-                .on_failure_continue_to_state(GameState::StartMenu)
-        );
+    if args.fps {
+        app.add_plugins(FpsOverlayPlugin {
+            config: FpsOverlayConfig {
+                text_config: TextFont {
+                    font_size: 42.0,
+                    font: default(),
+                    font_smoothing: FontSmoothing::default(),
+                    ..default()
+                },
+                text_color: Color::srgb(0.0, 1.0, 0.0),
+                refresh_interval: core::time::Duration::from_millis(100),
+                enabled: true,
+                frame_time_graph_config: FrameTimeGraphConfig {
+                    enabled: true,
+                    // The minimum acceptable fps
+                    min_fps: 30.0,
+                    // The target fps
+                    target_fps: 144.0,
+                },
+            }
+        });
+    }
+    app.register_type::<RigidBody>();
 
         if let Some(level) = args.level {
             app.world_mut().write_message(ChangeLevelMessage(level));
@@ -209,8 +230,6 @@ fn pause_game(
     game_state: ResMut<State<GameState>>,
     mut  game_state_setter: ResMut<NextState<GameState>>,
     mut physics_time: ResMut<Time<Physics>>,
-    //pause_menu_state: ResMut<State<PauseMenuState>>,
-    //mut pause_menu_state_setter: ResMut<NextState<PauseMenuState>>,
 ) {
     trace!("SYSTEM: pause_game");
     if key.just_pressed(KeyCode::Comma) {

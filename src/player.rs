@@ -1,9 +1,13 @@
-use avian3d::{prelude::{CoefficientCombine, Collider, Friction, GravityScale, LockedAxes, RigidBody, SpatialQuery, SpatialQueryFilter}};
-use bevy::{camera::Exposure, core_pipeline::tonemapping::Tonemapping, ecs::{lifecycle::HookContext, world::DeferredWorld}, input::common_conditions::input_just_pressed, pbr::{Atmosphere, AtmosphereSettings}, post_process::bloom::Bloom, prelude::*, render::view::Hdr};
+use avian_pickup::actor::{AvianPickupActor, AvianPickupActorHoldConfig};
+use avian3d::prelude::{CoefficientCombine, Collider, CollisionLayers, Friction, GravityScale, LayerMask, LockedAxes, RigidBody, SpatialQuery, SpatialQueryFilter};
+use bevy::{camera::Exposure, core_pipeline::tonemapping::Tonemapping, ecs::{lifecycle::HookContext, world::DeferredWorld}, input::common_conditions::input_just_pressed, pbr::{Atmosphere, AtmosphereSettings, ScatteringMedium}, post_process::bloom::Bloom, prelude::*, render::view::Hdr};
 use bevy_egui::PrimaryEguiContext;
 use bevy_flycam::{FlyCam, NoCameraPlayerPlugin};
+use bevy_tnua::{TnuaController, TnuaObstacleRadar, control_helpers::{TnuaBlipReuseAvoidance, TnuaSimpleAirActionsCounter}};
+use bevy_tnua_avian3d::TnuaAvian3dSensorShape;
+use bevy_seedling::spatial::SpatialListener3D;
 
-use crate::{CameraConfig, CharacterBundle, CollisionLayer, DeathEvent, Description, Experience, GameState, Health, Item, Mana, MaxHealth, MaxMana, PlayerControlSchemeConfig, RenderPlayer, TnuaPlayerController, Walk, Weight, add_to_inventory_observer, display_equip_event_observer, display_inventory_event_observer, display_quest_event_observer, display_stats_event_observer, level::DAGunAssets, remove_from_inventory_observer};
+use crate::{BootStrap, CameraConfig, CharacterBundle, CollisionLayer, DeathEvent, Description, Experience, FetchQuest, FloatHeight, GameState, Health, ItemDetails, Mana, MaxHealth, MaxMana, PlayerControlScheme, PlayerController, PlayerControllerConfig, PlayerControllerInput, Quest, QuestOf, RayHit, RenderPlayer, TnuaPlayerController, Walk, Weight, add_to_inventory_observer, display_equip_event_observer, display_inventory_event_observer, display_quest_event_observer, display_stats_event_observer, level::DAGunAssets, remove_from_inventory_observer};
 
 #[derive(Clone, Component, Hash, Debug, Eq, PartialEq, Default, States)]
 pub enum PlayerState {
@@ -15,24 +19,57 @@ pub enum PlayerState {
     NoClip,
 }
 
+#[derive(Clone, Component, Hash, Debug, Eq, PartialEq, Default, States)]
+pub enum CameraState {
+    #[default]
+    Player,
+    Indipendent,
+}
+
 #[derive(Component, Reflect, Default)]
 #[reflect(Component)]
 #[require(
     Name::new("Player"),
+    TnuaPlayerController,
+    CameraConfig {
+        height_offset: 0.0,
+        //radius_scale: 0.75,
+    },
     Collider::capsule(0.1, 0.5),
     Friction {
         combine_rule: CoefficientCombine::Min,
         ..default()
     },
+    SpatialListener3D,
+    RayHit(None),
+    Walk::default(),
+    FloatHeight(1.5),
     RigidBody::Dynamic,
     LockedAxes::ROTATION_LOCKED,
+    CollisionLayers::new(CollisionLayer::Player, LayerMask::ALL),
     GravityScale(1.0),
-    CameraConfig {
-        height_offset: 0.0,
-        //radius_scale: 0.75,
-    },
-    Walk::default(),
+    //TnuaGravity(Vec3::ZERO),
     PlayerState::Grounded,
+    TnuaObstacleRadar::new(1.0, 3.0),
+    TnuaBlipReuseAvoidance::<PlayerControlScheme>::default(),
+    PlayerControllerConfig::default(),
+    TnuaSimpleAirActionsCounter::<PlayerControlScheme>::default(),
+    TnuaController::<PlayerControlScheme>::default(),
+    PlayerController::default(),
+    PlayerControllerInput::default(),
+    TnuaAvian3dSensorShape(Collider::capsule(0.1, 0.5)),
+    AvianPickupActor {
+        prop_filter: SpatialQueryFilter::from_mask(CollisionLayer::Prop),
+        actor_filter: SpatialQueryFilter::from_mask(CollisionLayer::Player),
+        obstacle_filter: SpatialQueryFilter::from_mask(CollisionLayer::Default),
+        hold: AvianPickupActorHoldConfig {
+            pitch_range: -40.0_f32.to_radians()..=75.0_f32.to_radians(),
+            distance_to_allow_holding: 100.0,
+            preferred_distance: 1.5,
+            ..default()
+        },
+        ..default()
+    }
 )]
 #[component(on_add = on_player_add)]
 pub struct Player;
@@ -44,38 +81,51 @@ pub struct Player;
         clear_color: ClearColorConfig::Custom(Srgba::rgb(0.0, 0.0, 0.0).into()),
         ..default()
     },
-    Hdr,
     Camera3d { ..default() },
-    Atmosphere::EARTH,
+    Projection::Perspective(PerspectiveProjection {
+        fov: std::f32::consts::PI / 2.0,
+        ..default()
+    }),
     AtmosphereSettings {
         aerial_view_lut_max_distance: 3.2e5,
         scene_units_to_m: 1e+4,
         ..Default::default()
     },
+    Hdr,
     Exposure::SUNLIGHT,
     Tonemapping::AcesFitted,
-    Bloom::NATURAL,
-    Projection::Perspective(PerspectiveProjection {
-        fov: std::f32::consts::PI / 2.0,
-        ..default()
-    }),
     Transform {
         translation: Vec3 { y: 2., ..default() },
         ..default()
     },
+    Bloom::NATURAL,
 )]
+#[component(on_add = on_player_camera_add)]
 pub struct PlayerCamera;
 
 #[derive(Component, Reflect, Default)]
 #[reflect(Component)]
+pub struct CameraTarget(pub Transform);
+
+#[derive(Component, Reflect, Default)]
+#[reflect(Component)]
+#[require(
+    SpotLight {
+        intensity: 1_000_000.0,
+        shadows_enabled: true,
+        ..default()
+    },
+)]
 pub struct PlayerFlashlight;
 
 #[derive(Component, Reflect, Default)]
 #[reflect(Component)]
+#[type_path("api")]
 pub struct PlayerSpawner;
 
 #[derive(Component, Reflect, Default)]
 #[reflect(Component)]
+#[type_path("api")]
 pub struct PlayerTrigger;
 
 #[derive(Component, Reflect, Default)]
@@ -90,6 +140,7 @@ impl Plugin for GamePlayerPlugin {
     fn build(&self, app: &mut App) {
         info!("GamePlayerPlugin build");
         app.register_type::<Player>()
+            .init_state::<CameraState>()
             .add_plugins(NoCameraPlayerPlugin)
             .insert_resource(bevy_flycam::KeyBindings {
                 move_ascend: KeyCode::PageUp,
@@ -100,11 +151,10 @@ impl Plugin for GamePlayerPlugin {
             .register_type::<PlayerSpawner>()
             .register_type::<PlayerTrigger>()
             .add_message::<SpawnPlayerMessage>()
-            //.add_systems(OnEnter(GameState::Postload), spawn_player_observer)
             .add_systems(Update, spawn_player_observer.run_if(resource_exists::<DAGunAssets>))
-            .add_systems(OnEnter(GameState::Postload), init_player)
+            .add_systems(OnEnter(BootStrap::Postload), init_player)
             .add_systems(Update, (
-                    player_forward.run_if(in_state(GameState::Gameplay)),
+                    player_forward.run_if(/*in_state(GameState::Gameplay)*/ in_state(CameraState::Player)),
                     check_player_triggers.run_if(in_state(GameState::Gameplay)),
                 )
             )
@@ -118,6 +168,16 @@ fn on_player_add(
 ) {
     world.commands()
         .entity(context.entity)
+        .insert(
+            CharacterBundle {
+                mana: Mana(100),
+                max_mana: MaxMana(100),
+                health: Health(100),
+                max_health: MaxHealth(100),
+                experience: Experience(100),
+                ..default()
+            },
+        )
         .observe(player_death_event_observer)
         .observe(add_to_inventory_observer::<Player>)
         .observe(remove_from_inventory_observer::<Player>)
@@ -125,6 +185,19 @@ fn on_player_add(
         .observe(display_quest_event_observer)
         .observe(display_equip_event_observer)
         .observe(display_stats_event_observer);
+}
+
+fn on_player_camera_add(
+    mut world: DeferredWorld,
+    context: HookContext,
+) {
+    let mut scattering_mediums = world.resource_mut::<Assets<ScatteringMedium>>();
+    let scattering_mediums_handle = scattering_mediums.add(ScatteringMedium::default());
+
+    world.commands()
+        .entity(context.entity)
+        .insert(Atmosphere::earthlike(scattering_mediums_handle))
+        .insert(PrimaryEguiContext);
 }
 
 fn init_player(
@@ -166,7 +239,8 @@ fn spawn_player_observer(
                 Transform::from_translation(vec3(0.1, -0.2, -0.5)),
                 //SceneRoot(asset_server.load("guns/uzi.glb#Scene0")),
                 SceneRoot(asset_server.load(uzi)),
-                Item {
+                ItemDetails {
+                    name: "gun".to_string(),
                     description: Description("gun".to_string()),
                     weight: Weight(0),
                 },
@@ -174,6 +248,7 @@ fn spawn_player_observer(
                 ActiveWeapon,
             ))
             .id();
+
 
         // Player
         debug!("Creating Player");
@@ -183,37 +258,31 @@ fn spawn_player_observer(
                 (
                     spawn_point,
                     Player,
-                    TnuaPlayerController,
-                    CharacterBundle {
-                        mana: Mana(100),
-                        max_mana: MaxMana(100),
-                        health: Health(100),
-                        max_health: MaxHealth(100),
-                        experience: Experience(100),
-                        ..default()
-                    },
                 ),
             ))
             .id();
 
+        commands.spawn((
+            Quest {
+                description: "TEST".to_string()
+            },
+            FetchQuest::new(1, "Water".to_string()),
+            QuestOf(logical_entity),
+            ));
+
         // Camera
+
         debug!("Creating Camera");
         if let Ok(mut render_player) = player_camera_query.single_mut() {
             *render_player = RenderPlayer { logical_entity };
         } else {
             let flashlight = commands
                 .spawn((
-                    SpotLight {
-                        intensity: 1_000_000.0,
-                        shadows_enabled: true,
-                        ..default()
-                    },
                     PlayerFlashlight,
                 ))
                 .id();
             commands
                 .spawn((
-                    PrimaryEguiContext,
                     RenderPlayer { logical_entity },
                     PlayerCamera,
                 ))
@@ -252,14 +321,6 @@ fn player_forward(
             let forward = cam_transform.forward();
             player_transform.look_to(*forward, Vec3::Y);
     }
-
-
-    /*if let Ok(cam_transform) = cam_transform.single() {
-        let forward = cam_transform.forward();
-        if let Ok(mut player_transform) = player_transform.single_mut() {
-            player_transform.look_to(*forward, Vec3::Y);
-        }
-    }*/
 }
 
 fn check_player_triggers(
