@@ -9,8 +9,8 @@ use bevy::picking::PickingSystems;
 use bevy::picking::backend::ray::RayMap;
 use bevy::picking::pointer::{Location, PointerAction, PointerId, PointerInput};
 use bevy::prelude::*;
-use bevy::render::render_resource::{AsBindGroup, Extent3d, TextureFormat, TextureUsages};
-use bevy::color::palettes::css::{BLUE, GOLDENROD, GRAY, GREEN, RED};
+use bevy::render::render_resource::{Extent3d, TextureFormat, TextureUsages};
+use bevy::color::palettes::css::{BLUE, GRAY, GREEN, RED};
 use bevy::window::{PrimaryWindow, WindowEvent};
 use bevy_ingame_clock::InGameClock;
 use ratatui::style::Stylize;
@@ -21,10 +21,12 @@ use soft_ratatui::{EmbeddedGraphics, SoftBackend};
 use bevy::asset::RenderAssetUsages;
 use bevy::camera::RenderTarget;
 
-use crate::widgets::floating_windows::{FloatingWindow, floating_computer_rover_window_root, floating_computer_window_root};
-use crate::{Interactable, InteractionEvent, Rover, RoverBackwardEvent, RoverCamera, RoverCamreaRenderImage, RoverForwardEvent, RoverLeftEvent, RoverRightEvent, widgets};
+use crate::widgets::floating_windows::{floating_computer_rover_window_root, floating_computer_window_root};
+use crate::{Interactable, Rover, RoverBackwardEvent, RoverCamera, RoverForwardEvent, RoverLeftEvent, RoverRightEvent};
 
 /*
+ * Eventual CRT effect
+ *
 #[derive(AsBindGroup, Asset, TypePath, Debug, Clone)]
 struct ComputerScreenMaterial {
 }
@@ -34,6 +36,111 @@ impl UiMaterial for ComputerScreenMaterial {
     }
 }
 */
+
+
+#[derive(Component)]
+#[require(
+    Node {
+        //width: px(300),
+        //height: px(50),
+        flex_direction: FlexDirection::Column,
+        ..default()
+    },
+    BackgroundColor(GREEN.into()),
+    Text("FORWARD".into()),
+)]
+#[component(on_add = on_forward_button_add)]
+pub struct ForwardButton;
+
+fn on_forward_button_add(
+    mut world: DeferredWorld,
+    context: HookContext,
+) {
+    world.commands()
+        .entity(context.entity)
+        .observe(icon_over)
+        .observe(icon_out)
+        .observe(forward_pressed)
+        .observe(forward_released);
+}
+
+#[derive(Component)]
+#[require(
+    Node {
+        //width: px(300),
+        //height: px(50),
+        flex_direction: FlexDirection::Column,
+        ..default()
+    },
+    BackgroundColor(GREEN.into()),
+    Text("BACKWARD".into()),
+)]
+#[component(on_add = on_backward_button_add)]
+pub struct BackwardButton;
+fn on_backward_button_add(
+    mut world: DeferredWorld,
+    context: HookContext,
+) {
+    world.commands()
+        .entity(context.entity)
+        .observe(icon_over)
+        .observe(icon_out)
+        .observe(backward_pressed)
+        .observe(backward_released);
+}
+
+#[derive(Component)]
+#[require(
+    Node {
+        //width: px(300),
+        //height: px(50),
+        flex_direction: FlexDirection::Column,
+        ..default()
+    },
+    Text("LEFT".into()),
+    BackgroundColor(GREEN.into()),
+)]
+#[component(on_add = on_left_button_add)]
+pub struct LeftButton;
+
+fn on_left_button_add(
+    mut world: DeferredWorld,
+    context: HookContext,
+) {
+    world.commands()
+        .entity(context.entity)
+        .observe(icon_over)
+        .observe(icon_out)
+        .observe(left_pressed)
+        .observe(left_released);
+}
+
+#[derive(Component)]
+#[require(
+    Node {
+        //width: px(300),
+        //height: px(50),
+        flex_direction: FlexDirection::Column,
+        ..default()
+    },
+    BackgroundColor(GREEN.into()),
+    Text("RIGHT".into()),
+)]
+#[component(on_add = on_right_button_add)]
+pub struct RightButton;
+
+fn on_right_button_add(
+    mut world: DeferredWorld,
+    context: HookContext,
+
+) {
+    world.commands()
+        .entity(context.entity)
+        .observe(icon_over)
+        .observe(icon_out)
+        .observe(right_pressed)
+        .observe(right_released);
+}
 
 #[derive(Component)]
 pub struct ComputerNode;
@@ -276,31 +383,33 @@ fn icon_double_click_observer(
                                         },
                                         Children::spawn(SpawnWith(|parent: &mut ChildSpawner| {
                                             parent.spawn((
-                                                Node {
-                                                    //width: px(300),
-                                                    //height: px(50),
-                                                    flex_direction: FlexDirection::Column,
-                                                    ..default()
-                                                },
-                                                BackgroundColor(GREEN.into()),
-                                                Text("FORWARD".into()),
-                                            ))
-                                            .observe(icon_over)
-                                            .observe(icon_out)
-                                            .observe(forward_pressed);
+                                                ForwardButton,
+                                                //Node {
+                                                //    //width: px(300),
+                                                //    //height: px(50),
+                                                //    flex_direction: FlexDirection::Column,
+                                                //    ..default()
+                                                //},
+                                                //BackgroundColor(GREEN.into()),
+                                                //Text("FORWARD".into()),
+                                            ));
+                                            //.observe(icon_over)
+                                            //.observe(icon_out)
+                                            //.observe(forward_pressed);
                                             parent.spawn((
-                                                Node {
-                                                    //width: px(300),
-                                                    //height: px(50),
-                                                    flex_direction: FlexDirection::Column,
-                                                    ..default()
-                                                },
-                                                BackgroundColor(GREEN.into()),
-                                                Text("BACKWARD".into()),
-                                            ))
-                                            .observe(icon_over)
-                                            .observe(icon_out)
-                                            .observe(backward_pressed);
+                                                BackwardButton,
+                                                //Node {
+                                                //    //width: px(300),
+                                                //    //height: px(50),
+                                                //    flex_direction: FlexDirection::Column,
+                                                //    ..default()
+                                                //},
+                                                //BackgroundColor(GREEN.into()),
+                                                //Text("BACKWARD".into()),
+                                            ));
+                                            //.observe(icon_over)
+                                            //.observe(icon_out)
+                                            //.observe(backward_pressed);
                                         })),
                                     ));
                                     // Right Buttons
@@ -313,31 +422,33 @@ fn icon_double_click_observer(
                                         },
                                         Children::spawn(SpawnWith(|parent: &mut ChildSpawner| {
                                             parent.spawn((
-                                                Node {
-                                                    //width: px(300),
-                                                    //height: px(50),
-                                                    flex_direction: FlexDirection::Column,
-                                                    ..default()
-                                                },
-                                                BackgroundColor(GREEN.into()),
-                                                Text("LEFT".into()),
-                                            ))
-                                            .observe(icon_over)
-                                            .observe(icon_out)
-                                            .observe(left_pressed);
+                                                LeftButton,
+                                                //Node {
+                                                //    //width: px(300),
+                                                //    //height: px(50),
+                                                //    flex_direction: FlexDirection::Column,
+                                                //    ..default()
+                                                //},
+                                                //BackgroundColor(GREEN.into()),
+                                                //Text("LEFT".into()),
+                                            ));
+                                            //.observe(icon_over)
+                                            //.observe(icon_out)
+                                            //.observe(left_pressed);
                                             parent.spawn((
-                                                Node {
-                                                    //width: px(300),
-                                                    //height: px(50),
-                                                    flex_direction: FlexDirection::Column,
-                                                    ..default()
-                                                },
-                                                BackgroundColor(GREEN.into()),
-                                                Text("RIGHT".into()),
-                                            ))
-                                            .observe(icon_over)
-                                            .observe(icon_out)
-                                            .observe(right_pressed);
+                                                RightButton,
+                                                //Node {
+                                                //    //width: px(300),
+                                                //    //height: px(50),
+                                                //    flex_direction: FlexDirection::Column,
+                                                //    ..default()
+                                                //},
+                                                //BackgroundColor(GREEN.into()),
+                                                //Text("RIGHT".into()),
+                                            ));
+                                            //.observe(icon_over)
+                                            //.observe(icon_out)
+                                            //.observe(right_pressed);
                                         })),
                                     ));
                                 })),
@@ -380,17 +491,39 @@ fn icon_out(
 }
 
 fn forward_pressed(
-    _trigger: On<Pointer<Click>>,
+    _trigger: On<Pointer<Press>>,
     mut commands: Commands,
     rover_query: Query<Entity, With<Rover>>,
 ) {
     if let Ok(rover_entity) = rover_query.single() {
+        println!("PRESS");
+        commands.entity(rover_entity).trigger(|entity| RoverForwardEvent { entity });
+    }
+}
+
+fn forward_released(
+    _trigger: On<Pointer<Release>>,
+    mut commands: Commands,
+    rover_query: Query<Entity, With<Rover>>,
+) {
+    if let Ok(rover_entity) = rover_query.single() {
+        println!("RELEASE");
         commands.entity(rover_entity).trigger(|entity| RoverForwardEvent { entity });
     }
 }
 
 fn backward_pressed(
-    _trigger: On<Pointer<Click>>,
+    _trigger: On<Pointer<Press>>,
+    mut commands: Commands,
+    rover_query: Query<Entity, With<Rover>>,
+) {
+    if let Ok(rover_entity) = rover_query.single() {
+        commands.entity(rover_entity).trigger(|entity| RoverBackwardEvent { entity });
+    }
+}
+
+fn backward_released(
+    _trigger: On<Pointer<Release>>,
     mut commands: Commands,
     rover_query: Query<Entity, With<Rover>>,
 ) {
@@ -400,7 +533,17 @@ fn backward_pressed(
 }
 
 fn left_pressed(
-    _trigger: On<Pointer<Click>>,
+    _trigger: On<Pointer<Press>>,
+    mut commands: Commands,
+    rover_query: Query<Entity, With<Rover>>,
+) {
+    if let Ok(rover_entity) = rover_query.single() {
+        commands.entity(rover_entity).trigger(|entity| RoverLeftEvent { entity });
+    }
+}
+
+fn left_released(
+    _trigger: On<Pointer<Release>>,
     mut commands: Commands,
     rover_query: Query<Entity, With<Rover>>,
 ) {
@@ -410,7 +553,17 @@ fn left_pressed(
 }
 
 fn right_pressed(
-    _trigger: On<Pointer<Click>>,
+    _trigger: On<Pointer<Press>>,
+    mut commands: Commands,
+    rover_query: Query<Entity, With<Rover>>,
+) {
+    if let Ok(rover_entity) = rover_query.single() {
+        commands.entity(rover_entity).trigger(|entity| RoverRightEvent { entity });
+    }
+}
+
+fn right_released(
+    _trigger: On<Pointer<Release>>,
     mut commands: Commands,
     rover_query: Query<Entity, With<Rover>>,
 ) {
@@ -494,9 +647,11 @@ impl FromWorld for MyProcGenMaterial {
         let mut materials = world.resource_mut::<Assets<StandardMaterial>>();
 
         let material_handle = materials.add(StandardMaterial {
-            base_color_texture: Some(computer_image),
+            base_color_texture: Some(computer_image.clone()),
             reflectance: 0.02,
             unlit: false,
+            emissive: Color::WHITE.into(),
+            emissive_texture: Some(computer_image),
             ..default()
         });
 
