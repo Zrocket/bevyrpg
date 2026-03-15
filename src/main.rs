@@ -13,7 +13,7 @@ use bevy_hanabi::HanabiPlugin;
 use bevy_ingame_clock::InGameClockPlugin;
 use bevy_inspector_egui::quick::WorldInspectorPlugin;
 use bevy_landmass::{Landmass3dPlugin, debug::Landmass3dDebugPlugin};
-use bevy_mod_scripting::BMSPlugin;
+//use bevy_mod_scripting::BMSPlugin;
 use bevy_rerecast::NavmeshPlugins;
 use bevy_simple_text_input::TextInputPlugin;
 use bevy_skein::SkeinPlugin;
@@ -147,7 +147,7 @@ fn main() {
     .add_plugins((
         SkeinPlugin::default(),
         //SimpleSubsecondPlugin::default(),
-        BMSPlugin,
+        //BMSPlugin,
         InGameClockPlugin,
     ))
     // Crate Plugins
