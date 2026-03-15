@@ -2,7 +2,7 @@ use avian3d::math::AdjustPrecision;
 use bevy::prelude::*;
 use bevy_tnua::{TnuaBasis, TnuaProximitySensor, builtins::TnuaBuiltinWalkHeadroom, ghost_overrides::{TnuaGhostOverwrite, TnuaGhostOverwritesForBasis}, math::{Float, Vector3}, sensor_sets::{ProximitySensorPreparationHelper, TnuaSensors}};
 use serde::{Deserialize, Serialize};
-
+/*
 #[derive(Default)]
 #[cfg_attr(feature = "serialize", derive(Serialize, Deserialize))]
 pub struct TnuaSwim {
@@ -170,4 +170,4 @@ impl TnuaBasis for TnuaSwim {
                 .into_iter()
                 .flat_map(|(o, e)| Some((o, e?)))
     }
-}
+}*/
