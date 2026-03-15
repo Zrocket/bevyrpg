@@ -1,4 +1,4 @@
-use bevy::{app::Plugin, ecs::{component::Component, entity::{self, Entity}, event::EntityEvent, hierarchy::ChildOf, observer::On, query::With, system::{Commands, Query}}, picking::events::{Pointer, Press}, platform::collections::HashSet};
+use bevy::{app::Plugin, ecs::{component::Component, entity::Entity, event::EntityEvent, hierarchy::ChildOf, observer::On, query::With, system::{Commands, Query}}, picking::events::{Pointer, Press}, platform::collections::HashSet};
 
 /// If contents of entity are interacted with, focus should be kept
 /// for given focus parent entity and its parents recursively
@@ -34,7 +34,7 @@ impl Plugin for FloatingUiFocusPlugin {
     fn build(&self, app: &mut bevy::app::App) {
        app
            .add_observer(update_should_close)
-           .add_observer(should_close_current_tree_observer); 
+           .add_observer(should_close_current_tree_observer);
     }
 }
 

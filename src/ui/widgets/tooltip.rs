@@ -1,5 +1,3 @@
-use std::default;
-
 use bevy::{app::{Plugin, PostUpdate}, ecs::{component::Component, entity::Entity, observer::On, query::With, resource::Resource, system::{Query, Res, ResMut}}, picking::events::{Out, Over, Pointer}, time::Time};
 
 #[derive(Component)]
@@ -13,7 +11,7 @@ pub struct TooltipParent(Vec<Entity>);
 /// Marks entity as tooltip source. When hovered.
 ///
 /// It will count towards timers for deploying tooltip.
-#[derive(Component)]
+#[derive(Component, Default)]
 pub struct TooltipSource;
 
 /// Global settings when tooltips should be displayed

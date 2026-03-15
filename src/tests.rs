@@ -1,7 +1,7 @@
 use bevy::{input::common_conditions::input_just_pressed, prelude::*};
 use bevy_asset_loader::dynamic_asset::DynamicAssetCollections;
 
-use crate::{AddToInventoryEvent, DamageEvent, Description, DisplayEquipEvent, Equiptable, GameState, Health, Item, Player, RemoveMessage, widgets::floating_windows::floating_window_root };
+use crate::{AddToInventoryEvent, DamageEvent, Description, DisplayEquipEvent, Equiptable, GameState, Health, ItemDetails, Mana, ManaEvent, Player};
 use super::Weight;
 
 pub struct TestsPlugin;
@@ -11,6 +11,7 @@ impl Plugin for TestsPlugin {
             .add_systems(Update, (
                     //dynamic_asset_test
                     health_test,
+                    mana_test,
                     //inventory_add_test,
                     inventory_add_test,
                     //inventory_remove_test,
@@ -43,8 +44,20 @@ fn health_test(
 ) {
     trace!("SYSTEM: health_test");
     if let Ok((player_entity, _player)) = player.single_mut()
-    && key.just_pressed(KeyCode::KeyK) {
+    && key.just_pressed(KeyCode::KeyV) {
         commands.entity(player_entity).trigger(|entity| DamageEvent { entity, ammount: 5 });
+    }
+}
+
+fn mana_test(
+    mut commands: Commands,
+    key: Res<ButtonInput<KeyCode>>,
+    mut player: Query<(Entity, &Mana), With<Player>>,
+) {
+    trace!("SYSTEM: health_test");
+    if let Ok((player_entity, _player)) = player.single_mut()
+    && key.just_pressed(KeyCode::KeyC) {
+        commands.entity(player_entity).trigger(|entity| ManaEvent { entity, ammount: 5 });
     }
 }
 
@@ -56,7 +69,8 @@ fn inventory_add_test(
     trace!("SYSTEM: inventory_add_test");
     if let Ok(player) = player_query.single_mut() && key.just_pressed(KeyCode::KeyJ) {
         let item = commands.spawn((
-                Item {
+                ItemDetails {
+                    name: "Test".to_string(),
                     description: Description("Test".to_string()),
                     weight: Weight(0),
                 },

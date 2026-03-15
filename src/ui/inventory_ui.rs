@@ -1,4 +1,4 @@
-use bevy::{app::{HierarchyPropagatePlugin, Propagate}, color::palettes::css::{DARK_BLUE, DARK_GRAY, DARK_GREEN, DARK_KHAKI, DARK_RED}, ecs::system::SystemId, ui_widgets::observe};
+use bevy::{app::{HierarchyPropagatePlugin, Propagate}, color::palettes::css::{DARK_BLUE, DARK_GRAY, DARK_GREEN, DARK_KHAKI, DARK_RED}, ecs::{lifecycle::HookContext, system::SystemId, world::DeferredWorld}};
 
 use crate::widgets::{anchored::{Anchor, AnchorDirection, AnchorOption, AnchorTarget, DropdownMenu}, floating_window_focus::{FocusDetectShouldClose, FocusParernt}, floating_window_ordering::UiZOrderLayer, floating_windows::floating_window_root, tooltip::{TooltipChild, TooltipParent, TooltipSource}};
 
@@ -13,7 +13,43 @@ pub struct ParentMenu(Vec<Entity>);
 pub struct ChildMenu(pub Entity);
 
 #[derive(Component, Reflect)]
+#[require(
+    Node {
+        flex_grow: 1.,
+        //flex_direction: FlexDirection::Column,
+        display: Display::Grid,
+        //grid_auto_flow: GridAutoFlow::Column,
+        grid_template_columns: vec![
+            GridTrack::auto(),
+            GridTrack::auto(),
+            GridTrack::auto(),
+            GridTrack::auto(),
+            GridTrack::auto(),
+        ],
+        //aspect_ratio: Some(1.0),
+        padding: UiRect::all(px(24)),
+        row_gap: px(12),
+        column_gap: px(12),
+        overflow: Overflow { x: OverflowAxis::Hidden, y: OverflowAxis::Hidden },
+        ..default()
+    },
+    BackgroundColor::from(DARK_GRAY),
+)]
+#[component(on_add = on_inventory_ui_add)]
 pub struct UiInventory;
+
+#[derive(Component, Reflect)]
+#[require(
+    Node {
+        height: Val::Px(80.),
+        width: Val::Px(80.),
+        ..default()
+    },
+    BackgroundColor::from(DARK_GREEN),
+    TooltipSource,
+)]
+#[component(on_add = on_inventory_item_ui_add)]
+pub struct UiInventoryItem;
 
 #[derive(EntityEvent)]
 pub struct DisplayInventoryEvent {
@@ -33,6 +69,27 @@ pub struct Owner {
 #[derive(Component, Debug)]
 pub struct InvRef(pub Entity);
 
+fn on_inventory_ui_add(
+    mut world: DeferredWorld,
+    context: HookContext,
+) {
+    world.commands()
+        .entity(context.entity)
+        .observe(transfer_item_observer)
+        .observe(refresh_window_observer);
+}
+
+fn on_inventory_item_ui_add(
+    mut world: DeferredWorld,
+    context: HookContext,
+) {
+    world.commands()
+        .entity(context.entity)
+        .observe(inventory_tooltip_observer)
+        .observe(inventory_tooltip_unhover_observer)
+        .observe(inventory_item_drowpdown_observer);
+}
+
 pub struct InventoryUIPlugin;
 impl Plugin for InventoryUIPlugin {
     fn build(&self, app: &mut App) {
@@ -46,71 +103,51 @@ pub fn display_inventory_event_observer(
     trigger: On<DisplayInventoryEvent>,
     mut commands: Commands,
     name_query: Query<&Name>,
+    item_query: Query<&ItemDetails>,
     inventory: Query<&Inventory>,
+    menu_state: Res<State<UiState>>,
+    mut menu_state_setter: ResMut<NextState<UiState>>,
 ) {
     trace!("OBSERVER: display_inventory_event_observer");
+
+    if *menu_state == UiState::Inventory {
+        return;
+    }
+
+    menu_state_setter.set(UiState::Inventory);
+
     let Ok(name) = name_query.get(trigger.entity) else {
         return;
     };
-
     let mut item_vec = vec![];
 
     if let Ok(inventory_handle) = inventory.get(trigger.entity) {
         for item in inventory_handle.iter() {
-            if let Ok(item_name) = name_query.get(item) {
-                trace!("Pushing item: {:?}, item_name: {:?}, to item_vec", item, item_name);
+            if let Ok(item_name) = item_query.get(item) {
+                trace!("Pushing item: {:?}, item_name: {:?}, to item_vec", item, item_name.name);
                 item_vec.push((item_name.clone(), item.clone(), trigger.entity.clone()));
             }
         }
     }
 
     commands.spawn((
+        DespawnOnExit(UiState::Inventory),
         floating_window_root(
             format!("{} Inventory", name),
         (
+            UiInventory,
             Children::spawn(SpawnWith(|parent: &mut ChildSpawner| {
                 for (item, entity, inv) in item_vec {
                     parent.spawn(
                 (
-                            Node {
-                                //height: Val::Percent(100.),
-                                //width: Val::Percent(100.),
-                                ..default()
-                            },
-                            Text(item.to_string()),
-                            BackgroundColor::from(DARK_GREEN),
+                            UiInventoryItem,
+                            Text(item.name),
                             Owner { item_owner: entity, inv_owner: inv },
                             Propagate( Owner { item_owner: entity, inv_owner: inv }),
-                            TooltipSource,
-                        ))
-                        .observe(inventory_tooltip_observer)
-                        .observe(inventory_tooltip_unhover_observer)
-                        .observe(inventory_item_drowpdown_observer);
+                        ));
                 }
             })),
-            Node {
-                flex_grow: 1.,
-                //flex_direction: FlexDirection::Column,
-                display: Display::Grid,
-                //grid_auto_flow: GridAutoFlow::Column,
-                grid_template_columns: vec![
-                    GridTrack::auto(),
-                    GridTrack::auto(),
-                    GridTrack::auto(),
-                    GridTrack::auto(),
-                    GridTrack::auto(),
-                ],
-                //aspect_ratio: Some(1.0),
-                padding: UiRect::all(px(24)),
-                row_gap: px(12),
-                column_gap: px(12),
-                overflow: Overflow { x: OverflowAxis::Hidden, y: OverflowAxis::Hidden },
-                ..default()
-            },
-            BackgroundColor::from(DARK_GRAY),
             InvRef(trigger.entity),
-            observe(transfer_item_observer),
-            observe(refresh_window_observer),
         ),
         ),
     ));
@@ -126,7 +163,7 @@ fn refresh_window_observer(
     trigger: On<RefreshInventory>,
     mut commands: Commands,
     mut children_query: Query<(Entity, Option<&mut Children>, &mut InvRef)>,
-    name_query: Query<&Name>,
+    item_query: Query<&ItemDetails>,
     inventory: Query<&Inventory>,
 ) {
     trace!("OBSERVER: refresh_window_observer");
@@ -144,8 +181,8 @@ fn refresh_window_observer(
 
         if let Ok(inventory_handle) = inventory.get(invref.0) {
             for item in inventory_handle.iter() {
-                if let Ok(item_name) = name_query.get(item) {
-                    trace!("Pushing item: {:?}, item_name: {:?}, to item_vec", item, item_name);
+                if let Ok(item_name) = item_query.get(item) {
+                    trace!("Pushing item: {:?}, item_name: {:?}, to item_vec", item, item_name.name);
                     item_vec.push((item_name.clone(), item.clone(), invref.0.clone()));
                 }
             }
@@ -153,21 +190,13 @@ fn refresh_window_observer(
 
         for (item, entity, inv) in item_vec {
             let child = commands.spawn((
-                    Node {
-                        //height: Val::Percent(100.),
-                        //width: Val::Percent(100.),
-                        ..default()
-                    },
-                    Text(item.to_string()),
-                    BackgroundColor::from(DARK_GREEN),
+                    UiInventoryItem,
+                    Text(item.name),
                     Owner { item_owner: entity, inv_owner: inv },
                     Propagate( Owner { item_owner: entity, inv_owner: inv }),
-                    TooltipSource)).id();
+                )).id();
             commands.entity(parent_entity)
-                .add_child(child)
-                .observe(inventory_tooltip_observer)
-                .observe(inventory_tooltip_unhover_observer)
-                .observe(inventory_item_drowpdown_observer);
+                .add_child(child);
         }
     }
 }
@@ -200,7 +229,7 @@ fn transfer_item_observer(
 fn inventory_tooltip_observer(
     trigger: On<Pointer<Over>>,
     mut commands: Commands,
-    item_query: Query<&Item>,
+    item_query: Query<&ItemDetails>,
     owner_query: Query<&Owner>,
 ) {
     trace!("OBSERVER: inventory_tooltip_observer");

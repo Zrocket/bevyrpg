@@ -1,13 +1,11 @@
-use avian3d::prelude::{Collider, CollisionLayers, LayerMask, SpatialQueryFilter};
-use bevy::{app::Plugin, asset::Assets, ecs::{component::{self, Component}, lifecycle::HookContext, world::DeferredWorld}, input::keyboard::KeyCode, utils::default};
-use bevy_enhanced_input::{action::Action, actions, bindings, prelude::{EnhancedInputPlugin, Hold, InputAction, InputContextAppExt, Tap}};
-use bevy_tnua::{TnuaConfig, builtins::{TnuaBuiltinClimbConfig, TnuaBuiltinCrouchConfig, TnuaBuiltinDashConfig, TnuaBuiltinJumpConfig, TnuaBuiltinWalkConfig, TnuaBuiltinWallSlideConfig}};
-use bevy_tnua::{TnuaController, TnuaObstacleRadar, control_helpers::{TnuaSimpleAirActionsCounter, TnuaBlipReuseAvoidance}};
+use avian3d::prelude::{Collider, RigidBody};
+use bevy::{app::Plugin, asset::Assets, ecs::{component::Component, lifecycle::HookContext, spawn::SpawnRelated, world::DeferredWorld}, input::{gamepad::{GamepadButton}, keyboard::KeyCode, mouse::MouseButton}, math::Vec2, time::Timer, utils::default};
+use bevy_enhanced_input::{action::Action, actions, bindings, prelude::{Axial, Bindings, Cardinal, DeadZone, EnhancedInputPlugin, Hold, InputAction, InputContextAppExt, SmoothNudge, Tap}, modifier::scale::Scale};
+use bevy_tnua::{TnuaConfig, TnuaController, builtins::{TnuaBuiltinClimbConfig, TnuaBuiltinCrouchConfig, TnuaBuiltinDashConfig, TnuaBuiltinJumpConfig, TnuaBuiltinWalkConfig, TnuaBuiltinWallSlideConfig}, control_helpers::TnuaSimpleAirActionsCounter};
 use bevy_tnua_avian3d::TnuaAvian3dSensorShape;
-use bevy::prelude::SpawnRelated;
-use avian_pickup::actor::{AvianPickupActor, AvianPickupActorHoldConfig};
+use bevy_bae::{plan::Plan, prelude::{Operator, Sequence}, tasks};
 
-use crate::{Player, RayHit, PlayerControlScheme, PlayerControlSchemeConfig, PlayerController, PlayerControllerInput, level::CollisionLayer, PlayerControllerConfig};
+use crate::{IdleTimer, Player, PlayerControlScheme, PlayerControlSchemeConfig, Walk, idle, run_from_player, wander};
 
 pub struct InputPlugin;
 impl Plugin for InputPlugin {
@@ -15,8 +13,15 @@ impl Plugin for InputPlugin {
         app
             .add_plugins(EnhancedInputPlugin)
             .add_input_context::<Player>();
-    }
 }
+}
+#[derive(InputAction)]
+#[action_output(Vec2)]
+pub struct MovementAction;
+
+#[derive(InputAction)]
+#[action_output(Vec2)]
+pub struct LookAction;
 
 #[derive(InputAction)]
 #[action_output(bool)]
@@ -41,22 +46,6 @@ pub struct RunAction;
 #[derive(InputAction)]
 #[action_output(bool)]
 pub struct JumpAction;
-
-#[derive(InputAction)]
-#[action_output(bool)]
-pub struct ForwardAction;
-
-#[derive(InputAction)]
-#[action_output(bool)]
-pub struct BackwardAction;
-
-#[derive(InputAction)]
-#[action_output(bool)]
-pub struct LeftAction;
-
-#[derive(InputAction)]
-#[action_output(bool)]
-pub struct RightAction;
 
 #[derive(InputAction)]
 #[action_output(bool)]
@@ -102,39 +91,49 @@ pub struct OpenQuestAction;
 #[action_output(bool)]
 pub struct FlashlightAction;
 
+#[derive(InputAction)]
+#[action_output(bool)]
+pub struct ShootAction;
+
 #[derive(Component)]
 #[component(on_add = on_tnua_npc_controller_add)]
 #[require(
     TnuaController::<PlayerControlScheme>::default(),
     TnuaAvian3dSensorShape(Collider::cuboid(0.5, 0.5, 0.5)),
     TnuaSimpleAirActionsCounter::<PlayerControlScheme>::default(),
+    RigidBody::Dynamic,
+    Walk::default(),
+    Plan::new(),
 )]
 pub struct TnuaNpcController;
 
-#[derive(Component)]
-#[component(on_add = on_tnua_player_controller_add)]
+#[derive(Component, Default)]
+#[component(on_add = on_tnua_enemy_controller_add)]
 #[require(
-    PlayerController::default(),
-    PlayerControllerInput::default(),
     TnuaController::<PlayerControlScheme>::default(),
-    TnuaAvian3dSensorShape(Collider::capsule(0.1, 0.5)),
+    TnuaAvian3dSensorShape(Collider::cuboid(0.5, 0.5, 0.5)),
     TnuaSimpleAirActionsCounter::<PlayerControlScheme>::default(),
-    PlayerControllerConfig::default(),
-    TnuaObstacleRadar::new(1.0, 3.0),
-    RayHit(None),
-    TnuaBlipReuseAvoidance::<PlayerControlScheme>::default(),
-    AvianPickupActor {
-        prop_filter: SpatialQueryFilter::from_mask(CollisionLayer::Prop),
-        actor_filter: SpatialQueryFilter::from_mask(CollisionLayer::Player),
-        obstacle_filter: SpatialQueryFilter::from_mask(CollisionLayer::Default),
-        hold: AvianPickupActorHoldConfig {
-            pitch_range: -40.0_f32.to_radians()..=75.0_f32.to_radians(),
-            distance_to_allow_holding: 100.0,
-            ..default()
-        },
-        ..default()
-    },
+    RigidBody::Dynamic,
+    Walk::default(),
+    Plan::new(),
 )]
+pub struct TnuaEnemyController;
+
+#[derive(Component, Default)]
+#[require(
+    TnuaController::<PlayerControlScheme>::default(),
+    TnuaAvian3dSensorShape(Collider::cuboid(0.5, 0.5, 0.5)),
+    TnuaSimpleAirActionsCounter::<PlayerControlScheme>::default(),
+    RigidBody::Dynamic,
+    Walk::default(),
+)]
+#[component(on_add = on_tnua_rover_controller_add)]
+pub struct TnuaRoverController;
+
+#[derive(Component, Default)]
+#[require(
+)]
+#[component(on_add = on_tnua_player_controller_add)]
 pub struct TnuaPlayerController;
 
 fn on_tnua_player_controller_add(
@@ -143,48 +142,52 @@ fn on_tnua_player_controller_add(
 ) {
         let bei_input_map = actions!(Player[
             (
+                Action::<MovementAction>::new(),
+                DeadZone::default(),
+                //SmoothNudge::new(30.0),
+                Bindings::spawn((
+                    Cardinal::wasd_keys(),
+                    Axial::left_stick(),
+                )),
+            ),
+            (
+                Action::<LookAction>::new(),
+                DeadZone::default(),
+                //SmoothNudge::new(10.0),
+                SmoothNudge::default(),
+                Scale::splat(0.08),
+                Bindings::spawn((
+                        //Spawn(Binding::mouse_motion()),
+                        Axial::right_stick(),
+                )),
+            ),
+            (
                 Action::<Weapon1Action>::new(),
-                bindings![KeyCode::Digit1],
+                bindings![KeyCode::Digit1, GamepadButton::DPadLeft],
             ),
             (
                 Action::<Weapon2Action>::new(),
-                bindings![KeyCode::Digit2],
+                bindings![KeyCode::Digit2, GamepadButton::DPadUp],
             ),
             (
                 Action::<Weapon3Action>::new(),
-                bindings![KeyCode::Digit3],
+                bindings![KeyCode::Digit3, GamepadButton::DPadRight],
             ),
             (
                 Action::<Weapon4Action>::new(),
-                bindings![KeyCode::Digit4],
+                bindings![KeyCode::Digit4, GamepadButton::DPadDown],
             ),
             (
                 Action::<JumpAction>::new(),
-                bindings![KeyCode::Space],
+                bindings![KeyCode::Space, GamepadButton::South],
             ),
             (
                 Action::<RunAction>::new(),
-                bindings![KeyCode::ShiftLeft],
-            ),
-            (
-                Action::<LeftAction>::new(),
-                bindings![KeyCode::KeyA],
-            ),
-            (
-                Action::<RightAction>::new(),
-                bindings![KeyCode::KeyD],
-            ),
-            (
-                Action::<ForwardAction>::new(),
-                bindings![KeyCode::KeyW],
-            ),
-            (
-                Action::<BackwardAction>::new(),
-                bindings![KeyCode::KeyS],
+                bindings![KeyCode::ShiftLeft, GamepadButton::LeftThumb],
             ),
             (
                 Action::<CrouchAction>::new(),
-                bindings![KeyCode::ControlLeft],
+                bindings![KeyCode::ControlLeft, GamepadButton::LeftTrigger2],
             ),
             (
                 Action::<UpAction>::new(),
@@ -196,21 +199,22 @@ fn on_tnua_player_controller_add(
             ),
             (
                 Action::<InteractAction>::new(),
-                Tap::new(0.5),
-                bindings![KeyCode::KeyE],
+                Tap::new(0.3),
+                bindings![KeyCode::KeyE, GamepadButton::West],
             ),
             (
                 Action::<Interact2Action>::new(),
-                Hold::new(0.5),
-                bindings![KeyCode::KeyE],
+                Hold::new(0.5).one_shot(true),
+                //Tap::new(0.5),
+                bindings![KeyCode::KeyE, GamepadButton::West],
             ),
             (
                 Action::<OpenInventoryAction>::new(),
-                bindings![KeyCode::KeyI],
+                bindings![KeyCode::KeyI, GamepadButton::Select],
             ),
             (
                 Action::<OpenEquipAction>::new(),
-                bindings![KeyCode::KeyK],
+                bindings![KeyCode::KeyK, GamepadButton::Start],
             ),
             (
                 Action::<OpenStatsAction>::new(),
@@ -226,7 +230,11 @@ fn on_tnua_player_controller_add(
             ),
             (
                 Action::<FlashlightAction>::new(),
-                bindings![KeyCode::KeyF],
+                bindings![KeyCode::KeyF, GamepadButton::East],
+            ),
+            (
+                Action::<ShootAction>::new(),
+                bindings![MouseButton::Left, GamepadButton::RightTrigger2],
             ),
         ]);
 
@@ -316,10 +324,123 @@ fn on_tnua_npc_controller_add(
         },
     });
 
+
+    world.commands()
+        .entity(context.entity)
+        .insert((
+                TnuaConfig::<PlayerControlScheme>(handle),
+        ))
+        .insert((
+            Sequence,
+            tasks![
+                Operator::new(wander),
+                Operator::new(idle),
+            ],
+            IdleTimer(Timer::from_seconds(5.0, bevy::time::TimerMode::Once))
+        ));
+}
+
+fn on_tnua_enemy_controller_add(
+    mut world: DeferredWorld,
+    context: HookContext,
+) {
+    let mut control_scheme_configs = world.resource_mut::<Assets<PlayerControlSchemeConfig>>();
+    let handle = control_scheme_configs.add(PlayerControlSchemeConfig {
+        basis: TnuaBuiltinWalkConfig {
+            speed: 10.0,
+            float_height: 1.5,
+            ..default()
+        },
+        jump: TnuaBuiltinJumpConfig {
+            height: 2.0,
+            ..default()
+        },
+        crouch: TnuaBuiltinCrouchConfig {
+            float_offset: -0.7,
+            ..default()
+        },
+        dash: TnuaBuiltinDashConfig {
+            horizontal_distance: 5.0,
+            ..default()
+        },
+        knockback: Default::default(),
+        wall_slide: TnuaBuiltinWallSlideConfig {
+            maintain_distance: Some(0.7),
+            ..default()
+        },
+        wall_jump: TnuaBuiltinJumpConfig {
+            height: 4.0,
+            takeoff_extra_gravity: 90.0, // 3 times the default
+            takeoff_above_velocity: 0.0,
+            horizontal_distance: 2.0,
+            ..default()
+        },
+        climb: TnuaBuiltinClimbConfig {
+            climb_speed: 10.0,
+            ..default()
+        },
+    });
+
+    world.commands()
+        .entity(context.entity)
+        .insert((
+                TnuaConfig::<PlayerControlScheme>(handle),
+        ))
+        .insert((
+            Sequence,
+            tasks![
+                //Operator::new(wander),
+                Operator::new(idle),
+                Operator::new(run_from_player),
+            ],
+            IdleTimer(Timer::from_seconds(5.0, bevy::time::TimerMode::Once))
+        ));
+}
+
+fn on_tnua_rover_controller_add(
+    mut world: DeferredWorld,
+    context: HookContext,
+) {
+    let mut control_scheme_configs = world.resource_mut::<Assets<PlayerControlSchemeConfig>>();
+    let handle = control_scheme_configs.add(PlayerControlSchemeConfig {
+        basis: TnuaBuiltinWalkConfig {
+            speed: 10.0,
+            float_height: 1.5,
+            ..default()
+        },
+        jump: TnuaBuiltinJumpConfig {
+            height: 2.0,
+            ..default()
+        },
+        crouch: TnuaBuiltinCrouchConfig {
+            float_offset: -0.7,
+            ..default()
+        },
+        dash: TnuaBuiltinDashConfig {
+            horizontal_distance: 5.0,
+            ..default()
+        },
+        knockback: Default::default(),
+        wall_slide: TnuaBuiltinWallSlideConfig {
+            maintain_distance: Some(0.7),
+            ..default()
+        },
+        wall_jump: TnuaBuiltinJumpConfig {
+            height: 4.0,
+            takeoff_extra_gravity: 90.0, // 3 times the default
+            takeoff_above_velocity: 0.0,
+            horizontal_distance: 2.0,
+            ..default()
+        },
+        climb: TnuaBuiltinClimbConfig {
+            climb_speed: 10.0,
+            ..default()
+        },
+    });
+
     world.commands()
         .entity(context.entity)
         .insert((
                 TnuaConfig::<PlayerControlScheme>(handle),
         ));
 }
-

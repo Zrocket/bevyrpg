@@ -24,12 +24,12 @@ pub trait MeshExt {
 
 impl MeshExt for Mesh {
     fn transform(&mut self, transform: Transform) {
-        for coords in self.read_coords_mut(Mesh::ATTRIBUTE_POSITION.clone()) {
+        for coords in self.read_coords_mut(Mesh::ATTRIBUTE_POSITION) {
             let vec3 = (*coords).into();
             let transformed = transform.transform_point(vec3);
             *coords = transformed.into();
         }
-        for normal in self.read_coords_mut(Mesh::ATTRIBUTE_NORMAL.clone()) {
+        for normal in self.read_coords_mut(Mesh::ATTRIBUTE_NORMAL) {
             let vec3 = (*normal).into();
             let transformed = transform.rotation.mul_vec3(vec3);
             *normal = transformed.into();

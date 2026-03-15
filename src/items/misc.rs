@@ -2,7 +2,7 @@ use avian_pickup::{input::{AvianPickupAction, AvianPickupInput}, prop::HeldProp}
 use avian3d::prelude::RigidBodyDisabled;
 use bevy::{color::palettes::css::CRIMSON, ecs::{lifecycle::HookContext, world::DeferredWorld}, prelude::*};
 
-use crate::{AddToInventoryEvent, InspectEvent, Interactable, InteractionEvent, PickupEvent, Shelf, UiInspect, widgets};
+use crate::{AddToInventoryEvent, InspectEvent, Interactable, InteractionEvent, ItemDetails, PickupEvent, Shelf, UiInspect, widgets};
 
 #[derive(Component, Reflect, Default)]
 #[reflect(Component)]
@@ -10,6 +10,7 @@ use crate::{AddToInventoryEvent, InspectEvent, Interactable, InteractionEvent, P
 #[require(
     Interactable,
 )]
+#[type_path("api")]
 pub struct MiscItem;
 
 pub struct MiscItemPlugin;
@@ -68,7 +69,7 @@ fn misc_pickup_observer(
 
 fn misc_inspection_observer(
     trigger: On<InspectEvent>,
-    name_query: Query<&Name>,
+    name_query: Query<&ItemDetails>,
     mut commands: Commands,
 ) {
     trace!("OBSERVER: misc_inspection_observer");
@@ -88,7 +89,7 @@ fn misc_inspection_observer(
                 BackgroundColor(CRIMSON.into()),
                 UiInspect,
                 children![
-                    widgets::label(name),
+                    widgets::label(name.name.clone()),
                 ]
         ));
     }
