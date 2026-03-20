@@ -405,7 +405,7 @@ fn on_tnua_rover_controller_add(
     let handle = control_scheme_configs.add(PlayerControlSchemeConfig {
         basis: TnuaBuiltinWalkConfig {
             speed: 10.0,
-            float_height: 1.5,
+            float_height: 0.5,
             ..default()
         },
         jump: TnuaBuiltinJumpConfig {
