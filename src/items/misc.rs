@@ -1,6 +1,6 @@
 use avian_pickup::{input::{AvianPickupAction, AvianPickupInput}, prop::HeldProp};
 use avian3d::prelude::RigidBodyDisabled;
-use bevy::{color::palettes::css::CRIMSON, ecs::{lifecycle::HookContext, world::DeferredWorld}, prelude::*};
+use bevy::{camera::visibility, color::palettes::css::CRIMSON, ecs::{lifecycle::HookContext, world::DeferredWorld}, prelude::*};
 
 use crate::{AddToInventoryEvent, InspectEvent, Interactable, InteractionEvent, ItemDetails, PickupEvent, Shelf, UiInspect, widgets};
 
@@ -38,13 +38,16 @@ fn misc_interaction_observer(
     mut commands: Commands,
     parent_query: Query<&ChildOf>,
     transform_query: Query<&Transform>,
+    mut visibility_query: Query<&mut Visibility>,
     _held_prop_query: Query<&HeldProp>,
 ) {
     trace!("OBSERVER: misc_interaction_observer");
     let actor = trigger.event().actor;
     if let Ok(parent) = parent_query.get(trigger.event().entity)
     && let Ok(parent_transform) = transform_query.get(parent.0)
+    && let Ok(mut parent_visibility) = visibility_query.get_mut(parent.0)
     && let Ok(item_transform) = transform_query.get(trigger.event().entity) {
+        *parent_visibility = Visibility::Hidden;
         commands.entity(parent.0).insert(Shelf(Box::new(parent_transform.clone())));
         commands.entity(trigger.event().entity).insert(Shelf(Box::new(item_transform.clone())));
         commands.entity(parent.0).remove::<GlobalTransform>();
