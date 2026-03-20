@@ -1,10 +1,9 @@
 use bevy::{asset::RenderAssetUsages, camera::RenderTarget, ecs::{lifecycle::HookContext, world::DeferredWorld}, prelude::*, render::render_resource::{TextureDimension, TextureFormat, TextureUsages}};
-use bevy_enhanced_input::prelude::Start;
 use bevy_tnua::{TnuaController, prelude::TnuaBuiltinWalk};
 use bevy_landmass::{AgentTarget3d};
-use avian3d::prelude::Collider;
+use avian3d::{prelude::{Collider, SpatialQuery, SpatialQueryFilter}};
 
-use crate::{GameState, PlayerControlScheme, TnuaRoverController};
+use crate::{GameState, InteractionEvent, MetaState, PlayerControlScheme, TnuaRoverController, add_to_inventory_observer, level::CollisionLayer};
 
 #[derive(Component, Reflect, Debug)]
 #[reflect(Component)]
@@ -12,7 +11,7 @@ use crate::{GameState, PlayerControlScheme, TnuaRoverController};
     TnuaRoverController,
     RoverMovementInput,
     AgentTarget3d,
-    Collider::cuboid(0.5, 0.5, 0.5),
+    Collider::cuboid(1.0, 1.0, 1.0),
 )]
 #[component(on_add = on_rover_add)]
 pub struct Rover;
@@ -31,7 +30,8 @@ fn on_rover_add(
         .observe(on_rover_left_observer)
         .observe(on_rover_right_observer)
         .observe(on_rover_pickup_observer)
-        .insert(Collider::cuboid(1.0, 1.0, 1.0));
+        .observe(add_to_inventory_observer::<Rover>)
+        .observe(on_rover_interact_observer);
 }
 
 fn spawn_rover(
@@ -39,12 +39,38 @@ fn spawn_rover(
     mut meshes: ResMut<Assets<Mesh>>,
     mut materials: ResMut<Assets<StandardMaterial>>,
 ) {
+    let pickup_zone = commands.spawn((
+            RoverPickupZone,
+            //MeshMaterial3d(materials.add(Color::BLACK)),
+    )).id();
+
     commands.spawn((
             Rover,
             Transform::from_xyz(15.0, 1.75, 15.0),
             Mesh3d(meshes.add(Cuboid::new(1.0, 1.0, 1.0))),
             MeshMaterial3d(materials.add(Color::WHITE)),
-    ));
+    ))
+    .add_child(pickup_zone);
+}
+
+#[derive(Component)]
+#[require(
+    Transform::from_xyz(0., 0., -1.5),
+    //Collider::cuboid(1.0, 1.0, 2.0),
+)]
+#[component(on_add = on_rover_pickup_zone_add)]
+pub struct RoverPickupZone;
+
+fn on_rover_pickup_zone_add(
+    mut world: DeferredWorld,
+    context: HookContext,
+) {
+    let mut meshes = world.resource_mut::<Assets<Mesh>>();
+    let mesh = meshes.add(Cuboid::new(3.0, 1.0, 2.0));
+
+    world.commands()
+        .entity(context.entity)
+        .insert(Mesh3d(mesh));
 }
 
 #[derive(Resource)]
@@ -95,17 +121,42 @@ fn on_rover_camrea_add(
         ));
 }
 
-#[derive(Component)]
-pub struct ForwardHeld;
+#[derive(EntityEvent)]
+pub struct RoverInteractEvent {
+    pub entity: Entity,
+}
 
-#[derive(Component)]
-pub struct BackwardHeld;
+fn on_rover_interact_observer(
+    _trigger: On<RoverInteractEvent>,
+    mut commands: Commands,
+    spatial_query: SpatialQuery,
+    trigger_query: Query<&GlobalTransform, With<RoverPickupZone>>,
+    rover_query: Query<Entity, With<Rover>>,
+) {
+    if let Ok(trigger_transform) = trigger_query.single()
+    && let Ok(rover_entity) = rover_query.single() {
+        let temp = spatial_query.shape_intersections(
+            &Collider::cuboid(1.0, 1.0, 2.0),
+            trigger_transform.translation(),
+            trigger_transform.rotation(),
+            &SpatialQueryFilter::from_mask(CollisionLayer::Prop)
+        );
+        if !temp.is_empty() {
+            commands.entity(temp[0]).trigger(|entity| InteractionEvent { entity, actor: rover_entity });
+        }
+    }
+}
 
-#[derive(Component)]
-pub struct LeftHeld;
-
-#[derive(Component)]
-pub struct RightHeld;
+fn test_rover_interact(
+    rover_query: Query<Entity, With<Rover>>,
+    mut commands: Commands,
+    key: Res<ButtonInput<KeyCode>>,
+) {
+    if let Ok(rover_entity) = rover_query.single()
+    && key.just_pressed(KeyCode::KeyP) {
+        commands.entity(rover_entity).trigger(|entity| RoverInteractEvent { entity });
+    }
+}
 
 #[derive(EntityEvent)]
 pub struct RoverForwardEvent {
@@ -144,8 +195,9 @@ impl Plugin for RoverPlugin {
         app
             .register_type::<Rover>()
             .init_resource::<RoverCamreaRenderImage>()
-            .add_systems(OnEnter(GameState::Gameplay), spawn_rover)
-            .add_systems(Update, apply_rover_movement.run_if(in_state(GameState::Gameplay)));
+            .add_systems(OnEnter(MetaState::Gameplay), spawn_rover)
+            .add_systems(Update, apply_rover_movement.run_if(in_state(GameState::Gameplay)))
+            .add_systems(Update, test_rover_interact.run_if(in_state(GameState::Gameplay)));
     }
 }
 
