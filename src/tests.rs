@@ -15,7 +15,7 @@ impl Plugin for TestsPlugin {
                     //inventory_add_test,
                     inventory_add_test,
                     //inventory_remove_test,
-                    equipt_ui_test.run_if(input_just_pressed(KeyCode::KeyP)),
+                    //equipt_ui_test.run_if(input_just_pressed(KeyCode::KeyP)),
             ));
     }
 }
