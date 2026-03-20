@@ -1,11 +1,13 @@
 use bevy::{ecs::query::QueryData, prelude::*};
 
+mod bed;
 mod chair;
 mod computer;
 mod door;
 mod ladder;
 mod lever;
 
+pub use bed::*;
 pub use chair::*;
 pub use computer::*;
 pub use door::*;
