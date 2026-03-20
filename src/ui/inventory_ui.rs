@@ -336,6 +336,7 @@ fn drop_item_button_observer(
     inv_query: Query<Entity, With<Inventory>>,
     transform_query: Query<&Transform>,
     shelf_query: Query<&Shelf<Transform>>,
+    mut visibility_query: Query<&mut Visibility>,
 ) {
     trace!("OBSERVER: drop_item_button_observer");
     if let Ok(parent) = parent_query.get(trigger.entity)
@@ -345,7 +346,9 @@ fn drop_item_button_observer(
     && let Ok(childmenu) = childmenu_query.get(parent.0)
     && let Ok(item_parent) = parent_query.get(owner.item_owner)
     && let Ok(parent_shelf) = shelf_query.get(item_parent.0)
+    && let Ok(mut parent_visibility) = visibility_query.get_mut(item_parent.0)
     && let Ok(item_shelf) = shelf_query.get(owner.item_owner) {
+        *parent_visibility = Visibility::Visible;
         let mut parent_transform = *parent_shelf.0;
         parent_transform.translation = actor_transform.translation;
         commands.entity(item_parent.0)
