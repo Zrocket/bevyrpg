@@ -37,6 +37,39 @@ impl UiMaterial for ComputerScreenMaterial {
 }
 */
 
+#[derive(Component)]
+#[require()]
+#[component(on_add = on_desktop_add)]
+pub struct Desktop;
+
+fn on_desktop_add(
+    mut world: DeferredWorld,
+    context: HookContext,
+) {
+    world.commands()
+        .entity(context.entity);
+}
+
+fn toggle_computer_screen(
+    mut computer_screen_query: Query<(&mut MeshMaterial3d<StandardMaterial>), With<ComputerScreenCube>>,
+    my_material: Res<MyProcGenMaterial>,
+    off_material: Res<ComputerScreenOffMaterial>,
+    key: Res<ButtonInput<KeyCode>>,
+    mut toggle: Local<bool>,
+) {
+    if key.just_pressed(KeyCode::KeyO) {
+        *toggle = !*toggle;
+    }
+    if let Ok(mut computer_material) = computer_screen_query.single_mut() {
+        if !*toggle {
+            //*toggle = false;
+            computer_material.0 = off_material.0.clone();
+        } else {
+            //*toggle = true;
+            computer_material.0 = my_material.0.clone();
+        }
+    }
+}
 
 #[derive(Component)]
 #[require(
@@ -77,6 +110,7 @@ fn on_forward_button_add(
 )]
 #[component(on_add = on_backward_button_add)]
 pub struct BackwardButton;
+
 fn on_backward_button_add(
     mut world: DeferredWorld,
     context: HookContext,
@@ -285,10 +319,12 @@ impl Plugin for ComputerPlugin {
             .register_type::<ComputerTextureCam>()
             .init_resource::<ComputerImage>()
             .init_resource::<MyProcGenMaterial>()
+            .init_resource::<ComputerScreenOffMaterial>()
             .add_systems(Startup, setup)
             .add_systems(First, drive_diegetic_pointer.in_set(PickingSystems::Input))
             .add_systems(Update, update_click_timer)
-            .add_systems(Update, display_time);
+            .add_systems(Update, display_time)
+            .add_systems(Update, toggle_computer_screen);
     }
 }
 
@@ -657,6 +693,17 @@ impl FromWorld for MyProcGenMaterial {
     }
 }
 
+#[derive(Resource)]
+pub struct ComputerScreenOffMaterial(pub Handle<StandardMaterial>);
+impl FromWorld for ComputerScreenOffMaterial {
+    fn from_world(world: &mut World) -> Self {
+        let mut materials = world.resource_mut::<Assets<StandardMaterial>>();
+        let material_handle = materials.add(StandardMaterial::default());
+
+        Self(material_handle.clone())
+    }
+}
+
 #[derive(Event)]
 pub struct ChangeScreenEvent {
     pub frame_closure: fn(&mut Frame),
@@ -753,6 +800,7 @@ pub fn new_computer_screen(frame: &mut Frame) {
 fn setup(
     mut commands: Commands,
 ) {
+    println!("AAAAAAAAAAAAAAAAAAAa");
     let texture_camera = commands
         .spawn(ComputerTextureCam)
         .id();
