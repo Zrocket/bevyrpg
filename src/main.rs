@@ -179,7 +179,7 @@ fn main() {
         QuestPlugin,
         RoverPlugin,
     ));
-    app.add_systems(Update, pause_game.run_if(in_state(GameState::Gameplay)));
+    app.add_systems(Update, pause_game.run_if(in_state(MetaState::Gameplay)));
 
     if args.editor {
         app.add_plugins((
@@ -229,6 +229,7 @@ fn pause_game(
     key: Res<ButtonInput<KeyCode>>,
     game_state: ResMut<State<GameState>>,
     mut  game_state_setter: ResMut<NextState<GameState>>,
+    mut  menu_state_setter: ResMut<NextState<MenuState>>,
     mut physics_time: ResMut<Time<Physics>>,
 ) {
     trace!("SYSTEM: pause_game");
@@ -236,10 +237,12 @@ fn pause_game(
         match game_state.get() {
             GameState::Gameplay => {
                 game_state_setter.set(GameState::Paused);
+                menu_state_setter.set(MenuState::MainMenu);
                 physics_time.pause();
             },
             GameState::Paused   => {
                 game_state_setter.set(GameState::Gameplay);
+                menu_state_setter.set(MenuState::Off);
                 physics_time.unpause();
             },
             _                   => {}
