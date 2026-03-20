@@ -16,6 +16,7 @@ pub enum PlayerState {
     Ladder(Entity),
     UnGrounded,
     Sitting,
+    Sleeping,
     NoClip,
 }
 
