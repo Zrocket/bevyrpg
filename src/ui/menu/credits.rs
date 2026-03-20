@@ -1,6 +1,6 @@
 use bevy::prelude::*;
 
-use crate::MenuState;
+use crate::{MenuState, MetaState};
 
 use super::widgets;
 
@@ -33,7 +33,12 @@ fn spawn_credits_menu(
 
 fn exit_credits_menu(
     _: On<Pointer<Click>>,
+    meta_state: Res<State<MetaState>>,
     mut pause_menu_state: ResMut<NextState<MenuState>>,
 ) {
-    pause_menu_state.set(MenuState::Off);
+    match meta_state.get() {
+        MetaState::Splash => {},
+        MetaState::MainMenu => pause_menu_state.set(MenuState::Off),
+        MetaState::Gameplay => pause_menu_state.set(MenuState::MainMenu),
+    }
 }

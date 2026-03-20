@@ -2,7 +2,7 @@ use bevy::prelude::*;
 
 use super::widgets;
 
-use crate::{MenuState};
+use crate::{MenuState, MetaState};
 
 #[derive(Component, Reflect)]
 pub struct UiSettings;
@@ -36,9 +36,14 @@ fn spawn_settings_menu(
 
 fn exit_settings_menu(
     _: On<Pointer<Click>>,
+    meta_state: Res<State<MetaState>>,
     mut pause_menu_state: ResMut<NextState<MenuState>>,
 ) {
-    pause_menu_state.set(MenuState::Off);
+    match meta_state.get() {
+        MetaState::Splash => {},
+        MetaState::MainMenu => pause_menu_state.set(MenuState::Off),
+        MetaState::Gameplay => pause_menu_state.set(MenuState::MainMenu),
+    }
 }
 
 fn enter_sound_settings_menu(
