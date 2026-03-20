@@ -1,6 +1,8 @@
 use std::borrow::Cow;
 
-use bevy::{color::palettes::css::{CRIMSON, DARK_GREEN}, ecs::system::IntoObserverSystem, prelude::*};
+use bevy::{color::palettes::css::{CRIMSON, DARK_GREEN}, ecs::system::IntoObserverSystem, prelude::*, ui_widgets::observe};
+
+use crate::{ui_click, ui_hover};
 
 pub mod anchored;
 pub mod floating_window_focus;
@@ -85,6 +87,8 @@ where
                 ..default()
             },
             BackgroundColor::from(DARK_GREEN),
+            observe(ui_click),
+            observe(ui_hover)
         ),
     )
 }
