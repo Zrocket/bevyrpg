@@ -64,7 +64,6 @@ fn walk_audio<T: InputAction>(
         return;
     }
 
-    let mut rng = rand::rng();
     let file = format!("audio/footsteps/tile/{}.ogg", random_range(0..8));
     commands.spawn(
         (
@@ -106,6 +105,26 @@ fn dash_audio(
 
 fn flashlight_audio(
     _trigger: On<Start<FlashlightAction>>,
+    mut commands: Commands,
+    asset_server: Res<AssetServer>,
+) {
+    commands.spawn((
+            SamplePlayer::new(asset_server.load("audio/clicks/click.1.ogg")),
+    ));
+}
+
+pub fn ui_hover(
+    _trigger: On<Pointer<Over>>,
+    mut commands: Commands,
+    asset_server: Res<AssetServer>,
+) {
+    commands.spawn((
+            SamplePlayer::new(asset_server.load("audio/clicks/click.1.ogg")),
+    ));
+}
+
+pub fn ui_click(
+    _trigger: On<Pointer<Click>>,
     mut commands: Commands,
     asset_server: Res<AssetServer>,
 ) {
