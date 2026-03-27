@@ -1,193 +1,59 @@
 use avian3d::prelude::GravityScale;
 use bevy::prelude::*;
-use bevy_console::{AddConsoleCommand, ConsoleCommand, ConsoleConfiguration, ConsolePlugin, PrintConsoleLine, reply};
-use clap::Parser;
+use chill_bevy_console::{ChillConsole, CommandArgs, ConsoleAppExt};
 
 use crate::{Player, level::ChangeLevelMessage};
-
-/// Prints given arguments to the console
-#[derive(Parser, ConsoleCommand)]
-#[command(name = "log")]
-struct LogCommand {
-    /// Message to print
-    msg: String,
-    /// Number of times to print message
-    num: Option<i64>,
-}
-
-/// Example command
-#[derive(Parser, ConsoleCommand)]
-#[command(name = "example")]
-struct ExampleCommand { /// Some message
-    msg: String,
-}
-
-/// Kills the given character
-#[derive(Parser, ConsoleCommand)]
-#[command(name = "kill")]
-struct KillCommand {
-    entity: String,
-}
-
-/// Kills the player
-#[derive(Parser, ConsoleCommand)]
-#[command(name = "suicide")]
-struct SuicideCommand;
-
-/// Toggles god mode
-#[derive(Parser, ConsoleCommand)]
-#[command(name = "god")]
-struct GodCommand;
-
-/// Toggles noclip mode
-#[derive(Parser, ConsoleCommand)]
-#[command(name = "noclip")]
-struct NoclipCommand;
-
-/// Spawns the given entity
-#[derive(Parser, ConsoleCommand)]
-#[command(name = "spawn")]
-struct SpawnCommand {
-    entity: String,
-}
-
-/// Toggles fps counter
-#[derive(Parser, ConsoleCommand)]
-#[command(name = "fps")]
-struct FpsCommand;
-
-/// Set player speed
-#[derive(Parser, ConsoleCommand)]
-#[command(name = "speed")]
-struct SpeedCommand {
-    value: u8,
-}
-
-/// Set player gravity
-#[derive(Parser, ConsoleCommand)]
-#[command(name = "gravity")]
-struct GravityCommand {
-    value: f32,
-}
-
-#[derive(Parser, ConsoleCommand)]
-#[command(name = "time")]
-struct TimeCommand {
-    value: String,
-}
-
-/// Set the weather
-#[derive(Parser, ConsoleCommand)]
-#[command(name = "weather")]
-struct WeatherCommand {
-    value: String,
-}
-
-/// Saves the game
-#[derive(Parser, ConsoleCommand)]
-#[command(name = "save")]
-struct SaveCommand;
-
-/// Reloads entities
-#[derive(Parser, ConsoleCommand)]
-#[command(name = "reload")]
-struct ReloadCommand;
-
-/// Set the field of view
-#[derive(Parser, ConsoleCommand)]
-#[command(name = "fov")]
-struct FovCommand {
-    value: u8,
-}
-
-/// Set the volume
-#[derive(Parser, ConsoleCommand)]
-#[command(name = "volume")]
-struct VolumeCommand {
-    value: u8,
-}
-
-/// Toggles HUD display
-#[derive(Parser, ConsoleCommand)]
-#[command(name = "hud")]
-struct HudCommand;
-
-/// Gives the specified item
-#[derive(Parser, ConsoleCommand)]
-#[command(name = "give")]
-struct GiveCommand {
-    item: String,
-}
-
-/// Activates specified event
-#[derive(Parser, ConsoleCommand)]
-#[command(name = "event")]
-struct EventCommand {
-    event: String,
-}
-
-/// Loads the specified level
-#[derive(Parser, ConsoleCommand)]
-#[command(name = "level")]
-struct LevelCommand {
-    level: String,
-}
 
 pub struct MyConsolePlugin;
 impl Plugin for MyConsolePlugin {
     fn build(&self, app: &mut App) {
         app
-            .add_plugins(ConsolePlugin)
-            .insert_resource(ConsoleConfiguration {
-                // override config here
-                ..Default::default()
-            })
-            //.add_console_command::<ExampleCommand, _>(example_command)
-            //.add_console_command::<LogCommand, _>(log_command)
-            .add_console_command::<GravityCommand, _>(gravity_command)
-            .add_console_command::<LevelCommand, _>(level_command);
-            //.add_systems(Update, write_to_console.after(ConsoleSet::ConsoleUI));
-    }
-}
-
-fn example_command(mut log: ConsoleCommand<ExampleCommand>) {
-    info!("Example command");
-    if let Some(Ok(ExampleCommand { msg: _ })) = log.take() {
-        // handle command
-    }
-}
-
-fn log_command(mut log: ConsoleCommand<LogCommand>) {
-    info!("Log command");
-    if let Some(Ok(LogCommand { msg, num })) = log.take() {
-        let repeat_count = num.unwrap_or(1);
-
-        for _ in 0..repeat_count {
-            reply!(log, "{msg}");
-        }
-
-        log.ok();
+            .add_plugins(ChillConsole::default())
+            .add_console_command("level", "level <file>", level_command)
+            .add_console_command("gravity", "gravity <value>", gravity_command);
     }
 }
 
 fn gravity_command(
-    mut console_command: ConsoleCommand<GravityCommand>,
+    In(args): CommandArgs,
     mut player_gravity_query: Query<&mut GravityScale, With<Player>>,
-) {
-    if let Some(Ok(GravityCommand { value })) = console_command.take()  && let Ok(mut player_gravity) = player_gravity_query.single_mut() {
+) -> String {
+    if let Ok(mut player_gravity) = player_gravity_query.single_mut()
+    && let Ok(value) = args[0].parse::<f32>() {
         player_gravity.0 = value;
+        return "ok".to_string();
     }
+    "fail".to_string()
 }
 
 fn level_command(
-    mut console_command: ConsoleCommand<LevelCommand>,
+    In(args): CommandArgs,
     mut change_level_message_writer: MessageWriter<ChangeLevelMessage>,
-) {
-    if let Some(Ok(LevelCommand { level })) = console_command.take() {
-        change_level_message_writer.write(ChangeLevelMessage(level));
-    }
+) -> String {
+    change_level_message_writer.write(ChangeLevelMessage(args[0].clone()));
+    "ok".to_string()
 }
 
-fn _write_to_console(mut console_line: MessageWriter<PrintConsoleLine>) {
-    console_line.write(PrintConsoleLine::new("Hello".into()));
+fn suicide_command(
+    In(args): CommandArgs,
+) -> String {
+    "ok".to_string()
+}
+
+fn noclip_command(
+    In(args): CommandArgs,
+) -> String {
+    "ok".to_string()
+}
+
+fn god_command(
+    In(args): CommandArgs,
+) -> String {
+    "ok".to_string()
+}
+
+fn navmesh_command(
+    In(args): CommandArgs,
+) -> String {
+    "ok".to_string()
 }
