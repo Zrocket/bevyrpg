@@ -29,9 +29,9 @@ fn on_rover_add(
         .observe(on_rover_backward_observer)
         .observe(on_rover_left_observer)
         .observe(on_rover_right_observer)
-        .observe(on_rover_pickup_observer)
         .observe(add_to_inventory_observer::<Rover>)
-        .observe(on_rover_interact_observer);
+        .observe(on_rover_interact_observer)
+        .observe(on_rover_return_observer);
 }
 
 fn spawn_rover(
@@ -126,26 +126,6 @@ pub struct RoverInteractEvent {
     pub entity: Entity,
 }
 
-fn on_rover_interact_observer(
-    _trigger: On<RoverInteractEvent>,
-    mut commands: Commands,
-    spatial_query: SpatialQuery,
-    trigger_query: Query<&GlobalTransform, With<RoverPickupZone>>,
-    rover_query: Query<Entity, With<Rover>>,
-) {
-    if let Ok(trigger_transform) = trigger_query.single()
-    && let Ok(rover_entity) = rover_query.single() {
-        let temp = spatial_query.shape_intersections(
-            &Collider::cuboid(1.0, 1.0, 2.0),
-            trigger_transform.translation(),
-            trigger_transform.rotation(),
-            &SpatialQueryFilter::from_mask(CollisionLayer::Prop)
-        );
-        if !temp.is_empty() {
-            commands.entity(temp[0]).trigger(|entity| InteractionEvent { entity, actor: rover_entity });
-        }
-    }
-}
 
 fn test_rover_interact(
     rover_query: Query<Entity, With<Rover>>,
@@ -178,15 +158,20 @@ pub struct RoverRightEvent {
     pub entity: Entity,
 }
 
-#[derive(EntityEvent)]
-pub struct RoverPickupEvent {
-    pub entity: Entity,
-}
-
 #[derive(Component, Default, Debug)]
 pub struct RoverMovementInput {
     pub rotation: Quat,
     pub movement: Vec3,
+}
+
+#[derive(EntityEvent)]
+pub struct RoverReturnEvent {
+    pub entity: Entity,
+}
+
+#[derive(EntityEvent)]
+pub struct RoverDropEvent {
+    pub entity: Entity,
 }
 
 pub struct RoverPlugin;
@@ -291,8 +276,43 @@ fn on_rover_left_observer(
     }
 }
 
-fn on_rover_pickup_observer(
-    _trigger: On<RoverPickupEvent>,
-    mut rover_query: Query<(Entity, &mut TnuaController<PlayerControlScheme>, &GlobalTransform), With<Rover>>,
+fn on_rover_interact_observer(
+    _trigger: On<RoverInteractEvent>,
+    mut commands: Commands,
+    spatial_query: SpatialQuery,
+    trigger_query: Query<&GlobalTransform, With<RoverPickupZone>>,
+    rover_query: Query<Entity, With<Rover>>,
 ) {
+    if let Ok(trigger_transform) = trigger_query.single()
+    && let Ok(rover_entity) = rover_query.single() {
+        let temp = spatial_query.shape_intersections(
+            &Collider::cuboid(1.0, 1.0, 2.0),
+            trigger_transform.translation(),
+            trigger_transform.rotation(),
+            &SpatialQueryFilter::from_mask(CollisionLayer::Prop)
+        );
+        if !temp.is_empty() {
+            commands.entity(temp[0]).trigger(|entity| InteractionEvent { entity, actor: rover_entity });
+        }
+    }
+}
+
+fn on_rover_drop_observer(
+    _trigger: On<RoverDropEvent>,
+    mut commands: Commands,
+    spatial_query: SpatialQuery,
+    trigger_query: Query<&GlobalTransform, With<RoverPickupZone>>,
+    rover_query: Query<Entity, With<Rover>>,
+) {
+    trace!("OBSERVER: on_rover_drop_observer");
+    if let Ok(trigger_transform) = trigger_query.single()
+    && let Ok(rover_entity) = rover_query.single() {
+    }
+}
+
+fn on_rover_return_observer(
+    _trigger: On<RoverReturnEvent>,
+    mut rover_query: Query<&mut RoverMovementInput, With<Rover>>,
+) {
+    trace!("OBSERVER: on_rover_return_observer");
 }
