@@ -1,6 +1,6 @@
 use std::borrow::Cow;
 
-use bevy::{color::palettes::css::{CRIMSON, DARK_GREEN}, ecs::system::IntoObserverSystem, prelude::*, ui_widgets::observe};
+use bevy::{color::palettes::css::{CRIMSON, DARK_GREEN}, ecs::system::IntoObserverSystem, feathers::palette::WHITE, prelude::*, ui_widgets::observe};
 
 use crate::{ui_click, ui_hover};
 
@@ -185,15 +185,27 @@ where
             ..default()
         },
         children![
-            small_button("-", lower),
-            small_button("+", raise),
+            (
+                Node {
+                    column_gap: Val::Px(4.0),
+                    ..default()
+                },
+                children![small_button("-", lower), small_button("+", raise)]
+            ),
             (
                 Node {
                     padding: UiRect::horizontal(Val::Px(10.0)),
                     justify_content: JustifyContent::Center,
                     ..default()
                 },
-                children![(label(""), label_marker)],
+                children![(
+                    (
+                        Text::new(""),
+                        TextFont::from_font_size(24.0),
+                        TextColor(WHITE),
+                    ),
+                    label_marker,
+                )],
             ),
         ],
     )
@@ -224,3 +236,4 @@ pub fn menu_item() -> impl Bundle {
         TextColor(Color::WHITE),
     )
 }
+

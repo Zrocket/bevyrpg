@@ -21,13 +21,12 @@ pub use stats_controller::*;
 
 use bevy::window::{CursorGrabMode, CursorOptions};
 
-use crate::{ActiveWeapon, ComputerNode, ItemDetails, PlayerCamera, ShootEvent, level::DAGunAssets, shoot, widgets::floating_windows::FloatingWindow};
+use crate::{ActiveWeapon, ComputerNode, GameState, ItemDetails, MetaState, PlayerCamera, ShootEvent, level::DAGunAssets, shoot, widgets::floating_windows::FloatingWindow};
 
 pub struct ControllerPlugin;
 impl Plugin for ControllerPlugin {
     fn build(&self, app: &mut App) {
         app
-            //.add_plugins(InputManagerPlugin::<LeafwingAction>::default())
             .add_plugins(InputPlugin)
             .add_plugins(InteractControllerPlugin)
             .add_plugins(PlayerControllerPlugin)
@@ -43,11 +42,7 @@ impl Plugin for ControllerPlugin {
             .add_systems(
                 Update,
                 (
-                    manage_cursor,
-                    //manage_interact.run_if(in_state(GameState::Gameplay)).run_if(input_just_pressed(KeyCode::KeyE)),
-                    //manage_interact.run_if(in_state(GameState::Gameplay)).run_if(input_just_pressed(KeyCode::KeyE)),
-                    //manage_inspect.run_if(in_state(GameState::Gameplay)),
-                    //player_raycast.run_if(in_state(GameState::Gameplay)),
+                    manage_cursor.run_if(in_state(GameState::Gameplay)),
                     inventory_navigation.in_set(TnuaUserControlsSystems),
                 )
             );

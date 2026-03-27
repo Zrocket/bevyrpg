@@ -13,7 +13,7 @@ impl Plugin for InputPlugin {
         app
             .add_plugins(EnhancedInputPlugin)
             .add_input_context::<Player>();
-}
+    }
 }
 #[derive(InputAction)]
 #[action_output(Vec2)]

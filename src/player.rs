@@ -158,8 +158,8 @@ impl Plugin for GamePlayerPlugin {
                     player_forward.run_if(/*in_state(GameState::Gameplay)*/ in_state(CameraState::Player)),
                     check_player_triggers.run_if(in_state(GameState::Gameplay)),
                 )
-            )
-            .add_systems(Update, toggle_player_noclip.run_if(input_just_pressed(KeyCode::KeyB)));
+            );
+            //.add_systems(Update, toggle_player_noclip.run_if(input_just_pressed(KeyCode::KeyB)));
     }
 }
 
