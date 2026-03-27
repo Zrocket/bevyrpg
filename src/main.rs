@@ -7,7 +7,7 @@ use bevy::{
 };
 use bevy_asset_loader::prelude::*;
 use bevy_bae::BaePlugin;
-use bevy_egui::EguiGlobalSettings;
+use bevy_egui::{EguiGlobalSettings, EguiPlugin};
 use bevy_hanabi::HanabiPlugin;
 //use bevy_hotpatching_experiments::SimpleSubsecondPlugin;
 use bevy_ingame_clock::InGameClockPlugin;
@@ -182,6 +182,7 @@ fn main() {
     app.add_systems(Update, pause_game.run_if(in_state(MetaState::Gameplay)));
 
     if args.editor {
+        app.add_plugins(EguiPlugin::default());
         app.add_plugins((
             YoleckPluginForEditor,
             WorldInspectorPlugin::new(),
@@ -190,6 +191,7 @@ fn main() {
         app.add_plugins(YoleckPluginForGame);
     }
     if args.inspector {
+        app.add_plugins(EguiPlugin::default());
         app.add_plugins(WorldInspectorPlugin::new());
     }
     if args.fps {

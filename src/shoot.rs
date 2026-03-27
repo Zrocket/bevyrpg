@@ -2,6 +2,7 @@ use crate::{AmmoPouch, DamageEvent, Player, PlayerCamera};
 use avian3d::prelude::*;
 use bevy::{ecs::{lifecycle::HookContext, world::DeferredWorld}, prelude::*};
 use bevy_seedling::sample::SamplePlayer;
+use chill_bevy_console::console_closed;
 
 use super::GameState;
 
@@ -74,7 +75,7 @@ impl Plugin for ShootPlugin {
             .register_type::<Rocket>()
             .register_type::<Cooldown>()
             .add_systems(Update, (
-                shoot_rocket.run_if(in_state(GameState::Gameplay)),
+                shoot_rocket.run_if(in_state(GameState::Gameplay)).run_if(console_closed),
                 grenade_fuse.run_if(in_state(GameState::Gameplay)),
                 ),
             );
