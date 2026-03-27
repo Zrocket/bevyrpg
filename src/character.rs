@@ -36,6 +36,10 @@ pub struct Hunger(pub i32);
 #[reflect(Component)]
 pub struct Thirst(pub i32);
 
+#[derive(Default, Clone, Component, Reflect)]
+#[reflect(Component)]
+pub struct Sleep(pub i32);
+
 #[derive(Bundle)]
 pub struct CharacterBundle {
     pub experience: Experience,
@@ -110,7 +114,8 @@ impl Plugin for CharacterPlugin {
             .register_type::<Experience>()
             .register_type::<Level>()
             .register_type::<Hunger>()
-            .register_type::<Thirst>();
+            .register_type::<Thirst>()
+            .register_type::<Sleep>();
     }
 }
 

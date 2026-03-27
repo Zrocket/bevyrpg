@@ -7,6 +7,7 @@ use bevy_tnua::{
     TnuaControllerPlugin, TnuaObstacleRadar, TnuaScheme, TnuaUserControlsSystems, builtins::{TnuaBuiltinClimb, TnuaBuiltinCrouch, TnuaBuiltinDash, TnuaBuiltinJump, TnuaBuiltinKnockback, TnuaBuiltinWalk, TnuaBuiltinWallSlide}, control_helpers::{TnuaAirActionDefinition, TnuaAirActionsTracker, TnuaBlipReuseAvoidance, TnuaHasTargetEntity, TnuaSimpleAirActionsCounter}, controller::TnuaController, math::{AsF32, Float}, radar_lens::{TnuaBlipSpatialRelation, TnuaRadarLens}
 };
 use bevy_tnua_avian3d::{TnuaAvian3dPlugin, TnuaSpatialExtAvian3d};
+use chill_bevy_console::console_closed;
 
 use crate::{CrouchAction, DownAction, FlashlightAction, JumpAction, LookAction, MovementAction, ObstacleQueryHelper, Player, PlayerFlashlight, PlayerState, RunAction, UpAction};
 
@@ -135,12 +136,12 @@ impl Plugin for PlayerControllerPlugin {
             .add_systems(
             Update,
             (
-                player_controller_input,
-                player_controller_look,
+                player_controller_input.run_if(console_closed),
+                player_controller_look.run_if(console_closed),
             )
             .chain()
         )
-        .add_systems(Update, tnua_player_input.in_set(TnuaUserControlsSystems));
+        .add_systems(Update, tnua_player_input.in_set(TnuaUserControlsSystems).run_if(console_closed));
     }
 }
 
@@ -271,7 +272,7 @@ pub fn tnua_player_input(
     //if action_state.pressed(&LeafwingAction::Jump) {
     if jump_action.contains(ActionEvents::FIRE) {
         tnua_controller.action(PlayerControlScheme::Jump(Default::default()));
-        if *player_state == PlayerState::Sitting {
+        if *player_state == PlayerState::Sitting || *player_state == PlayerState::Sleeping {
             *player_state = PlayerState::Grounded;
             commands.entity(player_entity).remove::<RigidBodyDisabled>();
         }
