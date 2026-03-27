@@ -113,6 +113,8 @@ bevy_bae = "0.1.0"
 #bevy_hotpatching_experiments = "0.4.0"
 #bevy_mod_scripting = { version = "0.19.0", features = ["rhai"] }
 bevy_ingame_clock = { git = "https://github.com/GuillaumeDelorme/bevy_ingame_clock.git", branch = "bevy-0.18-update" }
+chill_bevy_console = "0.1.1"
+bevy_old_tv_shader = { git = "https://github.com/Zrocket/bevy_old_tv_shader.git", version = "0.5.0", features=["ui"] }
 
 [profile.dev]
 opt-level=3
