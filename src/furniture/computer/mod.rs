@@ -1,4 +1,6 @@
-use avian3d::prelude::RigidBody;
+use std::time::Duration;
+
+use avian3d::prelude::{RigidBody, RigidBodyDisabled};
 use bevy::asset::uuid::Uuid;
 use bevy::ecs::lifecycle::HookContext;
 use bevy::ecs::world::DeferredWorld;
@@ -9,7 +11,7 @@ use bevy::color::palettes::css::{BLUE, GRAY};
 use bevy_ingame_clock::InGameClock;
 use bevy_old_tv_shader::OldTvPlugin;
 
-use crate::{Interactable};
+use crate::{CameraInterpolation, Interactable, InteractionEvent, Player, PlayerCamera, PlayerState};
 
 mod computer_input;
 mod computer_display;
@@ -133,7 +135,7 @@ fn on_computer_clock_add(
         .observe(icon_out);
 }
 
-// Marks the cube, to which the UI texture is applied.
+/// Marks the cube, to which the UI texture is applied.
 #[derive(Component, Reflect)]
 #[reflect(Component)]
 #[require(
@@ -162,13 +164,6 @@ fn on_cube_screen_add(
 }
 
 const CUBE_POINTER_ID: PointerId = PointerId::Custom(Uuid::from_u128(90870987));
-
-#[derive(Clone, Hash, Debug, Eq, PartialEq, Default, States)]
-pub enum ComputerState {
-    #[default]
-    MainMenu,
-    Console,
-}
 
 pub struct ComputerPlugin;
 impl Plugin for ComputerPlugin {
@@ -237,7 +232,7 @@ fn setup(
         ));
 
     // Cube with material containing the rendered UI texture.
-    commands.spawn(ComputerScreenCube);
+    //commands.spawn(ComputerScreenCube);
 
     commands.spawn(CUBE_POINTER_ID);
 }
@@ -251,5 +246,27 @@ fn display_time(
             "{}",
             clock.format_datetime(None)
         );
+    }
+}
+
+fn computer_interaction_observer(
+    trigger: On<InteractionEvent>,
+    mut commands: Commands,
+    mut player_query: Query<(&mut Transform, &mut PlayerState, Entity), With<Player>>,
+    transform_query: Query<&GlobalTransform, Without<Player>>,
+    camera_query: Query<Entity, With<PlayerCamera>>,
+    time: Res<Time>,
+) {
+    trace!("OBSERVER: computer_interaction_observer");
+    if let Ok((mut player_transform, mut player_state, player_entity)) = player_query.single_mut()
+    && let Ok(computer_transform) = transform_query.get(trigger.entity)
+    && let Ok(camera_entity) = camera_query.single() {
+        *player_state = PlayerState::Sitting;
+        commands.entity(player_entity).insert(RigidBodyDisabled);
+        commands.entity(camera_entity)
+            .insert(CameraInterpolation {
+                duration: time.elapsed() + Duration::new(1, 0),
+                start_time: time.elapsed(),
+            });
     }
 }
