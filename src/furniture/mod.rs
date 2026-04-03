@@ -1,6 +1,7 @@
 use bevy::{ecs::query::QueryData, prelude::*};
 
 mod bed;
+mod ceiling_light;
 mod chair;
 mod computer;
 mod door;
@@ -8,6 +9,7 @@ mod ladder;
 mod lever;
 
 pub use bed::*;
+use ceiling_light::*;
 pub use chair::*;
 pub use computer::*;
 pub use door::*;
