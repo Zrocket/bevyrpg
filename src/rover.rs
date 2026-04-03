@@ -5,6 +5,14 @@ use avian3d::{prelude::{Collider, SpatialQuery, SpatialQueryFilter}};
 
 use crate::{GameState, InteractionEvent, MetaState, PlayerControlScheme, TnuaRoverController, add_to_inventory_observer, level::CollisionLayer};
 
+#[derive(Component, Reflect, Default)]
+#[reflect(Component)]
+#[type_path("api")]
+pub struct RoverSpawner;
+
+#[derive(Message)]
+pub struct SpawnRoverMessage;
+
 #[derive(Component, Reflect, Debug)]
 #[reflect(Component)]
 #[require(
@@ -38,8 +46,11 @@ fn spawn_rover(
     mut commands: Commands,
     mut meshes: ResMut<Assets<Mesh>>,
     mut materials: ResMut<Assets<StandardMaterial>>,
+    mut spawn_rover_message_writer: MessageWriter<SpawnRoverMessage>,
 ) {
-    let pickup_zone = commands.spawn((
+    spawn_rover_message_writer.write(SpawnRoverMessage);
+
+    /*let pickup_zone = commands.spawn((
             RoverPickupZone,
             //MeshMaterial3d(materials.add(Color::BLACK)),
     )).id();
@@ -50,7 +61,42 @@ fn spawn_rover(
             Mesh3d(meshes.add(Cuboid::new(1.0, 1.0, 1.0))),
             MeshMaterial3d(materials.add(Color::WHITE)),
     ))
-    .add_child(pickup_zone);
+    .add_child(pickup_zone);*/
+}
+
+fn spawn_rover_observer(
+    mut commands: Commands,
+    mut spawn_rover_message_reader: MessageReader<SpawnRoverMessage>,
+    rover_spawner_query: Query<&GlobalTransform, With<RoverSpawner>>,
+    mut rover_query: Query<Entity, With<Rover>>,
+    mut meshes: ResMut<Assets<Mesh>>,
+    mut materials: ResMut<Assets<StandardMaterial>>,
+) {
+    trace!("OBSERVER: spawn_rover_observer");
+
+    for _message in spawn_rover_message_reader.read() {
+        if let Ok(rover) = rover_query.single_mut() {
+            commands.entity(rover).despawn();
+        }
+        let mut spawn_point = Transform::from_xyz(0.0, 50.0, 0.0);
+
+        if let Ok(rover_spawner) = rover_spawner_query.single() {
+            spawn_point.translation = rover_spawner.translation();
+        }
+
+        let pickup_zone = commands.spawn((
+                RoverPickupZone,
+                //MeshMaterial3d(materials.add(Color::BLACK)),
+        )).id();
+
+        commands.spawn((
+                Rover,
+                spawn_point,
+                Mesh3d(meshes.add(Cuboid::new(1.0, 1.0, 1.0))),
+                MeshMaterial3d(materials.add(Color::WHITE)),
+        ))
+        .add_child(pickup_zone);
+    }
 }
 
 #[derive(Component)]
@@ -179,10 +225,13 @@ impl Plugin for RoverPlugin {
     fn build(&self, app: &mut App) {
         app
             .register_type::<Rover>()
+            .register_type::<RoverSpawner>()
             .init_resource::<RoverCamreaRenderImage>()
+            .add_message::<SpawnRoverMessage>()
             .add_systems(OnEnter(MetaState::Gameplay), spawn_rover)
             .add_systems(Update, apply_rover_movement.run_if(in_state(GameState::Gameplay)))
-            .add_systems(Update, test_rover_interact.run_if(in_state(GameState::Gameplay)));
+            .add_systems(Update, test_rover_interact.run_if(in_state(GameState::Gameplay)))
+            .add_systems(Update, spawn_rover_observer);
     }
 }
 
