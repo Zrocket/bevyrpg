@@ -1,5 +1,5 @@
 use avian_pickup::actor::{AvianPickupActor, AvianPickupActorHoldConfig};
-use avian3d::prelude::{CoefficientCombine, Collider, CollisionLayers, Friction, GravityScale, LayerMask, LockedAxes, RigidBody, SpatialQuery, SpatialQueryFilter};
+use avian3d::prelude::{CoefficientCombine, Collider, CollisionLayers, Friction, GravityScale, LayerMask, LockedAxes, RigidBody, SpatialQuery, SpatialQueryFilter, SweptCcd, CollisionMargin};
 use bevy::{camera::Exposure, core_pipeline::tonemapping::Tonemapping, ecs::{lifecycle::HookContext, world::DeferredWorld}, input::common_conditions::input_just_pressed, pbr::{Atmosphere, AtmosphereSettings, ScatteringMedium}, post_process::bloom::Bloom, prelude::*, render::view::Hdr};
 use bevy_egui::PrimaryEguiContext;
 use bevy_flycam::{FlyCam, NoCameraPlayerPlugin};
@@ -37,6 +37,8 @@ pub enum CameraState {
         //radius_scale: 0.75,
     },
     Collider::capsule(0.1, 0.5),
+    SweptCcd::default(),
+    CollisionMargin(0.1),
     Friction {
         combine_rule: CoefficientCombine::Min,
         ..default()
@@ -287,7 +289,7 @@ fn spawn_player_observer(
                     RenderPlayer { logical_entity },
                     PlayerCamera,
                 ))
-                .add_child(gun)
+                //.add_child(gun)
                 .add_child(flashlight);
         }
     }
