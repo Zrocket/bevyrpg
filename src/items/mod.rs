@@ -91,28 +91,28 @@ impl Plugin for ItemPlugin {
 fn disabled_held_prop_collision(
     add: On<Add, HeldProp>,
     children_query: Query<&Children>,
-    mut collision_layers_query: Query<&mut CollisionLayers>,
+    mut collision_layers_query: Query<&CollisionLayers>,
 ) {
     let rigid_body = add.entity;
     for child in iter::once(rigid_body).chain(children_query.iter_descendants(rigid_body)) {
-        let Ok(mut collision_layers) = collision_layers_query.get_mut(child) else {
+        let Ok(mut collision_layers) = collision_layers_query.get(child) else {
             continue;
         };
-        collision_layers.filters.remove(CollisionLayer::Player);
+        //collision_layers.filters.remove(CollisionLayer::Player);
     }
 }
 
 fn enable_dropped_prop_collision(
     remove: On<Remove, HeldProp>,
     children_query: Query<&Children>,
-    mut collision_layers_query: Query<&mut CollisionLayers>,
+    mut collision_layers_query: Query<&CollisionLayers>,
 ) {
     let rigid_body = remove.entity;
     for child in iter::once(rigid_body).chain(children_query.iter_descendants(rigid_body)) {
-        let Ok(mut collision_layers) = collision_layers_query.get_mut(child) else {
+        let Ok(mut collision_layers) = collision_layers_query.get(child) else {
             continue;
         };
-        collision_layers.filters.add(CollisionLayer::Player);
+        //collision_layers.filters.add(CollisionLayer::Player);
     }
 }
 
