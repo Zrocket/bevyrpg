@@ -14,14 +14,6 @@ use crate::{CameraInterpolation, Interactable, InteractionEvent, Player, PlayerC
 #[type_path("api")]
 pub struct Chair;
 
-pub struct ChairPlugin;
-
-impl Plugin for ChairPlugin {
-    fn build(&self, app: &mut App) {
-        app.register_type::<Chair>();
-    }
-}
-
 fn on_chair_add(
     mut world: DeferredWorld,
     context: HookContext,
@@ -30,6 +22,14 @@ fn on_chair_add(
     world.commands()
         .entity(context.entity)
         .observe(chair_interaction_observer);
+}
+
+pub struct ChairPlugin;
+
+impl Plugin for ChairPlugin {
+    fn build(&self, app: &mut App) {
+        app.register_type::<Chair>();
+    }
 }
 
 fn chair_interaction_observer(
