@@ -151,7 +151,7 @@ fn change_level_message_handler(
             CurrentLevel,
         ));
 
-        let sun_id = commands.spawn((
+        /*let sun_id = commands.spawn((
                 DirectionalLight {
                     shadows_enabled: true,
                     illuminance: light_consts::lux::RAW_SUNLIGHT, // Adjust illuminance as needed
@@ -182,7 +182,7 @@ fn change_level_message_handler(
         } else {
             // Handle case where calculation failed (e.g., impossible parameters)
             error!("Failed to create SkyCenter from timed config");
-        }
+        }*/
 
     }
 }
