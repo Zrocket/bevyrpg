@@ -203,6 +203,7 @@ impl FromWorld for SmokeEffectResource {
 #[reflect(Component)]
 #[require(
     CollisionEventsEnabled,
+    PointLight,
 )]
 #[component(on_add = on_particle_tester_add)]
 #[type_path("api")]
