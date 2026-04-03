@@ -47,10 +47,10 @@ impl Plugin for NavMeshPlugin {
         app
             .register_type::<Walk>()
             .register_type::<FloatHeight>()
-            .register_type::<DesiredPosition>()
-            .add_systems(OnExit(BootStrap::Postload), landmass_rerecast_setup)
-            .add_systems(Update, apply_walking)
-            .add_systems(Update, toggle_landmass_debug.run_if(input_just_pressed(KeyCode::F12)));
+            .register_type::<DesiredPosition>();
+            //.add_systems(OnExit(BootStrap::Postload), landmass_rerecast_setup)
+            //.add_systems(Update, apply_walking)
+            //.add_systems(Update, toggle_landmass_debug.run_if(input_just_pressed(KeyCode::F12)));
 
     }
 }
