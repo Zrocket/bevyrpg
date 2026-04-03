@@ -1,13 +1,13 @@
 use bevy::{camera::RenderTarget, color::palettes::css::{BLUE, GREEN, RED}, ecs::{lifecycle::HookContext, world::DeferredWorld}, input::ButtonState, picking::{backend::ray::RayMap, pointer::{Location, PointerAction, PointerInput}}, prelude::*, window::{PrimaryWindow, WindowEvent}};
+use bevy_egui::egui::TopBottomPanel;
 
-use crate::{ComputerNode, ComputerUiNode, IconClickTimer, Rover, RoverBackwardEvent, RoverCamera, RoverForwardEvent, RoverLeftEvent, RoverRightEvent, furniture::computer::{CUBE_POINTER_ID, ComputerScreenCube}, widgets::floating_windows::floating_computer_rover_window_root};
+use crate::{ComputerNode, ComputerUiNode, Desktop, IconClickTimer, Rover, RoverBackwardEvent, RoverCamera, RoverForwardEvent, RoverInteractEvent, RoverLeftEvent, RoverRightEvent, furniture::computer::{CUBE_POINTER_ID, ComputerScreenCube}, widgets::floating_windows::floating_computer_rover_window_root};
 
 #[derive(Component)]
 #[require(
     Node {
         //width: px(300),
         //height: px(50),
-        flex_direction: FlexDirection::Column,
         ..default()
     },
     BackgroundColor(GREEN.into()),
@@ -33,7 +33,6 @@ fn on_forward_button_add(
     Node {
         //width: px(300),
         //height: px(50),
-        flex_direction: FlexDirection::Column,
         ..default()
     },
     BackgroundColor(GREEN.into()),
@@ -59,7 +58,6 @@ fn on_backward_button_add(
     Node {
         //width: px(300),
         //height: px(50),
-        flex_direction: FlexDirection::Column,
         ..default()
     },
     Text("<".into()),
@@ -85,7 +83,6 @@ fn on_left_button_add(
     Node {
         //width: px(300),
         //height: px(50),
-        flex_direction: FlexDirection::Column,
         ..default()
     },
     BackgroundColor(GREEN.into()),
@@ -104,6 +101,118 @@ fn on_right_button_add(
         .observe(icon_out)
         .observe(right_pressed)
         .observe(right_released);
+}
+
+#[derive(Component)]
+#[require(
+    Node {
+        width: px(50),
+        //height: px(50),
+        flex_direction: FlexDirection::Column,
+        justify_content: JustifyContent::Stretch,
+        ..default()
+    },
+    BackgroundColor(RED.into()),
+)]
+#[component(on_add = on_buttons_node_add)]
+pub struct ButtonsNode;
+
+fn on_buttons_node_add(
+    mut world: DeferredWorld,
+    context: HookContext,
+) {
+    let top = world.commands().spawn((
+            Node {
+                flex_direction: FlexDirection::Row,
+                justify_content: JustifyContent::Center,
+                flex_grow: 1.,
+                ..default()
+            },
+            Children::spawn(SpawnWith(|parent: &mut ChildSpawner| {
+                parent.spawn(ForwardButton);
+            })),
+    )).id();
+
+    let middle = world.commands().spawn((
+            Node {
+                flex_direction: FlexDirection::Row,
+                justify_content: JustifyContent::Center,
+                flex_grow: 1.,
+                ..default()
+            },
+            Children::spawn(SpawnWith(|parent: &mut ChildSpawner| {
+                parent.spawn(LeftButton);
+                parent.spawn(PickupButton);
+                parent.spawn(RightButton);
+            })),
+    )).id();
+
+    let bottom = world.commands().spawn((
+            Node {
+                flex_direction: FlexDirection::Row,
+                justify_content: JustifyContent::Center,
+                flex_grow: 1.,
+                ..default()
+            },
+            Children::spawn(SpawnWith(|parent: &mut ChildSpawner| {
+                parent.spawn(BackwardButton);
+            })),
+    )).id();
+
+    world.commands()
+        .entity(context.entity)
+        .add_child(top)
+        .add_child(middle)
+        .add_child(bottom);
+}
+
+#[derive(Component)]
+#[require(
+    Node {
+        ..default()
+    },
+    Text("P".into()),
+    BackgroundColor(GREEN.into()),
+)]
+#[component(on_add = on_pickup_button_add)]
+pub struct PickupButton;
+
+fn on_pickup_button_add(
+    mut world: DeferredWorld,
+    context: HookContext,
+) {
+    world.commands()
+        .entity(context.entity)
+        .observe(pickup_pressed);
+}
+
+#[derive(Component)]
+#[require(
+    Node {
+        ..default()
+    },
+    Text("RECALL".into()),
+    BackgroundColor(GREEN.into()),
+)]
+#[component(on_add = on_recall_button_add)]
+pub struct RecallButton;
+
+fn on_recall_button_add(
+    mut world: DeferredWorld,
+    context: HookContext,
+) {
+    world.commands()
+        .entity(context.entity);
+}
+
+pub(crate) fn pickup_pressed(
+    _trigger: On<Pointer<Press>>,
+    mut commands: Commands,
+    rover_query: Query<Entity, With<Rover>>,
+) {
+    if let Ok(rover_entity) = rover_query.single() {
+        commands.entity(rover_entity).trigger(|entity| RoverInteractEvent { entity });
+    }
 }
 
 pub(crate) fn forward_pressed(
@@ -241,50 +350,8 @@ pub(crate) fn icon_double_click_observer(
                         BorderColor::all(Color::WHITE),
                         Children::spawn(SpawnWith(|root_parent: &mut ChildSpawner| {
                             // Button pane
-                            root_parent.spawn((
-                                Node {
-                                    width: px(300),
-                                    height: px(50),
-                                    flex_direction: FlexDirection::Row,
-                                    ..default()
-                                },
-                                Children::spawn(SpawnWith(|buttons_parent: &mut ChildSpawner| {
-                                    // Left Buttons
-                                    buttons_parent.spawn((
-                                        Node {
-                                            width: px(300),
-                                            height: px(50),
-                                            flex_direction: FlexDirection::Column,
-                                            ..default()
-                                        },
-                                        Children::spawn(SpawnWith(|parent: &mut ChildSpawner| {
-                                            parent.spawn((
-                                                ForwardButton,
-                                            ));
-                                            parent.spawn((
-                                                BackwardButton,
-                                            ));
-                                        })),
-                                    ));
-                                    // Right Buttons
-                                    buttons_parent.spawn((
-                                        Node {
-                                            width: px(300),
-                                            height: px(50),
-                                            flex_direction: FlexDirection::Column,
-                                            ..default()
-                                        },
-                                        Children::spawn(SpawnWith(|parent: &mut ChildSpawner| {
-                                            parent.spawn((
-                                                LeftButton,
-                                            ));
-                                            parent.spawn((
-                                                RightButton,
-                                            ));
-                                        })),
-                                    ));
-                                })),
-                            ));
+                            root_parent.spawn(ButtonsNode);
+                            //root_parent.spawn(PickupButton);
                         })),
                     )),
             )).id();
@@ -313,7 +380,7 @@ pub(crate) fn drive_diegetic_pointer(
     mut cursor_last: Local<Vec2>,
     mut raycast: MeshRayCast,
     rays: Res<RayMap>,
-    cubes: Query<&Mesh3d, With<ComputerScreenCube>>,
+    cubes: Query<&Mesh3d, Or<(With<ComputerScreenCube>, With<Desktop>)>>,
     ui_camera: Query<&RenderTarget, With<Camera2d>>,
     primary_window: Query<Entity, With<PrimaryWindow>>,
     windows: Query<(Entity, &Window)>,
