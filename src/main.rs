@@ -2,8 +2,7 @@ use avian_pickup::{AvianPickupPlugin};
 use avian_rerecast::AvianBackendPlugin;
 use avian3d::prelude::*;
 use bevy::{
-    color::palettes::css::GREEN, log::LogPlugin, prelude::*, text::FontSmoothing, window::{ CursorGrabMode, CursorOptions, WindowResolution,},
-    dev_tools::fps_overlay::{FpsOverlayPlugin, FpsOverlayConfig, FrameTimeGraphConfig},
+    color::palettes::css::GREEN, dev_tools::fps_overlay::{FpsOverlayConfig, FpsOverlayPlugin, FrameTimeGraphConfig}, light::light_consts::lux::{FULL_DAYLIGHT, OFFICE}, log::LogPlugin, prelude::*, text::FontSmoothing, window::{ CursorGrabMode, CursorOptions, WindowResolution,}
 };
 use bevy_asset_loader::prelude::*;
 use bevy_bae::BaePlugin;
@@ -88,6 +87,8 @@ struct Args {
     level: Option<String>,
     #[clap(long)]
     fps: bool,
+    #[clap(long)]
+    debug: bool,
 }
 
 fn main() {
@@ -123,7 +124,7 @@ fn main() {
     )
     .insert_resource(GlobalAmbientLight {
         color: Color::WHITE,
-        brightness: 0.5,
+        brightness: OFFICE,
         ..default()
     })
     // Library Plugins
@@ -133,7 +134,7 @@ fn main() {
         YarnSpinnerPlugin::new(),
         ExampleYarnSpinnerDialogueViewPlugin::new(),
         Sprite3dPlugin,
-        SunMovePlugin,
+        //SunMovePlugin,
         RandomStarsPlugin,
         Landmass3dPlugin::default(),
         Landmass3dDebugPlugin::default(),
@@ -215,6 +216,9 @@ fn main() {
                 },
             }
         });
+    }
+    if args.debug {
+        app.add_plugins(PhysicsDebugPlugin);
     }
     app.register_type::<RigidBody>();
 
