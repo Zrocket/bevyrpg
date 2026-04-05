@@ -1,6 +1,6 @@
 use avian_pickup::actor::{AvianPickupActor, AvianPickupActorHoldConfig};
 use avian3d::prelude::{CoefficientCombine, Collider, CollisionLayers, Friction, GravityScale, LayerMask, LockedAxes, RigidBody, SpatialQuery, SpatialQueryFilter, SweptCcd, CollisionMargin};
-use bevy::{camera::Exposure, core_pipeline::tonemapping::Tonemapping, ecs::{lifecycle::HookContext, world::DeferredWorld}, input::common_conditions::input_just_pressed, pbr::{Atmosphere, AtmosphereSettings, ScatteringMedium}, post_process::bloom::Bloom, prelude::*, render::view::Hdr};
+use bevy::{camera::Exposure, core_pipeline::tonemapping::Tonemapping, ecs::{lifecycle::HookContext, world::DeferredWorld}, pbr::{Atmosphere, AtmosphereSettings, ScatteringMedium}, post_process::bloom::Bloom, prelude::*, render::view::Hdr};
 use bevy_egui::PrimaryEguiContext;
 use bevy_flycam::{FlyCam, NoCameraPlayerPlugin};
 use bevy_tnua::{TnuaController, TnuaObstacleRadar, control_helpers::{TnuaBlipReuseAvoidance, TnuaSimpleAirActionsCounter}};
@@ -13,6 +13,7 @@ use crate::{BootStrap, CameraConfig, CharacterBundle, CollisionLayer, DeathEvent
 pub enum PlayerState {
     #[default]
     Grounded,
+    Computer,
     Ladder(Entity),
     UnGrounded,
     Sitting,
@@ -105,10 +106,6 @@ pub struct Player;
 )]
 #[component(on_add = on_player_camera_add)]
 pub struct PlayerCamera;
-
-#[derive(Component, Reflect, Default)]
-#[reflect(Component)]
-pub struct CameraTarget(pub Transform);
 
 #[derive(Component, Reflect, Default)]
 #[reflect(Component)]
