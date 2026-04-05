@@ -1,4 +1,4 @@
-use bevy::{asset::RenderAssetUsages, camera::RenderTarget, ecs::{lifecycle::HookContext, world::DeferredWorld}, gltf::GltfMaterialName, prelude::*, render::{extract_resource::ExtractResource, render_resource::{Extent3d, TextureFormat, TextureUsages}}};
+use bevy::{asset::RenderAssetUsages, camera::RenderTarget, ecs::{lifecycle::HookContext, world::DeferredWorld}, prelude::*, render::{extract_resource::ExtractResource, render_resource::{Extent3d, TextureFormat, TextureUsages}}};
 use bevy_old_tv_shader::prelude::OldTvSettings;
 
 #[derive(Resource, Clone, ExtractResource)]

@@ -11,7 +11,7 @@ use bevy::color::palettes::css::{BLUE, GRAY};
 use bevy_ingame_clock::InGameClock;
 use bevy_old_tv_shader::OldTvPlugin;
 
-use crate::{CameraInterpolation, Interactable, InteractionEvent, Player, PlayerCamera, PlayerState};
+use crate::{CameraInterpolation, CameraInterpolation2, CameraState, CameraTarget, Interactable, InteractionEvent, Player, PlayerCamera, PlayerState};
 
 mod computer_input;
 mod computer_display;
@@ -44,6 +44,23 @@ fn on_desktop_add(
 
 #[derive(Component)]
 pub struct ComputerNode;
+
+#[derive(Component, Reflect)]
+#[reflect(Component)]
+#[require(
+    Interactable,
+)]
+#[component(on_add = on_crt_tv_add)]
+pub struct CrtTv;
+
+fn on_crt_tv_add(
+    mut world: DeferredWorld,
+    context: HookContext,
+) {
+    world.commands()
+        .entity(context.entity)
+        .observe(computer_interaction_observer);
+}
 
 #[derive(Component)]
 #[require(
@@ -172,13 +189,15 @@ impl Plugin for ComputerPlugin {
             .add_plugins(OldTvPlugin)
             .register_type::<ComputerScreenCube>()
             .register_type::<ComputerTextureCam>()
+            .register_type::<CrtTv>()
             .register_type::<Desktop>()
             .init_resource::<ComputerImage>()
             .init_resource::<MyProcGenMaterial>()
             .add_systems(Startup, setup)
             .add_systems(First, drive_diegetic_pointer.in_set(PickingSystems::Input))
             .add_systems(Update, update_click_timer)
-            .add_systems(Update, display_time);
+            .add_systems(Update, display_time)
+            .add_systems(Update, refresh_rover_window);
     }
 }
 
@@ -250,23 +269,31 @@ fn display_time(
 }
 
 fn computer_interaction_observer(
-    trigger: On<InteractionEvent>,
+    _trigger: On<InteractionEvent>,
     mut commands: Commands,
-    mut player_query: Query<(&mut Transform, &mut PlayerState, Entity), With<Player>>,
+    mut player_query: Query<(&mut PlayerState, Entity), With<Player>>,
     transform_query: Query<&GlobalTransform, Without<Player>>,
-    camera_query: Query<Entity, With<PlayerCamera>>,
+    camera_query: Query<(Entity, &Transform), With<PlayerCamera>>,
+    camera_target_query: Query<Entity, With<CameraTarget>>,
     time: Res<Time>,
 ) {
     trace!("OBSERVER: computer_interaction_observer");
-    if let Ok((mut player_transform, mut player_state, player_entity)) = player_query.single_mut()
-    && let Ok(computer_transform) = transform_query.get(trigger.entity)
-    && let Ok(camera_entity) = camera_query.single() {
-        *player_state = PlayerState::Sitting;
-        commands.entity(player_entity).insert(RigidBodyDisabled);
+    if let Ok((mut player_state, player_entity)) = player_query.single_mut()
+    && let Ok(target_entity) = camera_target_query.single()
+    && let Ok(target_transform) = transform_query.get(target_entity)
+    && let Ok((camera_entity, camera_transform)) = camera_query.single() {
+        *player_state = PlayerState::Computer;
+        //commands.entity(player_entity).insert(RigidBodyDisabled);
         commands.entity(camera_entity)
-            .insert(CameraInterpolation {
+            .insert(CameraInterpolation2 {
                 duration: time.elapsed() + Duration::new(1, 0),
                 start_time: time.elapsed(),
+                start_pos: *camera_transform,
+                desired_pos: Transform {
+                    translation: target_transform.translation(),
+                    rotation: target_transform.rotation(),
+                    scale: camera_transform.scale
+                },
             });
     }
 }

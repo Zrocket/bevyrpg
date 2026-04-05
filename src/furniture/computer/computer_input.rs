@@ -1,7 +1,7 @@
 use bevy::{camera::RenderTarget, color::palettes::css::{BLUE, GREEN, RED}, ecs::{lifecycle::HookContext, world::DeferredWorld}, input::ButtonState, picking::{backend::ray::RayMap, pointer::{Location, PointerAction, PointerInput}}, prelude::*, window::{PrimaryWindow, WindowEvent}};
 use bevy_egui::egui::TopBottomPanel;
 
-use crate::{ComputerNode, ComputerUiNode, Desktop, IconClickTimer, Rover, RoverBackwardEvent, RoverCamera, RoverForwardEvent, RoverInteractEvent, RoverLeftEvent, RoverRightEvent, furniture::computer::{CUBE_POINTER_ID, ComputerScreenCube}, widgets::floating_windows::floating_computer_rover_window_root};
+use crate::{ComputerNode, ComputerUiNode, Desktop, IconClickTimer, Rover, RoverBackwardEvent, RoverCamera, RoverForwardEvent, RoverInteractEvent, RoverLeftEvent, RoverRecallEvent, RoverRightEvent, RoverSpawnedMessage, furniture::computer::{CUBE_POINTER_ID, ComputerScreenCube}, widgets::floating_windows::floating_computer_rover_window_root};
 
 #[derive(Component)]
 #[require(
@@ -202,7 +202,10 @@ fn on_recall_button_add(
     context: HookContext,
 ) {
     world.commands()
-        .entity(context.entity);
+        .entity(context.entity)
+        .observe(icon_over)
+        .observe(icon_out)
+        .observe(recall_pressed);
 }
 
 pub(crate) fn pickup_pressed(
@@ -295,6 +298,16 @@ pub(crate) fn right_released(
     }
 }
 
+pub(crate) fn recall_pressed(
+    _trigger: On<Pointer<Press>>,
+    mut commands: Commands,
+    rover_query: Query<Entity, With<Rover>>,
+) {
+    if let Ok(rover_entity) = rover_query.single() {
+        commands.entity(rover_entity).trigger(|entity| RoverRecallEvent { entity });
+    }
+}
+
 pub(crate) fn icon_over(
     over: On<Pointer<Over>>,
     mut colors: Query<&mut BackgroundColor>,
@@ -349,14 +362,29 @@ pub(crate) fn icon_double_click_observer(
                         ViewportNode::new(rover_camrea),
                         BorderColor::all(Color::WHITE),
                         Children::spawn(SpawnWith(|root_parent: &mut ChildSpawner| {
-                            // Button pane
+                            root_parent.spawn(RecallButton);
                             root_parent.spawn(ButtonsNode);
-                            //root_parent.spawn(PickupButton);
                         })),
                     )),
             )).id();
 
             commands.entity(computer_ui).add_child(window);
+        }
+    }
+}
+
+pub(crate) fn refresh_rover_window(
+    mut commands: Commands,
+    mut rover_spawned_message_readeer: MessageReader<RoverSpawnedMessage>,
+    rover_camera_query: Query<Entity, With<RoverCamera>>,
+    window_query: Query<Entity, With<ComputerNode>>
+) {
+    for _message in rover_spawned_message_readeer.read() {
+        if let Ok(rover_camrea) = rover_camera_query.single()
+        && let Ok(window_entity) = window_query.single() {
+            commands.entity(window_entity)
+                .remove::<ViewportNode>()
+                .insert(ViewportNode::new(rover_camrea));
         }
     }
 }
