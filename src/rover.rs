@@ -3,7 +3,7 @@ use bevy_tnua::{TnuaController, prelude::TnuaBuiltinWalk};
 use bevy_landmass::{AgentTarget3d};
 use avian3d::{prelude::{Collider, SpatialQuery, SpatialQueryFilter}};
 
-use crate::{GameState, InteractionEvent, MetaState, PlayerControlScheme, TnuaRoverController, add_to_inventory_observer, level::CollisionLayer};
+use crate::{ComputerNode, GameState, InteractionEvent, MetaState, PlayerControlScheme, TnuaRoverController, add_to_inventory_observer, level::CollisionLayer};
 
 #[derive(Component, Reflect, Default)]
 #[reflect(Component)]
@@ -12,6 +12,9 @@ pub struct RoverSpawner;
 
 #[derive(Message)]
 pub struct SpawnRoverMessage;
+
+#[derive(Message, Default)]
+pub struct RoverSpawnedMessage;
 
 #[derive(Component, Reflect, Debug)]
 #[reflect(Component)]
@@ -39,13 +42,12 @@ fn on_rover_add(
         .observe(on_rover_right_observer)
         .observe(add_to_inventory_observer::<Rover>)
         .observe(on_rover_interact_observer)
-        .observe(on_rover_return_observer);
+        .observe(on_rover_recall_observer);
+
+    world.write_message_default::<RoverSpawnedMessage>();
 }
 
 fn spawn_rover(
-    mut commands: Commands,
-    mut meshes: ResMut<Assets<Mesh>>,
-    mut materials: ResMut<Assets<StandardMaterial>>,
     mut spawn_rover_message_writer: MessageWriter<SpawnRoverMessage>,
 ) {
     spawn_rover_message_writer.write(SpawnRoverMessage);
@@ -172,7 +174,6 @@ pub struct RoverInteractEvent {
     pub entity: Entity,
 }
 
-
 fn test_rover_interact(
     rover_query: Query<Entity, With<Rover>>,
     mut commands: Commands,
@@ -204,15 +205,15 @@ pub struct RoverRightEvent {
     pub entity: Entity,
 }
 
+#[derive(EntityEvent)]
+pub struct RoverRecallEvent {
+    pub entity: Entity,
+}
+
 #[derive(Component, Default, Debug)]
 pub struct RoverMovementInput {
     pub rotation: Quat,
     pub movement: Vec3,
-}
-
-#[derive(EntityEvent)]
-pub struct RoverReturnEvent {
-    pub entity: Entity,
 }
 
 #[derive(EntityEvent)]
@@ -228,6 +229,7 @@ impl Plugin for RoverPlugin {
             .register_type::<RoverSpawner>()
             .init_resource::<RoverCamreaRenderImage>()
             .add_message::<SpawnRoverMessage>()
+            .add_message::<RoverSpawnedMessage>()
             .add_systems(OnEnter(MetaState::Gameplay), spawn_rover)
             .add_systems(Update, apply_rover_movement.run_if(in_state(GameState::Gameplay)))
             .add_systems(Update, test_rover_interact.run_if(in_state(GameState::Gameplay)))
@@ -359,9 +361,10 @@ fn on_rover_drop_observer(
     }
 }
 
-fn on_rover_return_observer(
-    _trigger: On<RoverReturnEvent>,
-    mut rover_query: Query<&mut RoverMovementInput, With<Rover>>,
+fn on_rover_recall_observer(
+    _trigger: On<RoverRecallEvent>,
+    mut spawn_rover_message_writer: MessageWriter<SpawnRoverMessage>,
 ) {
-    trace!("OBSERVER: on_rover_return_observer");
+    trace!("OBSERVER: on_rover_recall_observer");
+    spawn_rover_message_writer.write(SpawnRoverMessage);
 }
