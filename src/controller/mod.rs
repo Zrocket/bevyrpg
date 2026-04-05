@@ -21,7 +21,7 @@ pub use stats_controller::*;
 
 use bevy::window::{CursorGrabMode, CursorOptions};
 
-use crate::{ActiveWeapon, ComputerNode, GameState, ItemDetails, MetaState, PlayerCamera, ShootEvent, level::DAGunAssets, shoot, widgets::floating_windows::FloatingWindow};
+use crate::{ActiveWeapon, ComputerNode, GameState, ItemDetails, MetaState, PlayerCamera, PlayerState, ShootEvent, level::DAGunAssets, shoot, widgets::floating_windows::FloatingWindow};
 
 pub struct ControllerPlugin;
 impl Plugin for ControllerPlugin {
@@ -61,8 +61,15 @@ fn manage_cursor(
     avian_pickup_actor: Single<Entity, With<AvianPickupActor>>,
     mut avian_pickup_input_writer: MessageWriter<AvianPickupInput>,
     active_windoow: Query<Entity, (With<FloatingWindow>, Without<ComputerNode>)>,
+    player_state_query: Query<&PlayerState>,
 ) {
-    if let Ok(mut window) = windows.single_mut() {
+    if let Ok(mut window) = windows.single_mut()
+    && let Ok(player_state) = player_state_query.single() {
+        if *player_state == PlayerState::Computer {
+            window.grab_mode = CursorGrabMode::None;
+            window.visible = true;
+            return;
+        }
         if window.grab_mode != CursorGrabMode::Locked {
                 if shoot_action.contains(ActionEvents::FIRE) {
                 if !active_windoow.is_empty() {

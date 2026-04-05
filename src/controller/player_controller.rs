@@ -9,7 +9,7 @@ use bevy_tnua::{
 use bevy_tnua_avian3d::{TnuaAvian3dPlugin, TnuaSpatialExtAvian3d};
 use chill_bevy_console::console_closed;
 
-use crate::{CrouchAction, DownAction, FlashlightAction, JumpAction, LookAction, MovementAction, ObstacleQueryHelper, Player, PlayerFlashlight, PlayerState, RunAction, UpAction};
+use crate::{CameraState, CrouchAction, DownAction, FlashlightAction, JumpAction, LookAction, MovementAction, ObstacleQueryHelper, Player, PlayerFlashlight, PlayerState, RunAction, UpAction};
 
 // Used as padding by camera pitching (up/down) to avoid spooky math problems
 const ANGLE_EPSILON: f32 = 0.001953125;
@@ -227,6 +227,7 @@ pub fn tnua_player_input(
         &mut TnuaBlipReuseAvoidance<PlayerControlScheme>,
         Entity,
         ), With<Player>>,
+    mut camera_state: ResMut<NextState<CameraState>>,
     spatial_ext: TnuaSpatialExtAvian3d,
     obstacle_query: Query<ObstacleQueryHelper>,
 ) {
@@ -243,6 +244,10 @@ pub fn tnua_player_input(
             )) = tnua_query.single_mut() else {
         return;
     };
+
+    //let Ok(mut camera_state) = camera_query.single_mut() else {
+    //    return;
+    //};
 
     tnua_controller.initiate_action_feeding();
 
@@ -272,8 +277,10 @@ pub fn tnua_player_input(
     //if action_state.pressed(&LeafwingAction::Jump) {
     if jump_action.contains(ActionEvents::FIRE) {
         tnua_controller.action(PlayerControlScheme::Jump(Default::default()));
-        if *player_state == PlayerState::Sitting || *player_state == PlayerState::Sleeping {
+        if *player_state == PlayerState::Sitting || *player_state == PlayerState::Sleeping || *player_state == PlayerState::Computer {
             *player_state = PlayerState::Grounded;
+            camera_state.set(CameraState::Player);
+            //*camera_state = CameraState::Player;
             commands.entity(player_entity).remove::<RigidBodyDisabled>();
         }
     }
