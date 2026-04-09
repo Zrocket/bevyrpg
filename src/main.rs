@@ -2,7 +2,7 @@ use avian_pickup::{AvianPickupPlugin};
 use avian_rerecast::AvianBackendPlugin;
 use avian3d::prelude::*;
 use bevy::{
-    color::palettes::css::GREEN, dev_tools::fps_overlay::{FpsOverlayConfig, FpsOverlayPlugin, FrameTimeGraphConfig}, light::light_consts::lux::{FULL_DAYLIGHT, OFFICE}, log::LogPlugin, prelude::*, text::FontSmoothing, window::{ CursorGrabMode, CursorOptions, WindowResolution,}
+    dev_tools::fps_overlay::{FpsOverlayConfig, FpsOverlayPlugin, FrameTimeGraphConfig}, light::light_consts::lux::{OFFICE}, log::LogPlugin, prelude::*, text::FontSmoothing, window::{ CursorGrabMode, CursorOptions, WindowResolution,}
 };
 use bevy_asset_loader::prelude::*;
 use bevy_bae::BaePlugin;
@@ -17,7 +17,7 @@ use bevy_rerecast::NavmeshPlugins;
 use bevy_simple_text_input::TextInputPlugin;
 use bevy_skein::SkeinPlugin;
 use bevy_sprite3d::Sprite3dPlugin;
-use bevy_sun_move::{SunMovePlugin, random_stars::RandomStarsPlugin};
+use bevy_sun_move::{/*SunMovePlugin,*/ random_stars::RandomStarsPlugin};
 use bevy_yarnspinner::prelude::YarnSpinnerPlugin;
 use bevy_yarnspinner_example_dialogue_view::ExampleYarnSpinnerDialogueViewPlugin;
 use bevy_yoleck::prelude::*;

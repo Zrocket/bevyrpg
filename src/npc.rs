@@ -2,7 +2,6 @@ use avian3d::prelude::{Collider, SpatialQuery, SpatialQueryFilter};
 use bevy::prelude::*;
 use bevy_bae::{prelude::OperatorInput, task::OperatorStatus};
 use bevy_landmass::{Agent, Agent3dBundle, AgentSettings, AgentTarget3d, Archipelago3d, ArchipelagoRef3d};
-use rand::Rng;
 use rand::random_range;
 
 use crate::{Player, TnuaNpcController};

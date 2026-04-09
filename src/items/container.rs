@@ -33,7 +33,7 @@ fn on_container_add(
             .observe(remove_from_inventory_observer::<Container>);
 }
 
-fn container_interaction_observer(
+pub fn container_interaction_observer(
     trigger: On<InteractionEvent>,
     mut commands: Commands,
 ) {
