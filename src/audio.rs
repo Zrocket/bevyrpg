@@ -2,7 +2,6 @@ use bevy::prelude::*;
 use bevy_enhanced_input::{action::InputAction, prelude::{Fire, Start}};
 use bevy_seedling::{SeedlingPlugin, pool::SamplerPool, prelude::{PoolLabel, Volume}, sample::SamplePlayer};
 use bevy_tnua::TnuaController;
-use rand::Rng;
 use rand::random_range;
 
 use crate::{FlashlightAction, JumpAction, MovementAction, Player, PlayerControlScheme, RunAction};

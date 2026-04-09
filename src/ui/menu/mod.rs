@@ -1,5 +1,5 @@
 use bevy::prelude::*;
-use crate::{MenuState, credits::CreditsMenuUiPlugin, menu::{controller_settings::ControllerSettingsMenuUiPlugin, gameplay_settings::GameplaySettingsMenuUiPlugin, settings::SettingsMenuUiPlugin, sound_settings::SoundSettingsMenuUiPlugin, video_settings::VideoSettingsMenuUiPlugin}};
+use crate::{MenuState, credits::CreditsMenuUiPlugin, loading::LoadingMenuUiPlugin, menu::{controller_settings::ControllerSettingsMenuUiPlugin, gameplay_settings::GameplaySettingsMenuUiPlugin, settings::SettingsMenuUiPlugin, sound_settings::SoundSettingsMenuUiPlugin, video_settings::VideoSettingsMenuUiPlugin}};
 
 use super::widgets;
 
@@ -27,6 +27,7 @@ impl Plugin for MenuUiPlugin {
                     GameplaySettingsMenuUiPlugin,
                     SoundSettingsMenuUiPlugin,
                     VideoSettingsMenuUiPlugin,
+                    LoadingMenuUiPlugin,
             ));
     }
 }

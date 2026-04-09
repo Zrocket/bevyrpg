@@ -200,7 +200,7 @@ where
                 },
                 children![(
                     (
-                        Text::new(""),
+                        Text::new("I"),
                         TextFont::from_font_size(24.0),
                         TextColor(WHITE),
                     ),

@@ -1,7 +1,7 @@
 use std::time::Duration;
 
 use bevy::{ecs::{lifecycle::HookContext, world::DeferredWorld}, prelude::*};
-use avian3d::{collision::collider::Collider, prelude::RigidBodyDisabled};
+use avian3d::{collision::collider::Collider};
 
 use crate::{CameraState, Player, PlayerController};
 
@@ -182,7 +182,6 @@ fn interpolate_camera_2(
 
             if camera_interp.duration <= time.elapsed() {
                 commands.entity(camera_entity).remove::<CameraInterpolation2>();
-                //commands.entity(player_entity).remove::<RigidBodyDisabled>();
                 return;
             }
 
