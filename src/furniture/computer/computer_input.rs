@@ -1,5 +1,4 @@
 use bevy::{camera::RenderTarget, color::palettes::css::{BLUE, GREEN, RED}, ecs::{lifecycle::HookContext, world::DeferredWorld}, input::ButtonState, picking::{backend::ray::RayMap, pointer::{Location, PointerAction, PointerInput}}, prelude::*, window::{PrimaryWindow, WindowEvent}};
-use bevy_egui::egui::TopBottomPanel;
 
 use crate::{ComputerNode, ComputerUiNode, Desktop, IconClickTimer, Rover, RoverBackwardEvent, RoverCamera, RoverForwardEvent, RoverInteractEvent, RoverLeftEvent, RoverRecallEvent, RoverRightEvent, RoverSpawnedMessage, furniture::computer::{CUBE_POINTER_ID, ComputerScreenCube}, widgets::floating_windows::floating_computer_rover_window_root};
 
@@ -335,7 +334,7 @@ pub(crate) fn update_click_timer(
     }
 }
 
-pub(crate) fn icon_double_click_observer(
+pub(crate) fn rover_icon_double_click_observer(
     trigger: On<Pointer<Click>>,
     mut timer_query: Query<&mut IconClickTimer>,
     mut commands: Commands,
@@ -363,6 +362,43 @@ pub(crate) fn icon_double_click_observer(
                         BorderColor::all(Color::WHITE),
                         Children::spawn(SpawnWith(|root_parent: &mut ChildSpawner| {
                             root_parent.spawn(RecallButton);
+                            root_parent.spawn(ButtonsNode);
+                        })),
+                    )),
+            )).id();
+
+            commands.entity(computer_ui).add_child(window);
+        }
+    }
+}
+
+pub(crate) fn cctv_icon_double_click_observer(
+    trigger: On<Pointer<Click>>,
+    mut timer_query: Query<&mut IconClickTimer>,
+    mut commands: Commands,
+    computer_ui_query: Query<Entity, With<ComputerUiNode>>,
+    rover_camera_query: Query<Entity, With<RoverCamera>>,
+) {
+    if let Ok(mut timer) = timer_query.get_mut(trigger.entity)
+    && let Ok(computer_ui) = computer_ui_query.single()
+    && let Ok(rover_camrea) = rover_camera_query.single() {
+        if timer.0.is_finished() {
+            timer.0.reset();
+        } else {
+            let window = commands.spawn((
+                    ComputerNode,
+                    floating_computer_rover_window_root("ROVER".to_string(), (
+                        Node {
+                            width: Val::Auto,
+                            height: px(300),
+                            border: UiRect::all(px(5)),
+                            overflow: Overflow { x: OverflowAxis::Hidden, y: OverflowAxis::Hidden },
+                            flex_direction: FlexDirection::ColumnReverse,
+                            ..default()
+                        },
+                        ViewportNode::new(rover_camrea),
+                        BorderColor::all(Color::WHITE),
+                        Children::spawn(SpawnWith(|root_parent: &mut ChildSpawner| {
                             root_parent.spawn(ButtonsNode);
                         })),
                     )),
