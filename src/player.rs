@@ -7,7 +7,7 @@ use bevy_tnua::{TnuaController, TnuaObstacleRadar, control_helpers::{TnuaBlipReu
 use bevy_tnua_avian3d::TnuaAvian3dSensorShape;
 use bevy_seedling::spatial::SpatialListener3D;
 
-use crate::{BootStrap, CameraConfig, CharacterBundle, CollisionLayer, DeathEvent, Description, Experience, FetchQuest, FloatHeight, GameState, Health, ItemDetails, Mana, MaxHealth, MaxMana, PlayerControlScheme, PlayerController, PlayerControllerConfig, PlayerControllerInput, Quest, QuestOf, RayHit, RenderPlayer, TnuaPlayerController, Walk, Weight, add_to_inventory_observer, display_equip_event_observer, display_inventory_event_observer, display_quest_event_observer, display_stats_event_observer, level::DAGunAssets, remove_from_inventory_observer};
+use crate::{BootStrap, CameraConfig, CharacterBundle, CollisionLayer, DeathEvent, Description, Experience, FetchQuest, FloatHeight, GameState, Health, ItemDetails, Mana, MaxHealth, MaxMana, PlayerControlScheme, PlayerController, PlayerControllerConfig, PlayerControllerInput, Quest, QuestOf, RayHit, RenderPlayer, TnuaPlayerController, Walk, Weight, add_to_inventory_observer, display_equip_event_observer, display_inventory_event_observer, display_quest_event_observer, display_stats_event_observer, level::DAGunAssets, remove_from_inventory_observer, Sleep};
 
 #[derive(Clone, Component, Hash, Debug, Eq, PartialEq, Default, States)]
 pub enum PlayerState {
@@ -73,7 +73,8 @@ pub enum CameraState {
             ..default()
         },
         ..default()
-    }
+    },
+    Sleep::default(),
 )]
 #[component(on_add = on_player_add)]
 pub struct Player;
