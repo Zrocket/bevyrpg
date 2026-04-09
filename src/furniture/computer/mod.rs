@@ -1,6 +1,6 @@
 use std::time::Duration;
 
-use avian3d::prelude::{RigidBody, RigidBodyDisabled};
+use avian3d::prelude::{RigidBody};
 use bevy::asset::uuid::Uuid;
 use bevy::ecs::lifecycle::HookContext;
 use bevy::ecs::world::DeferredWorld;
@@ -11,7 +11,7 @@ use bevy::color::palettes::css::{BLUE, GRAY};
 use bevy_ingame_clock::InGameClock;
 use bevy_old_tv_shader::OldTvPlugin;
 
-use crate::{CameraInterpolation, CameraInterpolation2, CameraState, CameraTarget, Interactable, InteractionEvent, Player, PlayerCamera, PlayerState};
+use crate::{CameraInterpolation2, CameraTarget, Interactable, InteractionEvent, Player, PlayerCamera, PlayerState};
 
 mod computer_input;
 mod computer_display;
@@ -66,6 +66,26 @@ fn on_crt_tv_add(
 #[require(
     Node {
         position_type: PositionType::Absolute,
+        width: Val::Percent(11.),
+        height: Val::Percent(15.),
+        align_items: AlignItems::Center,
+        border_radius: BorderRadius::all(Val::Px(10.)),
+        left: Val::Px(20.),
+        top: Val::Px(400.),
+        flex_direction: FlexDirection::Column,
+        overflow: Overflow { x: OverflowAxis::Hidden, y: OverflowAxis::Hidden },
+        ..default()
+    },
+    BackgroundColor(BLUE.into()),
+    IconClickTimer(Timer::from_seconds(1.0, TimerMode::Once)),
+)]
+#[component(on_add = on_computer_rover_icon_add)]
+pub struct ComputerRoverIcon;
+
+#[derive(Component)]
+#[require(
+    Node {
+        position_type: PositionType::Absolute,
         width: Val::Percent(10.),
         height: Val::Percent(15.),
         align_items: AlignItems::Center,
@@ -79,13 +99,13 @@ fn on_crt_tv_add(
     BackgroundColor(BLUE.into()),
     IconClickTimer(Timer::from_seconds(1.0, TimerMode::Once)),
 )]
-#[component(on_add = on_computer_icon_add)]
-pub struct ComputerIcon;
+#[component(on_add = on_computer_cctv_icon_add)]
+pub struct ComputerCctvIcon;
 
 #[derive(Component)]
 pub struct IconClickTimer(pub Timer);
 
-fn on_computer_icon_add(
+fn on_computer_rover_icon_add(
     mut world: DeferredWorld,
     context: HookContext,
 ) {
@@ -97,8 +117,6 @@ fn on_computer_icon_add(
             height: Val::Percent(75.),
             ..default()
         },
-        //BackgroundColor(GREEN.into()),
-        //Text::new("TEST"),
         ImageNode::new(icon),
     )).id();
 
@@ -108,7 +126,40 @@ fn on_computer_icon_add(
             height: Val::Percent(25.),
             ..default()
         },
-        //BackgroundColor(GOLDENROD.into()),
+        Text::new("ROVER"),
+    )).id();
+
+    world.commands()
+        .entity(context.entity)
+        .observe(icon_drag_observer)
+        .observe(icon_over)
+        .observe(icon_out)
+        .observe(rover_icon_double_click_observer)
+        .add_child(icon_node)
+        .add_child(text_node);
+}
+
+fn on_computer_cctv_icon_add(
+    mut world: DeferredWorld,
+    context: HookContext,
+) {
+    let icon: Handle<Image> = world.resource::<AssetServer>().load("icons/geometrica/save-block.png");
+
+    let icon_node = world.commands().spawn((
+        Node {
+            width: Val::Auto,
+            height: Val::Percent(75.),
+            ..default()
+        },
+        ImageNode::new(icon),
+    )).id();
+
+    let text_node = world.commands().spawn((
+        Node {
+            width: Val::Auto,
+            height: Val::Percent(25.),
+            ..default()
+        },
         Text::new("TEST"),
     )).id();
 
@@ -117,7 +168,7 @@ fn on_computer_icon_add(
         .observe(icon_drag_observer)
         .observe(icon_over)
         .observe(icon_out)
-        .observe(icon_double_click_observer)
+        .observe(cctv_icon_double_click_observer)
         .add_child(icon_node)
         .add_child(text_node);
 }
@@ -228,7 +279,7 @@ fn on_computer_ui_node_add(
         .with_children(|parent| {
             parent
                 .spawn((
-                    ComputerIcon,
+                    ComputerRoverIcon,
                 ));
             parent
                 .spawn((
@@ -261,24 +312,21 @@ fn display_time(
     mut clock_text_query: Query<&mut Text, With<ComputerClock>>,
 ) {
     if let Ok(mut clock_text) = clock_text_query.single_mut() {
-        clock_text.0 = format!(
-            "{}",
-            clock.format_datetime(None)
-        );
+        clock_text.0 = clock.format_datetime(None).to_string();
     }
 }
 
 fn computer_interaction_observer(
     _trigger: On<InteractionEvent>,
     mut commands: Commands,
-    mut player_query: Query<(&mut PlayerState, Entity), With<Player>>,
+    mut player_query: Query<&mut PlayerState, With<Player>>,
     transform_query: Query<&GlobalTransform, Without<Player>>,
     camera_query: Query<(Entity, &Transform), With<PlayerCamera>>,
     camera_target_query: Query<Entity, With<CameraTarget>>,
     time: Res<Time>,
 ) {
     trace!("OBSERVER: computer_interaction_observer");
-    if let Ok((mut player_state, player_entity)) = player_query.single_mut()
+    if let Ok(mut player_state) = player_query.single_mut()
     && let Ok(target_entity) = camera_target_query.single()
     && let Ok(target_transform) = transform_query.get(target_entity)
     && let Ok((camera_entity, camera_transform)) = camera_query.single() {
