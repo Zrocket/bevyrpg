@@ -3,7 +3,7 @@ use bevy_tnua::{TnuaController, prelude::TnuaBuiltinWalk};
 use bevy_landmass::{AgentTarget3d};
 use avian3d::{prelude::{Collider, SpatialQuery, SpatialQueryFilter}};
 
-use crate::{ComputerNode, GameState, InteractionEvent, MetaState, PlayerControlScheme, TnuaRoverController, add_to_inventory_observer, level::CollisionLayer};
+use crate::{GameState, InteractionEvent, MetaState, PlayerControlScheme, TnuaRoverController, add_to_inventory_observer, level::CollisionLayer, Interactable, container_interaction_observer, display_inventory_event_observer};
 
 #[derive(Component, Reflect, Default)]
 #[reflect(Component)]
@@ -22,7 +22,9 @@ pub struct RoverSpawnedMessage;
     TnuaRoverController,
     RoverMovementInput,
     AgentTarget3d,
-    Collider::cuboid(1.0, 1.0, 1.0),
+    Collider::cuboid(0.5, 0.5, 0.5),
+    Interactable,
+    Name::new("Rover"),
 )]
 #[component(on_add = on_rover_add)]
 pub struct Rover;
@@ -42,7 +44,9 @@ fn on_rover_add(
         .observe(on_rover_right_observer)
         .observe(add_to_inventory_observer::<Rover>)
         .observe(on_rover_interact_observer)
-        .observe(on_rover_recall_observer);
+        .observe(on_rover_recall_observer)
+        .observe(container_interaction_observer)
+        .observe(display_inventory_event_observer);
 
     world.write_message_default::<RoverSpawnedMessage>();
 }
