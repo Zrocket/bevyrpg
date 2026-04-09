@@ -2,6 +2,9 @@ use bevy::{ecs::{lifecycle::HookContext, world::DeferredWorld}, prelude::*};
 
 use crate::*;
 
+#[derive(Component, Default)]
+pub struct GodMode;
+
 #[derive(Default, Clone, Component, Reflect)]
 #[reflect(Component)]
 #[component(on_add = on_health_add)]
@@ -36,9 +39,33 @@ pub struct Hunger(pub i32);
 #[reflect(Component)]
 pub struct Thirst(pub i32);
 
-#[derive(Default, Clone, Component, Reflect)]
+#[derive(Clone, Component, Reflect)]
 #[reflect(Component)]
-pub struct Sleep(pub i32);
+pub struct Sleep {
+    pub value: i32,
+    timer: Timer,
+}
+
+impl Default for Sleep {
+    fn default() -> Self {
+        Self {
+            value: 100,
+            timer: Timer::from_seconds(5.0, TimerMode::Repeating),
+        }
+    }
+}
+
+fn drain_sleep(
+    mut sleep_query: Query<&mut Sleep>,
+    time: Res<Time>,
+) {
+    for mut sleep in sleep_query.iter_mut() {
+        sleep.timer.tick(time.delta());
+        if sleep.timer.is_finished() {
+            sleep.value -= 10;
+        }
+    }
+}
 
 #[derive(Bundle)]
 pub struct CharacterBundle {
@@ -115,7 +142,8 @@ impl Plugin for CharacterPlugin {
             .register_type::<Level>()
             .register_type::<Hunger>()
             .register_type::<Thirst>()
-            .register_type::<Sleep>();
+            .register_type::<Sleep>()
+            .add_systems(Update, drain_sleep.run_if(in_state(GameState::Gameplay)));
     }
 }
 
@@ -143,7 +171,7 @@ fn on_level_add(
 fn damage_observer(
     trigger: On<DamageEvent>,
     mut commands: Commands,
-    mut health_query: Query<&mut Health>,
+    mut health_query: Query<&mut Health, Without<GodMode>>,
 ) {
     if let Ok(mut health) = health_query.get_mut(trigger.entity) {
         if health.0 <= trigger.ammount {
