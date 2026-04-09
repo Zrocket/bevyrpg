@@ -35,7 +35,7 @@ impl VolumeTicks {
     }
 
     fn label(&self) -> String {
-        let filled = " ".repeat(self.0);
+        let filled = "█".repeat(self.0);
         let empty = " ".repeat(VolumeTicks::MAX_TICK_COUNT - self.0);
         filled + &empty + "|"
     }
@@ -151,5 +151,5 @@ where
     F2: QueryFilter,
 {
     let ticks = VolumeTicks::from(master.volume);
-    label.0 = ticks.label()
+    label.0 = ticks.label();
 }
