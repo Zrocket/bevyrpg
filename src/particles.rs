@@ -3,6 +3,8 @@ use bevy::{ecs::{lifecycle::HookContext, world::DeferredWorld}, prelude::*};
 use bevy_hanabi::{AccelModifier, Attribute, ColorBlendMask, ColorOverLifetimeModifier, EffectAsset, EffectMaterial, ExprWriter, OrientModifier, ParticleEffect, ParticleTextureModifier, ScalarType, SetAttributeModifier, SetPositionSphereModifier, SetVelocitySphereModifier, SizeOverLifetimeModifier, SpawnerSettings};
 use bevy_seedling::{prelude::SpatialBasicNode, sample::SamplePlayer, sample_effects};
 
+use crate::{DamageEvent, Health};
+
 #[derive(Resource)]
 pub struct FireEffectResource(Handle<EffectAsset>);
 
@@ -268,9 +270,13 @@ fn fire_collision_observer(
     trigger: On<CollisionStart>,
     mut commands: Commands,
     flamable_query: Query<Entity, (With<Flamable>, Without<ParticleTester>)>,
+    character_query: Query<Entity, With<Health>>,
 ) {
     if let Ok(flamable_entity) = flamable_query.get(trigger.event().collider2) {
         commands.entity(flamable_entity)
             .insert(ParticleTester);
-    }
+        } else if let Ok(character_entity) = character_query.get(trigger.event().collider2) {
+            println!("AAAAAAAAAAAAA");
+            commands.entity(character_entity).trigger(|entity| DamageEvent { entity, ammount: 10 });
+        }
 }
