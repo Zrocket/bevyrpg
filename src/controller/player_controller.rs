@@ -226,6 +226,7 @@ pub fn tnua_player_input(
         &TnuaObstacleRadar,
         &mut TnuaBlipReuseAvoidance<PlayerControlScheme>,
         Entity,
+        &mut Transform,
         ), With<Player>>,
     mut camera_state: ResMut<NextState<CameraState>>,
     spatial_ext: TnuaSpatialExtAvian3d,
@@ -240,7 +241,8 @@ pub fn tnua_player_input(
             player_controller_input,
             obstacle_radar,
             mut blip_reuse_avoiodance,
-            player_entity
+            player_entity,
+            mut player_transform
             )) = tnua_query.single_mut() else {
         return;
     };
@@ -282,6 +284,12 @@ pub fn tnua_player_input(
             camera_state.set(CameraState::Player);
             //*camera_state = CameraState::Player;
             commands.entity(player_entity).remove::<RigidBodyDisabled>();
+            player_transform.translation[1] += 2.0;
+            /*player_transform = Transform {
+                translation: (),
+                rotation: player_transform.rotation,
+                scale: player_transform.scale,
+            };*/
         }
     }
 
