@@ -110,11 +110,12 @@ pub fn display_inventory_event_observer(
 ) {
     trace!("OBSERVER: display_inventory_event_observer");
 
-    if *menu_state == UiState::Inventory {
-        return;
-    }
 
-    menu_state_setter.set(UiState::Inventory);
+    //if *menu_state == UiState::Inventory {
+    //    return;
+    //}
+
+    //menu_state_setter.set(UiState::Inventory);
 
     let Ok(name) = name_query.get(trigger.entity) else {
         return;
