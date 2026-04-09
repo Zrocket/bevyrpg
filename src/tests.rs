@@ -7,16 +7,16 @@ use super::Weight;
 pub struct TestsPlugin;
 impl Plugin for TestsPlugin {
     fn build(&self, app: &mut App) {
-        app
-            .add_systems(Update, (
+        app;
+            //.add_systems(Update, (
                     //dynamic_asset_test
-                    health_test,
-                    mana_test,
+                    //health_test,
+                    //mana_test,
                     //inventory_add_test,
-                    inventory_add_test,
+                    //inventory_add_test,
                     //inventory_remove_test,
                     //equipt_ui_test.run_if(input_just_pressed(KeyCode::KeyP)),
-            ));
+           // ));
     }
 }
 
