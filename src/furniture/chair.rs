@@ -1,9 +1,8 @@
 use std::time::Duration;
 
-use avian3d::prelude::RigidBodyDisabled;
 use bevy::{ecs::{lifecycle::HookContext, world::DeferredWorld}, prelude::*};
 
-use crate::{CameraInterpolation, CameraInterpolation2, Interactable, InteractionEvent, Player, PlayerCamera, PlayerState};
+use crate::{CameraInterpolation2, Interactable, InteractionEvent, Player, PlayerCamera, PlayerState};
 
 #[derive(Debug, Default, Component, Reflect)]
 #[reflect(Component)]
