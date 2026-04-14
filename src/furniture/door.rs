@@ -1,4 +1,5 @@
-use bevy::{ecs::{lifecycle::HookContext, world::DeferredWorld}, prelude::*};
+use avian3d::prelude::{ColliderConstructor, RigidBody};
+use bevy::{ecs::{event::Trigger, lifecycle::HookContext, world::DeferredWorld}, prelude::*, scene::SceneInstanceReady};
 use bevy_seedling::sample::SamplePlayer;
 use rand::random_range;
 
@@ -82,13 +83,70 @@ pub struct Keys(Vec<Entity>);
 #[type_path("api")]
 pub struct DoorComponent;
 
+#[derive(EntityEvent)]
+pub struct OpenDoorEvent {
+    pub entity: Entity,
+}
+
+#[derive(EntityEvent)]
+pub struct CloseDoorEvent {
+    pub entity: Entity,
+}
+
 pub struct DoorPlugin;
 impl Plugin for DoorPlugin {
     fn build(&self, app: &mut App) {
         app.register_type::<DoorComponent>()
             .register_type::<DoorState>()
             .register_type::<LockedState>();
-            //.init_resource::<DoorGraph>();
+    }
+}
+
+fn close_door_observer(
+    trigger: On<CloseDoorEvent>,
+    mut commands: Commands,
+    mut door_state_query: Query<&mut DoorState>,
+    asset_server: Res<AssetServer>,
+    child_of_query: Query<&ChildOf>,
+    mut door: Query<&mut AnimationPlayer>,
+) {
+    trace!("OBSERVER: open_door_observer");
+    if let Ok(mut door_state) = door_state_query.get_mut(trigger.entity)
+    && let Ok(child_of) = child_of_query.get(trigger.entity)
+    && let parent_object = child_of.0
+    && let Ok(mut door_animation_player) = door.get_mut(parent_object) {
+        door_animation_player.stop_all();
+        let file = format!("audio/door/qubodup-DoorOpen0{}.ogg", random_range(0..8));
+        println!("{:?}", door_state);
+        door_animation_player.play(2.into());
+        commands.spawn(
+            SamplePlayer::new(asset_server.load(file))
+        );
+        *door_state = DoorState::Closed;
+    }
+}
+
+fn open_door_observer(
+    trigger: On<OpenDoorEvent>,
+    mut commands: Commands,
+    mut door_state_query: Query<&mut DoorState>,
+    asset_server: Res<AssetServer>,
+    child_of_query: Query<&ChildOf>,
+    mut door: Query<&mut AnimationPlayer>,
+) {
+    trace!("OBSERVER: open_door_observer");
+    if let Ok(mut door_state) = door_state_query.get_mut(trigger.entity)
+    && let Ok(child_of) = child_of_query.get(trigger.entity)
+    && let parent_object = child_of.0
+    && let Ok(mut door_animation_player) = door.get_mut(parent_object) {
+        door_animation_player.stop_all();
+        let file = format!("audio/door/qubodup-DoorOpen0{}.ogg", random_range(0..8));
+        println!("{:?}", door_state);
+        door_animation_player.play(1.into());
+        commands.spawn(
+            SamplePlayer::new(asset_server.load(file))
+        );
+        *door_state = DoorState::Open;
     }
 }
 
@@ -96,61 +154,53 @@ fn on_door_add(
     mut world: DeferredWorld,
     context: HookContext,
 ) {
-    trace!("HOOK: on_door_add");
-
-    //let graph = world.resource::<DoorGraph>().0.clone();
+    println!("HOOK: on_door_add");
 
     let level_gltf = world.resource::<LevelGltf>();
 
     if let Some(gltf) = world.resource::<Assets<Gltf>>().get(&level_gltf.0) {
-        let open_animation_clip_handle = gltf.named_animations["opendoor"].clone();
-        let close_animation_clip_handle = gltf.named_animations["closedoor"].clone();
-        //let (animation_graph, _index) = AnimationGraph::from_clip(open_animation_clip_handle);
+        let open_animation_clip_handle = gltf.named_animations["open"].clone();
+        let close_animation_clip_handle = gltf.named_animations["close"].clone();
         let (animation_graph, _index) = AnimationGraph::from_clips([open_animation_clip_handle, close_animation_clip_handle]);
         let mut animation_graphs = world.resource_mut::<Assets<AnimationGraph>>();
         let graph = AnimationGraphHandle(animation_graphs.add(animation_graph));
 
-    world.commands().entity(context.entity)
-        .insert(graph);
-    }
+        let parent = world
+            .entity(context.entity)
+            .get::<ChildOf>()
+            .map(|c| c.0);
 
-    world.commands()
-        .entity(context.entity)
-        .observe(door_interaction_observer);
+        if let Some(parent_entity) = parent {
+            world.commands().entity(parent_entity).insert(graph);
+        }
+
+        world.commands()
+            .entity(context.entity)
+            .observe(door_interaction_observer)
+            .observe(open_door_observer)
+            .observe(close_door_observer);
+    }
 }
 
 fn door_interaction_observer(
     trigger: On<InteractionEvent>,
     mut commands: Commands,
-    asset_server: Res<AssetServer>,
-    child_of_query: Query<&ChildOf>,
-    mut door: Query<(Entity, &mut AnimationPlayer, &mut DoorState, Option<&LockedState>)>,
+    mut door_state_query: Query<(&mut DoorState, Option<&LockedState>)>,
 ) {
     trace!("OBSERVER: door_event_observer");
-    if let Ok(child_of) = child_of_query.get(trigger.entity)
-    && let Ok(parent_child_of) = child_of_query.get(child_of.0)
-    && let Ok(parent_parent_child_of) = child_of_query.get(parent_child_of.0)
-    && let Ok((_door_entity, mut door_animation_player, mut door_state, locked_state)) = door.get_mut(parent_parent_child_of.0) {
-        if locked_state.is_some()
-        && locked_state.unwrap() == &LockedState::Locked {
-            return;
-        }
-        let mut rng = rand::rng();
-        let file = format!("audio/door/qubodup-DoorOpen0{}.ogg", random_range(0..8));
+    if let Ok((mut door_state, lock_state)) = door_state_query.get_mut(trigger.entity) {
         if *door_state == DoorState::Closed {
-            door_animation_player.stop_all();
-            door_animation_player.play(1.into());
+            if let Some(lock_state) = lock_state
+            && *lock_state == LockedState::Locked {
+                return;
+            }
+            println!("{:?}", door_state);
+            commands.entity(trigger.entity).trigger(|entity| OpenDoorEvent { entity });
             *door_state = DoorState::Open;
-            commands.spawn(
-                SamplePlayer::new(asset_server.load(file))
-            );
         } else {
-            door_animation_player.stop_all();
-            door_animation_player.play(2.into());
+            println!("{:?}", door_state);
+            commands.entity(trigger.entity).trigger(|entity| CloseDoorEvent { entity });
             *door_state = DoorState::Closed;
-            commands.spawn(
-                SamplePlayer::new(asset_server.load(file))
-            );
         }
     }
 }
