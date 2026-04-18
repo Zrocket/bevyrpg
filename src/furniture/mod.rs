@@ -4,8 +4,10 @@ mod bed;
 mod cctv;
 mod ceiling_light;
 mod chair;
+mod decontamination;
 mod computer;
 mod door;
+mod garage;
 mod ladder;
 mod lever;
 
@@ -13,8 +15,10 @@ pub use bed::*;
 pub use cctv::*;
 pub use ceiling_light::*;
 pub use chair::*;
+pub use decontamination::*;
 pub use computer::*;
 pub use door::*;
+pub use garage::*;
 pub use ladder::*;
 pub use lever::*;
 
@@ -34,6 +38,7 @@ impl Plugin for FurniturePlugin {
             ChairPlugin,
             ComputerPlugin,
             DoorPlugin,
+            GaragePlugin,
             LadderPlugin,
         ));
     }

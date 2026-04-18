@@ -31,5 +31,8 @@
     ),
     "mp5": File (
         path: "guns/smg-mp5.glb"
+    ),
+    "rover": File (
+        path: "rover.glb"
     )
  })

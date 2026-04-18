@@ -154,7 +154,7 @@ fn on_door_add(
     mut world: DeferredWorld,
     context: HookContext,
 ) {
-    println!("HOOK: on_door_add");
+    trace!("HOOK: on_door_add");
 
     let level_gltf = world.resource::<LevelGltf>();
 

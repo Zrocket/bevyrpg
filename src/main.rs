@@ -2,7 +2,7 @@ use avian_pickup::{AvianPickupPlugin};
 use avian_rerecast::AvianBackendPlugin;
 use avian3d::prelude::*;
 use bevy::{
-    dev_tools::fps_overlay::{FpsOverlayConfig, FpsOverlayPlugin, FrameTimeGraphConfig}, light::light_consts::lux::{OFFICE}, log::LogPlugin, prelude::*, text::FontSmoothing, window::{ CursorGrabMode, CursorOptions, WindowResolution,}
+    dev_tools::fps_overlay::{FpsOverlayConfig, FpsOverlayPlugin, FrameTimeGraphConfig}, light::light_consts::lux::{FULL_DAYLIGHT, OFFICE}, log::LogPlugin, prelude::*, text::FontSmoothing, window::{ CursorGrabMode, CursorOptions, WindowResolution,}
 };
 use bevy_asset_loader::prelude::*;
 use bevy_bae::BaePlugin;
@@ -124,7 +124,7 @@ fn main() {
     )
     .insert_resource(GlobalAmbientLight {
         color: Color::WHITE,
-        brightness: OFFICE,
+        brightness: FULL_DAYLIGHT,
         ..default()
     })
     // Library Plugins
