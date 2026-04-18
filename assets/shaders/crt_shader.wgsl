@@ -90,9 +90,9 @@ fn fs_main(in: VsOut) -> @location(0) vec4<f32> {
 
     let dist = length(uv);
     let vig = 1.0 - dist * p.vignette_str;
-    col *= max(0.0, vig * vig);
+    //col *= max(0.0, vig * vig);
 
-    col *= p.brightness;
+    //col *= p.brightness;
 
     return vec4(col, 1.0);
 }
