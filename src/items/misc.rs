@@ -58,7 +58,7 @@ fn misc_interaction_observer(
     }
 }
 
-fn misc_pickup_observer(
+pub(crate) fn misc_pickup_observer(
     trigger: On<PickupEvent>,
     mut commands: Commands,
     mut avian_pickup_input_writer: MessageWriter<AvianPickupInput>,
@@ -70,7 +70,7 @@ fn misc_pickup_observer(
     avian_pickup_input_writer.write(AvianPickupInput { actor, action: AvianPickupAction::Pull });
 }
 
-fn misc_inspection_observer(
+pub(crate) fn misc_inspection_observer(
     trigger: On<InspectEvent>,
     name_query: Query<&ItemDetails>,
     mut commands: Commands,

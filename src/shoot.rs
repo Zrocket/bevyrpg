@@ -22,19 +22,7 @@ pub struct Cooldown(Timer);
     CollisionEventsEnabled,
 )]
 #[component(on_add = on_grenade_add)]
-pub struct Grenade(Timer); /*{
-    damage: i32,
-    splash_radius: i32,
-}*/
-
-#[derive(Debug, Component, Reflect)]
-#[require(
-    RigidBody::Kinematic,
-    Collider::sphere(ROCKET_SIZE),
-    CollisionEventsEnabled,
-)]
-#[component(on_add = on_rocket_add)]
-pub struct Rocket;
+pub struct Grenade(pub Timer);
 
 fn on_grenade_add(
     mut world: DeferredWorld,
@@ -50,6 +38,16 @@ fn on_grenade_add(
         .insert(Mesh3d(mesh))
         .insert(MeshMaterial3d(material));
 }
+
+#[derive(Debug, Component, Reflect)]
+#[require(
+    RigidBody::Kinematic,
+    Collider::sphere(ROCKET_SIZE),
+    CollisionEventsEnabled,
+)]
+#[component(on_add = on_rocket_add)]
+pub struct Rocket;
+
 
 fn on_rocket_add(
     mut world: DeferredWorld,
@@ -87,7 +85,7 @@ pub fn shoot(
     mut shoot_messages: MessageReader<ShootEvent>,
     ray_caster: SpatialQuery,
     player: Query<Entity, With<Player>>,
-        query: Query<&GlobalTransform, With<Camera>>,
+    query: Query<&GlobalTransform, With<Camera>>,
 ) {
     trace!("Message Handler: shoot");
     let player = player.single().unwrap();
