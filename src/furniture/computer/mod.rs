@@ -61,7 +61,7 @@ fn on_crt_tv_add(
         .entity(context.entity)
         .observe(computer_interaction_observer);
 }
-
+//
 #[derive(Component)]
 #[require(
     Node {
@@ -317,31 +317,38 @@ fn display_time(
 }
 
 fn computer_interaction_observer(
-    _trigger: On<InteractionEvent>,
+    trigger: On<crate::InteractionEvent>,
     mut commands: Commands,
     mut player_query: Query<&mut PlayerState, With<Player>>,
     transform_query: Query<&GlobalTransform, Without<Player>>,
     camera_query: Query<(Entity, &Transform), With<PlayerCamera>>,
     camera_target_query: Query<Entity, With<CameraTarget>>,
+    parent_query: Query<&ChildOf>,
+    children_query: Query<&Children>,
     time: Res<Time>,
 ) {
     trace!("OBSERVER: computer_interaction_observer");
     if let Ok(mut player_state) = player_query.single_mut()
-    && let Ok(target_entity) = camera_target_query.single()
-    && let Ok(target_transform) = transform_query.get(target_entity)
+    && let Ok(parent) = parent_query.get(trigger.entity)
+    && let Ok(computer_children) = children_query.get(parent.0)
     && let Ok((camera_entity, camera_transform)) = camera_query.single() {
-        *player_state = PlayerState::Computer;
-        //commands.entity(player_entity).insert(RigidBodyDisabled);
-        commands.entity(camera_entity)
-            .insert(CameraInterpolation2 {
-                duration: time.elapsed() + Duration::new(1, 0),
-                start_time: time.elapsed(),
-                start_pos: *camera_transform,
-                desired_pos: Transform {
-                    translation: target_transform.translation(),
-                    rotation: target_transform.rotation(),
-                    scale: camera_transform.scale
-                },
-            });
+        for child in computer_children.iter() {
+            if let Ok(target_entity) = camera_target_query.get(child)
+            && let Ok(target_transform) = transform_query.get(target_entity) {
+                *player_state = PlayerState::Computer;
+                //commands.entity(player_entity).insert(RigidBodyDisabled);
+                commands.entity(camera_entity)
+                    .insert(CameraInterpolation2 {
+                        duration: time.elapsed() + Duration::new(1, 0),
+                        start_time: time.elapsed(),
+                        start_pos: *camera_transform,
+                        desired_pos: Transform {
+                            translation: target_transform.translation(),
+                            rotation: target_transform.rotation(),
+                            scale: camera_transform.scale
+                        },
+                });
+            }
+        }
     }
 }
