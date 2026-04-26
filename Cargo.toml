@@ -69,7 +69,6 @@ serde = "*"
 standard-dist = "*"
 nom = "*"
 
-
 polyanya = "0.16.1"
 itertools = "0.14.0"
 tracing = "0.1.44"
@@ -116,6 +115,7 @@ bevy_bae = "0.1.0"
 bevy_ingame_clock = { git = "https://github.com/GuillaumeDelorme/bevy_ingame_clock.git", branch = "bevy-0.18-update" }
 chill_bevy_console = "0.1.1"
 bevy_old_tv_shader = { git = "https://github.com/Zrocket/bevy_old_tv_shader.git", version = "0.5.0", features=["ui"] }
+#bevy_old_tv_shader = { git = "https://github.com/gituseridk/bevy_old_tv_shader.git", version = "0.5.0", features=["ui"] }
 
 [profile.dev]
 opt-level=3
