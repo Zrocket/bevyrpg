@@ -1,6 +1,6 @@
 use bevy::{camera::RenderTarget, color::palettes::css::{BLUE, GREEN, RED}, ecs::{lifecycle::HookContext, world::DeferredWorld}, input::ButtonState, picking::{backend::ray::RayMap, pointer::{Location, PointerAction, PointerInput}}, prelude::*, window::{PrimaryWindow, WindowEvent}};
 
-use crate::{ComputerNode, ComputerUiNode, Desktop, IconClickTimer, Rover, RoverBackwardEvent, RoverCamera, RoverForwardEvent, RoverInteractEvent, RoverLeftEvent, RoverRecallEvent, RoverRightEvent, RoverSpawnedMessage, furniture::computer::{CUBE_POINTER_ID, ComputerScreenCube}, widgets::floating_windows::floating_computer_rover_window_root};
+use crate::{ComputerNode, ComputerUiNode, Desktop, IconClickTimer, Rover, RoverAttachments, RoverBackwardEvent, RoverCamera, RoverCameraDownEvent, RoverCameraUpEvent, RoverForwardEvent, RoverInteractEvent, RoverLeftEvent, RoverRecallEvent, RoverRightEvent, RoverSpawnedMessage, UseRoverAttachmentEvent, furniture::computer::{CUBE_POINTER_ID, ComputerScreenCube}, widgets::floating_windows::floating_computer_rover_window_root};
 
 #[derive(Component)]
 #[require(
@@ -155,6 +155,8 @@ fn on_buttons_node_add(
             },
             Children::spawn(SpawnWith(|parent: &mut ChildSpawner| {
                 parent.spawn(BackwardButton);
+                parent.spawn(CameraUpButton);
+                parent.spawn(CameraDownButton);
             })),
     )).id();
 
@@ -205,6 +207,74 @@ fn on_recall_button_add(
         .observe(icon_over)
         .observe(icon_out)
         .observe(recall_pressed);
+}
+
+#[derive(Component)]
+#[require (
+    Node {
+        ..default()
+    },
+    Text("ATTACHMENT".into()),
+    BackgroundColor(GREEN.into()),
+)]
+#[component(on_add = on_attachment_button_add)]
+pub struct AttachmentButton;
+
+fn on_attachment_button_add(
+    mut world: DeferredWorld,
+    context: HookContext,
+) {
+    world.commands()
+        .entity(context.entity)
+        .observe(icon_over)
+        .observe(icon_out)
+        .observe(attachment_pressed);
+}
+
+#[derive(Component)]
+#[require (
+    Node {
+        ..default()
+    },
+    Text("^".into()),
+    BackgroundColor(GREEN.into()),
+)]
+#[component(on_add = on_camera_up_button_add)]
+pub struct CameraUpButton;
+
+fn on_camera_up_button_add(
+    mut world: DeferredWorld,
+    context: HookContext,
+) {
+    world.commands()
+        .entity(context.entity)
+        .observe(icon_over)
+        .observe(icon_out)
+        .observe(camera_up_pressed)
+        .observe(camera_up_released);
+}
+
+#[derive(Component)]
+#[require (
+    Node {
+        ..default()
+    },
+    Text("v".into()),
+    BackgroundColor(GREEN.into()),
+)]
+#[component(on_add = on_camera_down_button_add)]
+pub struct CameraDownButton;
+
+fn on_camera_down_button_add(
+    mut world: DeferredWorld,
+    context: HookContext,
+) {
+    world.commands()
+        .entity(context.entity)
+        .observe(icon_over)
+        .observe(icon_out)
+        .observe(camera_down_pressed)
+        .observe(camera_down_released);
 }
 
 pub(crate) fn pickup_pressed(
@@ -307,6 +377,58 @@ pub(crate) fn recall_pressed(
     }
 }
 
+pub(crate) fn attachment_pressed(
+    _trigger: On<Pointer<Press>>,
+    mut commands: Commands,
+    rover_query: Query<(Entity, &RoverAttachments), With<Rover>>,
+) {
+    if let Ok((rover_entity, attachment)) = rover_query.single() {
+    for entity in  attachment.iter() {
+        commands.entity(entity).trigger(|entity| UseRoverAttachmentEvent { entity });
+    }
+    }
+}
+
+pub(crate) fn camera_up_pressed(
+    _trigger: On<Pointer<Press>>,
+    mut commands: Commands,
+    rover_query: Query<Entity, With<Rover>>,
+) {
+    if let Ok(rover_entity) = rover_query.single() {
+        commands.entity(rover_entity).trigger(|entity| RoverCameraUpEvent { entity });
+    }
+}
+
+pub(crate) fn camera_up_released(
+    _trigger: On<Pointer<Release>>,
+    mut commands: Commands,
+    rover_query: Query<Entity, With<Rover>>,
+) {
+    if let Ok(rover_entity) = rover_query.single() {
+        commands.entity(rover_entity).trigger(|entity| RoverCameraUpEvent { entity });
+    }
+}
+
+pub(crate) fn camera_down_pressed(
+    _trigger: On<Pointer<Press>>,
+    mut commands: Commands,
+    rover_query: Query<Entity, With<Rover>>,
+) {
+    if let Ok(rover_entity) = rover_query.single() {
+        commands.entity(rover_entity).trigger(|entity| RoverCameraDownEvent { entity });
+    }
+}
+
+pub(crate) fn camera_down_released(
+    _trigger: On<Pointer<Release>>,
+    mut commands: Commands,
+    rover_query: Query<Entity, With<Rover>>,
+) {
+    if let Ok(rover_entity) = rover_query.single() {
+        commands.entity(rover_entity).trigger(|entity| RoverCameraDownEvent { entity });
+    }
+}
+
 pub(crate) fn icon_over(
     over: On<Pointer<Over>>,
     mut colors: Query<&mut BackgroundColor>,
@@ -362,6 +484,7 @@ pub(crate) fn rover_icon_double_click_observer(
                         BorderColor::all(Color::WHITE),
                         Children::spawn(SpawnWith(|root_parent: &mut ChildSpawner| {
                             root_parent.spawn(RecallButton);
+                            root_parent.spawn(AttachmentButton);
                             root_parent.spawn(ButtonsNode);
                         })),
                     )),
