@@ -10,6 +10,7 @@ mod door;
 mod garage;
 mod ladder;
 mod lever;
+mod vending;
 
 pub use bed::*;
 pub use cctv::*;
@@ -21,6 +22,7 @@ pub use door::*;
 pub use garage::*;
 pub use ladder::*;
 pub use lever::*;
+pub use vending::*;
 
 #[derive(QueryData)]
 pub struct ObstacleQueryHelper {
