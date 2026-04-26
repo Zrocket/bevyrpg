@@ -7,7 +7,7 @@ use bevy_tnua::{TnuaController, TnuaObstacleRadar, control_helpers::{TnuaBlipReu
 use bevy_tnua_avian3d::TnuaAvian3dSensorShape;
 use bevy_seedling::spatial::SpatialListener3D;
 
-use crate::{BootStrap, CameraConfig, CharacterBundle, CollisionLayer, DeathEvent, Description, Experience, FetchQuest, FloatHeight, GameState, Health, ItemDetails, Mana, MaxHealth, MaxMana, PlayerControlScheme, PlayerController, PlayerControllerConfig, PlayerControllerInput, Quest, QuestOf, RayHit, RenderPlayer, TnuaPlayerController, Walk, Weight, add_to_inventory_observer, display_equip_event_observer, display_inventory_event_observer, display_quest_event_observer, display_stats_event_observer, level::DAGunAssets, remove_from_inventory_observer, Sleep};
+use crate::{BootStrap, CameraConfig, CharacterBundle, CollisionLayer, DeathEvent, Description, Experience, FetchQuest, FloatHeight, GameState, Health, ItemDetails, Mana, MaxHealth, MaxMana, PlayerControlScheme, PlayerController, PlayerControllerConfig, PlayerControllerInput, Quest, QuestOf, RayHit, RenderPlayer, Sleep, TnuaPlayerController, Walk, Weight, add_to_inventory_observer, display_equip_event_observer, display_inventory_event_observer, display_quest_event_observer, display_stats_event_observer, drink_event_observer, eat_event_observer, level::DAGunAssets, remove_from_inventory_observer};
 
 #[derive(Clone, Component, Hash, Debug, Eq, PartialEq, Default, States)]
 pub enum PlayerState {
@@ -185,7 +185,9 @@ fn on_player_add(
         .observe(display_inventory_event_observer)
         .observe(display_quest_event_observer)
         .observe(display_equip_event_observer)
-        .observe(display_stats_event_observer);
+        .observe(display_stats_event_observer)
+        .observe(eat_event_observer)
+        .observe(drink_event_observer);
 }
 
 fn on_player_camera_add(
