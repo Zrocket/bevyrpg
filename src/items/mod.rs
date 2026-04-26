@@ -1,6 +1,14 @@
+use bevy::prelude::*;
+use avian_pickup::prop::HeldProp;
+use avian3d::prelude::{CollisionLayers, CollisionStart, Position, RigidBodyDisabled, Rotation};
+use std::iter;
+
+use crate::{level::CollisionLayer};
+
 mod ammo;
 mod armor;
 mod books;
+mod consumable;
 mod container;
 mod equip;
 mod health_pack;
@@ -8,21 +16,14 @@ mod mana_pack;
 mod misc;
 mod weapons;
 
-use std::iter;
-
 pub use ammo::*;
 pub use armor::*;
-use avian_pickup::prop::HeldProp;
-use avian3d::prelude::{CollisionLayers, CollisionStart, Position, RigidBodyDisabled, Rotation};
 pub use books::*;
+pub use consumable::*;
 pub use container::*;
 pub use equip::*;
 pub use misc::*;
 pub use weapons::*;
-
-use bevy::prelude::*;
-
-use crate::{level::CollisionLayer};
 
 #[derive(Component, Reflect, Clone, Default)]
 #[reflect(Component)]

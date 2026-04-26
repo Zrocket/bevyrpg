@@ -31,13 +31,37 @@ pub struct Experience(pub i32);
 #[component(on_add = on_level_add)]
 pub struct Level(pub i32);
 
-#[derive(Default, Clone, Component, Reflect)]
+#[derive(Clone, Component, Reflect)]
 #[reflect(Component)]
-pub struct Hunger(pub i32);
+pub struct Hunger {
+    pub value: i32,
+    timer: Timer,
+}
 
-#[derive(Default, Clone, Component, Reflect)]
+impl Default for Hunger {
+    fn default() -> Self {
+        Self {
+            value: 100,
+            timer: Timer::from_seconds(5.0, TimerMode::Repeating),
+        }
+    }
+}
+
+#[derive(Clone, Component, Reflect)]
 #[reflect(Component)]
-pub struct Thirst(pub i32);
+pub struct Thirst {
+    pub value: i32,
+    timer: Timer,
+}
+
+impl Default for Thirst {
+    fn default() -> Self {
+        Self {
+            value: 100,
+            timer: Timer::from_seconds(5.0, TimerMode::Repeating),
+        }
+    }
+}
 
 #[derive(Clone, Component, Reflect)]
 #[reflect(Component)]
@@ -90,8 +114,8 @@ impl Default for CharacterBundle {
             max_mana: MaxMana(100),
             max_health: MaxHealth(100),
             ammo_pouch: AmmoPouch(100),
-            hunger: Hunger(0),
-            thirst: Thirst(0),
+            hunger: Hunger::default(),
+            thirst: Thirst::default(),
         }
     }
 }
@@ -130,6 +154,16 @@ pub struct DeathEvent{
     pub entity: Entity,
 }
 
+#[derive(EntityEvent)]
+pub struct EatEvent{
+    pub entity: Entity,
+}
+
+#[derive(EntityEvent)]
+pub struct DrinkEvent{
+    pub entity: Entity,
+}
+
 pub struct CharacterPlugin;
 impl Plugin for CharacterPlugin {
     fn build(&self, app: &mut App) {
@@ -143,7 +177,8 @@ impl Plugin for CharacterPlugin {
             .register_type::<Hunger>()
             .register_type::<Thirst>()
             .register_type::<Sleep>()
-            .add_systems(Update, drain_sleep.run_if(in_state(GameState::Gameplay)));
+            .add_systems(Update, drain_sleep.run_if(in_state(GameState::Gameplay)))
+            .add_systems(Update, sustinance_timer.run_if(in_state(GameState::Gameplay)));
     }
 }
 
@@ -168,7 +203,7 @@ fn on_level_add(
         .observe(level_up_observer);
 }
 
-fn damage_observer(
+pub fn damage_observer(
     trigger: On<DamageEvent>,
     mut commands: Commands,
     mut health_query: Query<&mut Health, Without<GodMode>>,
@@ -184,7 +219,7 @@ fn damage_observer(
     }
 }
 
-fn mana_event_observer(
+pub fn mana_event_observer(
     trigger: On<ManaEvent>,
     mut mana_query: Query<&mut Mana>,
 ) {
@@ -197,7 +232,7 @@ fn mana_event_observer(
     }
 }
 
-fn heal_observer(
+pub fn heal_observer(
     trigger: On<HealEvent>,
     mut health_query: Query<(&mut Health, &MaxHealth)>,
 ) {
@@ -216,7 +251,7 @@ pub fn death_event_observer(
     commands.entity(trigger.entity).despawn();
 }
 
-fn experience_observer(
+pub fn experience_observer(
     trigger: On<ExperienceEvent>,
     mut commands: Commands,
     mut experience_query: Query<&mut Experience>,
@@ -231,7 +266,7 @@ fn experience_observer(
     }
 }
 
-fn level_up_observer(
+pub fn level_up_observer(
     trigger: On<LevelUpEvent>,
     mut level_query: Query<&mut Level>,
 ) {
@@ -241,8 +276,38 @@ fn level_up_observer(
     }
 }
 
+pub fn eat_event_observer(
+    trigger: On<EatEvent>,
+    mut hunger_query: Query<&mut Hunger>,
+) {
+    if let Ok(mut hunger) = hunger_query.get_mut(trigger.entity) {
+        hunger.value += 5;
+    }
+}
+
+pub fn drink_event_observer(
+    trigger: On<DrinkEvent>,
+    mut thirst_query: Query<&mut Thirst>,
+) {
+    if let Ok(mut thirst) = thirst_query.get_mut(trigger.entity) {
+        thirst.value += 5;
+    }
+}
+
 fn sustinance_timer(
-    query: Query<(&mut Hunger, &mut Thirst)>,
+    mut query: Query<(&mut Hunger, &mut Thirst)>,
     time: Res<Time>
 ) {
+    for (mut hunger, mut thirst) in query.iter_mut() {
+        println!("HUNGER: {}", hunger.value);
+        println!("THIRST: {}", thirst.value);
+        hunger.timer.tick(time.delta());
+        thirst.timer.tick(time.delta());
+        if hunger.timer.is_finished() {
+            hunger.value -= 5;
+        }
+        if thirst.timer.is_finished() {
+            thirst.value -= 5;
+        }
+    }
 }
