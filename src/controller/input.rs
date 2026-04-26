@@ -1,9 +1,12 @@
+use std::f32::consts;
+
 use avian3d::prelude::{Collider, RigidBody};
 use bevy::{app::Plugin, asset::Assets, ecs::{component::Component, lifecycle::HookContext, spawn::SpawnRelated, world::DeferredWorld}, input::{gamepad::{GamepadButton}, keyboard::KeyCode, mouse::MouseButton}, math::Vec2, time::Timer, utils::default};
 use bevy_enhanced_input::{action::Action, actions, bindings, prelude::{Axial, Bindings, Cardinal, DeadZone, EnhancedInputPlugin, Hold, InputAction, InputContextAppExt, SmoothNudge, Tap}, modifier::scale::Scale};
 use bevy_tnua::{TnuaConfig, TnuaController, builtins::{TnuaBuiltinClimbConfig, TnuaBuiltinCrouchConfig, TnuaBuiltinDashConfig, TnuaBuiltinJumpConfig, TnuaBuiltinWalkConfig, TnuaBuiltinWallSlideConfig}, control_helpers::TnuaSimpleAirActionsCounter};
 use bevy_tnua_avian3d::TnuaAvian3dSensorShape;
 use bevy_bae::{plan::Plan, prelude::{Operator, Sequence}, tasks};
+use bevy_tnua_physics_integration_layer::math::float_consts;
 
 use crate::{IdleTimer, Player, PlayerControlScheme, PlayerControlSchemeConfig, Walk, idle, run_from_player, wander};
 
@@ -243,6 +246,7 @@ fn on_tnua_player_controller_add(
         basis: TnuaBuiltinWalkConfig {
             speed: 10.0,
             float_height: 1.5,
+            max_slope: float_consts::FRAC_PI_8,
             ..default()
         },
         jump: TnuaBuiltinJumpConfig {
