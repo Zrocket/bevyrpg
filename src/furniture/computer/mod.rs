@@ -82,29 +82,6 @@ fn on_crt_tv_add(
 #[component(on_add = on_computer_rover_icon_add)]
 pub struct ComputerRoverIcon;
 
-#[derive(Component)]
-#[require(
-    Node {
-        position_type: PositionType::Absolute,
-        width: Val::Percent(10.),
-        height: Val::Percent(15.),
-        align_items: AlignItems::Center,
-        border_radius: BorderRadius::all(Val::Px(10.)),
-        left: Val::Px(20.),
-        top: Val::Px(400.),
-        flex_direction: FlexDirection::Column,
-        overflow: Overflow { x: OverflowAxis::Hidden, y: OverflowAxis::Hidden },
-        ..default()
-    },
-    BackgroundColor(BLUE.into()),
-    IconClickTimer(Timer::from_seconds(1.0, TimerMode::Once)),
-)]
-#[component(on_add = on_computer_cctv_icon_add)]
-pub struct ComputerCctvIcon;
-
-#[derive(Component)]
-pub struct IconClickTimer(pub Timer);
-
 fn on_computer_rover_icon_add(
     mut world: DeferredWorld,
     context: HookContext,
@@ -139,6 +116,26 @@ fn on_computer_rover_icon_add(
         .add_child(text_node);
 }
 
+#[derive(Component)]
+#[require(
+    Node {
+        position_type: PositionType::Absolute,
+        width: Val::Percent(10.),
+        height: Val::Percent(15.),
+        align_items: AlignItems::Center,
+        border_radius: BorderRadius::all(Val::Px(10.)),
+        left: Val::Px(20.),
+        top: Val::Px(300.),
+        flex_direction: FlexDirection::Column,
+        overflow: Overflow { x: OverflowAxis::Hidden, y: OverflowAxis::Hidden },
+        ..default()
+    },
+    BackgroundColor(BLUE.into()),
+    IconClickTimer(Timer::from_seconds(1.0, TimerMode::Once)),
+)]
+#[component(on_add = on_computer_cctv_icon_add)]
+pub struct ComputerCctvIcon;
+
 fn on_computer_cctv_icon_add(
     mut world: DeferredWorld,
     context: HookContext,
@@ -172,6 +169,9 @@ fn on_computer_cctv_icon_add(
         .add_child(icon_node)
         .add_child(text_node);
 }
+
+#[derive(Component)]
+pub struct IconClickTimer(pub Timer);
 
 #[derive(Component)]
 #[require(
@@ -281,6 +281,9 @@ fn on_computer_ui_node_add(
                 .spawn((
                     ComputerRoverIcon,
                 ));
+            parent.spawn((
+                    ComputerCctvIcon,
+            ));
             parent
                 .spawn((
                     ComputerClock,
@@ -316,6 +319,7 @@ fn display_time(
     }
 }
 
+#[allow(clippy::too_many_arguments)]
 fn computer_interaction_observer(
     trigger: On<crate::InteractionEvent>,
     mut commands: Commands,

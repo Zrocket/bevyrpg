@@ -299,8 +299,8 @@ fn sustinance_timer(
     time: Res<Time>
 ) {
     for (mut hunger, mut thirst) in query.iter_mut() {
-        println!("HUNGER: {}", hunger.value);
-        println!("THIRST: {}", thirst.value);
+        //println!("HUNGER: {}", hunger.value);
+        //println!("THIRST: {}", thirst.value);
         hunger.timer.tick(time.delta());
         thirst.timer.tick(time.delta());
         if hunger.timer.is_finished() {
