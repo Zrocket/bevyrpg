@@ -93,4 +93,5 @@ pub enum MenuState {
     SoundSettings,
     VideoSettings,
     MainMenu,
+    LoadGame,
 }

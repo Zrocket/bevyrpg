@@ -6,8 +6,9 @@ use bevy_flycam::{FlyCam, NoCameraPlayerPlugin};
 use bevy_tnua::{TnuaController, TnuaObstacleRadar, control_helpers::{TnuaBlipReuseAvoidance, TnuaSimpleAirActionsCounter}};
 use bevy_tnua_avian3d::TnuaAvian3dSensorShape;
 use bevy_seedling::spatial::SpatialListener3D;
+use moonshine_save::prelude::Save;
 
-use crate::{BootStrap, CameraConfig, CharacterBundle, CollisionLayer, DeathEvent, Description, Experience, FetchQuest, FloatHeight, GameState, Health, ItemDetails, Mana, MaxHealth, MaxMana, PlayerControlScheme, PlayerController, PlayerControllerConfig, PlayerControllerInput, Quest, QuestOf, RayHit, RenderPlayer, Sleep, TnuaPlayerController, Walk, Weight, add_to_inventory_observer, display_equip_event_observer, display_inventory_event_observer, display_quest_event_observer, display_stats_event_observer, drink_event_observer, eat_event_observer, level::DAGunAssets, remove_from_inventory_observer};
+use crate::{BootStrap, CameraConfig, CharacterBundle, CollisionLayer, DeathEvent, Description, Experience, FetchQuest, FloatHeight, GameState, Health, ItemDetails, Mana, MaxHealth, MaxMana, MetaState, PlayerControlScheme, PlayerController, PlayerControllerConfig, PlayerControllerInput, Quest, QuestOf, RayHit, RenderPlayer, Sleep, TnuaPlayerController, Walk, Weight, add_to_inventory_observer, display_equip_event_observer, display_inventory_event_observer, display_quest_event_observer, display_stats_event_observer, drink_event_observer, eat_event_observer, level::DAGunAssets, remove_from_inventory_observer};
 
 #[derive(Clone, Component, Hash, Debug, Eq, PartialEq, Default, States)]
 pub enum PlayerState {
@@ -31,6 +32,7 @@ pub enum CameraState {
 #[derive(Component, Reflect, Default)]
 #[reflect(Component)]
 #[require(
+    Save,
     Name::new("Player"),
     TnuaPlayerController,
     CameraConfig {
@@ -82,6 +84,7 @@ pub struct Player;
 #[derive(Component, Reflect, Default)]
 #[reflect(Component)]
 #[require(
+    Name::new("PlayerCamera"),
     Camera {
         clear_color: ClearColorConfig::Custom(Srgba::rgb(0.0, 0.0, 0.0).into()),
         ..default()
@@ -153,7 +156,8 @@ impl Plugin for GamePlayerPlugin {
             .register_type::<PlayerTrigger>()
             .add_message::<SpawnPlayerMessage>()
             .add_systems(Update, spawn_player_observer.run_if(resource_exists::<DAGunAssets>))
-            .add_systems(OnEnter(BootStrap::Postload), init_player)
+            //.add_systems(OnEnter(BootStrap::Postload), init_player)
+            .add_systems(OnEnter(MetaState::Gameplay), init_player)
             .add_systems(Update, (
                     player_forward.run_if(/*in_state(GameState::Gameplay)*/ in_state(CameraState::Player)),
                     check_player_triggers.run_if(in_state(GameState::Gameplay)),
@@ -167,7 +171,7 @@ fn on_player_add(
     mut world: DeferredWorld,
     context: HookContext,
 ) {
-    world.commands()
+    let player = world.commands()
         .entity(context.entity)
         .insert(
             CharacterBundle {
@@ -187,7 +191,18 @@ fn on_player_add(
         .observe(display_equip_event_observer)
         .observe(display_stats_event_observer)
         .observe(eat_event_observer)
-        .observe(drink_event_observer);
+        .observe(drink_event_observer)
+        .id();
+
+    if let Some(mut render_player_query) = world.try_query::<&mut RenderPlayer>() {
+        let mut query = world.query(&mut render_player_query);
+        if let Ok(mut render_player) = query.single_mut() {
+            println!("{:?}", player);
+            println!("{:?}", render_player.logical_entity);
+            render_player.logical_entity = player;
+            println!("{:?}", render_player.logical_entity);
+        }
+    }
 }
 
 fn on_player_camera_add(
@@ -205,7 +220,14 @@ fn on_player_camera_add(
 
 fn init_player(
     mut spawn_player_message_writer: MessageWriter<SpawnPlayerMessage>,
+    player_query: Query<Entity, With<Player>>,
+    pending: Option<Res<crate::PendingSaveLoad>>,
 ) {
+    trace!("SYSTEM: init_player");
+    //if pending.is_some() { return; }
+    for _player in player_query.iter() {
+        return;
+    }
     spawn_player_message_writer.write(SpawnPlayerMessage);
 }
 

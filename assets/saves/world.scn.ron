@@ -1,0 +1,86 @@
+(
+  resources: {},
+  entities: {
+    12884899179: (
+      components: {
+        "bevy_ecs::name::Name": "Player",
+        "bevy_transform::components::transform::Transform": (
+          translation: (-20.93103, 1.8500394, -49.296604),
+          rotation: (-0.20550925, 0.010241999, 0.0021508555, 0.9785992),
+          scale: (1.0, 1.0, 1.0),
+        ),
+        "bevyrpg::character::Health": (100),
+        "bevyrpg::character::Hunger": (
+          value: 85,
+          timer: (
+            stopwatch: (
+              elapsed: (
+                secs: 1,
+                nanos: 231904155,
+              ),
+              is_paused: false,
+            ),
+            duration: (
+              secs: 5,
+              nanos: 0,
+            ),
+            mode: Repeating,
+            finished: false,
+            times_finished_this_tick: 0,
+          ),
+        ),
+        "bevyrpg::character::Mana": (100),
+        "bevyrpg::character::Sleep": (
+          value: 60,
+          timer: (
+            stopwatch: (
+              elapsed: (
+                secs: 4,
+                nanos: 361840415,
+              ),
+              is_paused: false,
+            ),
+            duration: (
+              secs: 5,
+              nanos: 0,
+            ),
+            mode: Repeating,
+            finished: false,
+            times_finished_this_tick: 0,
+          ),
+        ),
+        "bevyrpg::character::Thirst": (
+          value: 85,
+          timer: (
+            stopwatch: (
+              elapsed: (
+                secs: 1,
+                nanos: 231904155,
+              ),
+              is_paused: false,
+            ),
+            duration: (
+              secs: 5,
+              nanos: 0,
+            ),
+            mode: Repeating,
+            finished: false,
+            times_finished_this_tick: 0,
+          ),
+        ),
+        "bevyrpg::player::Player": (),
+      },
+    ),
+    68719473914: (
+      components: {
+        "bevy_ecs::name::Name": "Rover",
+        "bevy_transform::components::transform::Transform": (
+          translation: (-20.301025, 0.7500005, -54.784157),
+          rotation: (0.0, 0.7071067, 0.0, 0.70710677),
+          scale: (1.0, 1.0, 1.0),
+        ),
+        "bevyrpg::rover::Rover": (),
+      },
+    ),
+  },
+)

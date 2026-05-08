@@ -133,6 +133,11 @@ fn change_level_message_handler(
     asset_server: Res<AssetServer>,
     mut change_level_messages: MessageReader<ChangeLevelMessage>,
     current_level_query: Query<Entity, With<CurrentLevel>>,
+    //mut spawn_player_message_writer: MessageWriter<crate::SpawnPlayerMessage>,
+    //mut spawn_rover_message_writer: MessageWriter<crate::SpawnRoverMessage>,
+    mut game_state: ResMut<NextState<crate::MetaState>>,
+    //pending: Option<Res<crate::PendingSaveLoad>>,
+    mut load_game_message_writer: MessageWriter<crate::LoadGameMessage>,
 ) {
     trace!("SYSTEM: change_level_message_handler");
     for message in change_level_messages.read() {
@@ -150,6 +155,15 @@ fn change_level_message_handler(
             )),
             CurrentLevel,
         ));
+        game_state.set(crate::MetaState::Gameplay);
+
+        /*if pending.is_some() {
+            load_game_message_writer.write(crate::LoadGameMessage);
+            commands.remove_resource::<crate::PendingSaveLoad>();
+        }*/
+
+        //spawn_player_message_writer.write(crate::SpawnPlayerMessage);
+        //spawn_rover_message_writer.write(crate::SpawnRoverMessage);
 
         /*let sun_id = commands.spawn((
                 DirectionalLight {

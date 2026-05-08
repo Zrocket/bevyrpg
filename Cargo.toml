@@ -5,10 +5,14 @@ edition = "2024"
 
 # See more keys and their definitions at https://doc.rust-lang.org/cargo/reference/manifest.html
 
+[features]
+bevy_debug_stepping = []
+
 [dependencies]
 anyhow = "1.0.100"
 bevy = { version = "0.18.0", default-features = false, features = [
   "std",
+  "trace",
   "async_executor",
   "android-game-activity",
   "android_shared_stdcxx",
@@ -60,7 +64,9 @@ bevy = { version = "0.18.0", default-features = false, features = [
   "wayland",
   "debug",
   "zstd_rust",
-  "jpeg"
+  "jpeg",
+  "serialize",
+  "bevy_debug_stepping"
 ] }
 clap = { version = "*", features = ["derive"] }
 lazy_static = "*"
@@ -115,6 +121,8 @@ bevy_bae = "0.1.0"
 bevy_ingame_clock = { git = "https://github.com/GuillaumeDelorme/bevy_ingame_clock.git", branch = "bevy-0.18-update" }
 chill_bevy_console = "0.1.1"
 bevy_old_tv_shader = { git = "https://github.com/Zrocket/bevy_old_tv_shader.git", version = "0.5.0", features=["ui"] }
+bevy_save = "2.0.1"
+moonshine-save = "0.6.1"
 #bevy_old_tv_shader = { git = "https://github.com/gituseridk/bevy_old_tv_shader.git", version = "0.5.0", features=["ui"] }
 
 [profile.dev]

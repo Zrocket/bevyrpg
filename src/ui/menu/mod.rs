@@ -1,11 +1,12 @@
 use bevy::prelude::*;
-use crate::{MenuState, credits::CreditsMenuUiPlugin, loading::LoadingMenuUiPlugin, menu::{controller_settings::ControllerSettingsMenuUiPlugin, gameplay_settings::GameplaySettingsMenuUiPlugin, settings::SettingsMenuUiPlugin, sound_settings::SoundSettingsMenuUiPlugin, video_settings::VideoSettingsMenuUiPlugin}};
+use crate::{MenuState, credits::CreditsMenuUiPlugin, load_game::LoadGameMenuUiPlugin, loading::LoadingMenuUiPlugin, menu::{controller_settings::ControllerSettingsMenuUiPlugin, gameplay_settings::GameplaySettingsMenuUiPlugin, settings::SettingsMenuUiPlugin, sound_settings::SoundSettingsMenuUiPlugin, video_settings::VideoSettingsMenuUiPlugin}};
 
 use super::widgets;
 
 pub mod controller_settings;
 pub mod credits;
 pub mod gameplay_settings;
+pub mod load_game;
 pub mod loading;
 pub mod settings;
 pub mod sound_settings;
@@ -28,6 +29,7 @@ impl Plugin for MenuUiPlugin {
                     SoundSettingsMenuUiPlugin,
                     VideoSettingsMenuUiPlugin,
                     LoadingMenuUiPlugin,
+                    LoadGameMenuUiPlugin,
             ));
     }
 }
