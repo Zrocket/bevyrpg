@@ -36,6 +36,7 @@ pub struct FurniturePlugin;
 impl Plugin for FurniturePlugin {
     fn build(&self, app: &mut App) {
         app.add_plugins((
+            CctvPlugin,
             CeilingLightPlugin,
             ChairPlugin,
             ComputerPlugin,

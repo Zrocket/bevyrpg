@@ -58,7 +58,8 @@ fn on_camera_interpolation_remove(
 #[reflect(Component)]
 pub struct CameraTarget;
 
-#[derive(Component)]
+#[derive(Component, Reflect)]
+#[reflect(Component)]
 pub struct RenderPlayer {
     pub logical_entity: Entity,
 }
@@ -68,6 +69,7 @@ impl Plugin for GameRenderPlugin {
     fn build(&self, app: &mut App) {
         info!("GameRenderPlugin build");
         app
+            .register_type::<RenderPlayer>()
             .register_type::<CameraTarget>()
             .add_systems(
             Update,
