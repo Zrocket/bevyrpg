@@ -119,9 +119,19 @@ fn on_rover_add(
 ) {
     let rover_camera = world.commands().spawn(RoverCamera).id();
 
+    let mut meshes = world.resource_mut::<Assets<Mesh>>();
+    let rover_mesh = Mesh3d(meshes.add(Cuboid::new(1.0, 1.0, 1.0)));
+
+    let mut materials = world.resource_mut::<Assets<StandardMaterial>>();
+    let rover_material = MeshMaterial3d(materials.add(Color::WHITE));
+
     world.commands()
         .entity(context.entity)
-        .insert(RoverFlashlight)
+        .insert((
+                RoverFlashlight,
+                rover_mesh,
+                rover_material,
+        ))
         .insert(related!(RoverAttachments[
                 (FoamGunAttachment),
         ]))
@@ -183,14 +193,11 @@ fn spawn_rover_observer(
 
         let pickup_zone = commands.spawn((
                 RoverPickupZone,
-                //MeshMaterial3d(materials.add(Color::BLACK)),
         )).id();
 
         commands.spawn((
                 Rover,
                 spawn_point,
-                Mesh3d(meshes.add(Cuboid::new(1.0, 1.0, 1.0))),
-                MeshMaterial3d(materials.add(Color::WHITE)),
         ))
         .add_child(pickup_zone);
     }

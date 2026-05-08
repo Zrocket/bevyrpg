@@ -43,6 +43,7 @@ mod particles;
 mod player;
 mod quest;
 mod render;
+mod save;
 mod rover;
 mod shoot;
 mod sprites;
@@ -50,6 +51,7 @@ mod states;
 mod tests;
 mod ui;
 mod utils;
+mod stepping;
 
 pub use audio::*;
 pub use character::*;
@@ -66,6 +68,7 @@ pub use npc::*;
 pub use player::*;
 pub use quest::*;
 pub use render::*;
+pub use save::*;
 pub use rover::*;
 pub use shoot::*;
 pub use sprites::*;
@@ -74,6 +77,7 @@ pub use ui::*;
 pub use utils::*;
 use level::*;
 use tests::TestsPlugin;
+use stepping::*;
 
 use crate::{enemy::EnemyPlugin, particles::ParticlePlugin};
 
@@ -89,6 +93,8 @@ struct Args {
     fps: bool,
     #[clap(long)]
     debug: bool,
+    #[clap(long)]
+    stepping: bool,
 }
 
 fn main() {
@@ -179,6 +185,7 @@ fn main() {
         NpcPlugin,
         QuestPlugin,
         RoverPlugin,
+        MySavePlugin,
     ));
     app.add_systems(Update, pause_game.run_if(in_state(MetaState::Gameplay)));
 
@@ -220,12 +227,19 @@ fn main() {
     if args.debug {
         app.add_plugins(PhysicsDebugPlugin);
     }
+    if args.stepping {
+        app.add_plugins(
+            SteppingPlugin::default()
+            .add_schedule(Update)
+            .at(percent(35), percent(50))
+        );
+    }
     app.register_type::<RigidBody>();
 
         if let Some(level) = args.level {
             app.world_mut().write_message(ChangeLevelMessage(level));
         } else {
-            app.world_mut().write_message(ChangeLevelMessage("levels/World.glb".into()));
+            //app.world_mut().write_message(ChangeLevelMessage("levels/World.glb".into()));
         }
 
         app.run();
