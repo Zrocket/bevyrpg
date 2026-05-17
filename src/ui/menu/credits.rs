@@ -38,7 +38,7 @@ fn exit_credits_menu(
 ) {
     match meta_state.get() {
         MetaState::Splash => {},
-        MetaState::MainMenu => pause_menu_state.set(MenuState::Off),
-        MetaState::Gameplay => pause_menu_state.set(MenuState::MainMenu),
+        MetaState::MainMenu => pause_menu_state.set(MenuState::MainMenu),
+        MetaState::Gameplay => pause_menu_state.set(MenuState::PauseMenu),
     }
 }

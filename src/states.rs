@@ -84,7 +84,6 @@ pub enum UiState {
 
 #[derive(Clone, Hash, Debug, Eq, PartialEq, Default, States, Reflect)]
 pub enum MenuState {
-    #[default]
     Off,
     Settings,
     ControllerSettings,
@@ -92,6 +91,9 @@ pub enum MenuState {
     GameplaySettings,
     SoundSettings,
     VideoSettings,
+    #[default]
     MainMenu,
+    PauseMenu,
     LoadGame,
+    SaveGame,
 }

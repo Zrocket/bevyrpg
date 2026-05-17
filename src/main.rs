@@ -257,7 +257,7 @@ fn pause_game(
         match game_state.get() {
             GameState::Gameplay => {
                 game_state_setter.set(GameState::Paused);
-                menu_state_setter.set(MenuState::MainMenu);
+                menu_state_setter.set(MenuState::PauseMenu);
                 physics_time.pause();
             },
             GameState::Paused   => {

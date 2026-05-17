@@ -29,6 +29,8 @@ fn spawn_settings_menu(
                 widgets::button("Controller Settings", enter_controller_settings_menu),
                 widgets::button("Video Settings", enter_video_settings_menu),
                 widgets::button("Sound Settings", enter_sound_settings_menu),
+                widgets::button("Load Game", enter_load_game_menu),
+                widgets::button("Save Game", enter_save_game_menu),
                 widgets::button("Back", exit_settings_menu),
             ]
     ));
@@ -41,8 +43,8 @@ fn exit_settings_menu(
 ) {
     match meta_state.get() {
         MetaState::Splash => {},
-        MetaState::MainMenu => pause_menu_state.set(MenuState::Off),
-        MetaState::Gameplay => pause_menu_state.set(MenuState::MainMenu),
+        MetaState::MainMenu => pause_menu_state.set(MenuState::MainMenu),
+        MetaState::Gameplay => pause_menu_state.set(MenuState::PauseMenu),
     }
 }
 
@@ -51,6 +53,20 @@ fn enter_sound_settings_menu(
     mut pause_menu_state: ResMut<NextState<MenuState>>,
 ) {
     pause_menu_state.set(MenuState::SoundSettings);
+}
+
+fn enter_load_game_menu(
+    _: On<Pointer<Click>>,
+    mut pause_menu_state: ResMut<NextState<MenuState>>,
+) {
+    pause_menu_state.set(MenuState::LoadGame);
+}
+
+fn enter_save_game_menu(
+    _: On<Pointer<Click>>,
+    mut pause_menu_state: ResMut<NextState<MenuState>>,
+) {
+    pause_menu_state.set(MenuState::SaveGame);
 }
 
 fn enter_video_settings_menu(

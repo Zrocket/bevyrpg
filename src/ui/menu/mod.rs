@@ -7,6 +7,7 @@ pub mod controller_settings;
 pub mod credits;
 pub mod gameplay_settings;
 pub mod load_game;
+pub mod save_game;
 pub mod loading;
 pub mod settings;
 pub mod sound_settings;
@@ -20,7 +21,7 @@ impl Plugin for MenuUiPlugin {
     fn build(&self, app: &mut App) {
         app
             .register_type::<UiMenu>()
-            .add_systems(OnEnter(MenuState::MainMenu), spawn_pause_menu)
+            .add_systems(OnEnter(MenuState::PauseMenu), spawn_pause_menu)
             .add_plugins((
                     SettingsMenuUiPlugin,
                     ControllerSettingsMenuUiPlugin,
@@ -39,7 +40,7 @@ fn spawn_pause_menu(
 ) {
     commands.spawn((
             widgets::ui_root("Pause Menu"),
-            DespawnOnExit(MenuState::MainMenu),
+            DespawnOnExit(MenuState::PauseMenu),
             GlobalZIndex(2),
             children![
                 widgets::button("Settings", enter_settings_menu),
