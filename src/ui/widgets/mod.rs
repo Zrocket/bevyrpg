@@ -93,6 +93,33 @@ where
     )
 }
 
+pub fn button_with_component<E, B, M, I, C>(text: impl Into<String>, action: I, component: C) -> impl Bundle
+where
+    E: EntityEvent,
+    B: Bundle,
+    I: IntoObserverSystem<E, B, M>,
+    C: Component,
+{
+    button_base_with_component(
+        text,
+        action,
+        (
+            Node {
+                width: Val::Px(380.0),
+                height: Val::Px(80.0),
+                align_items: AlignItems::Center,
+                justify_content: JustifyContent::Center,
+                border_radius: BorderRadius::MAX,
+                ..default()
+            },
+            BackgroundColor::from(DARK_GREEN),
+            observe(ui_click),
+            observe(ui_hover)
+        ),
+        component,
+    )
+}
+
 pub fn button_base<E, B, M, I>(
     text: impl Into<String>,
     action: I,
@@ -122,6 +149,43 @@ where
                     )],
             ))
             .insert(button_bundle)
+            .observe(action_observer);
+        })),
+    )
+}
+
+pub fn button_base_with_component<E, B, M, I, C>(
+    text: impl Into<String>,
+    action: I,
+    button_bundle: impl Bundle,
+    component: C,
+) -> impl Bundle
+where
+    E: EntityEvent,
+    B: Bundle,
+    I: IntoObserverSystem<E, B, M>,
+    C: Component,
+{
+    let text = text.into();
+    let action_observer = IntoObserverSystem::into_system(action);
+    (
+        Name::new("Button"),
+        Node::default(),
+        Children::spawn(SpawnWith(|parent: &mut ChildSpawner| {
+            parent
+                .spawn((
+                    Name::new("Button Inner"),
+                    Button,
+                    children![(
+                        Name::new("Button Text"),
+                        Text(text),
+                        TextFont::from_font_size(40.0),
+                        // Don't bubble picking events from the text up to the button.
+                        Pickable::IGNORE,
+                    )],
+            ))
+            .insert(button_bundle)
+            .insert(component)
             .observe(action_observer);
         })),
     )
