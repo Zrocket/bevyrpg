@@ -1,22 +1,22 @@
 (
   resources: {},
   entities: {
-    12884899179: (
+    8589934158: (
       components: {
         "bevy_ecs::name::Name": "Player",
         "bevy_transform::components::transform::Transform": (
-          translation: (-20.93103, 1.8500394, -49.296604),
-          rotation: (-0.20550925, 0.010241999, 0.0021508555, 0.9785992),
+          translation: (6.1218543, 1.8500539, -8.501581),
+          rotation: (-0.09763427, -0.24856396, -0.025191559, 0.9633529),
           scale: (1.0, 1.0, 1.0),
         ),
         "bevyrpg::character::Health": (100),
         "bevyrpg::character::Hunger": (
-          value: 85,
+          value: 95,
           timer: (
             stopwatch: (
               elapsed: (
-                secs: 1,
-                nanos: 231904155,
+                secs: 2,
+                nanos: 166299737,
               ),
               is_paused: false,
             ),
@@ -31,12 +31,12 @@
         ),
         "bevyrpg::character::Mana": (100),
         "bevyrpg::character::Sleep": (
-          value: 60,
+          value: 90,
           timer: (
             stopwatch: (
               elapsed: (
-                secs: 4,
-                nanos: 361840415,
+                secs: 2,
+                nanos: 166299737,
               ),
               is_paused: false,
             ),
@@ -50,12 +50,12 @@
           ),
         ),
         "bevyrpg::character::Thirst": (
-          value: 85,
+          value: 95,
           timer: (
             stopwatch: (
               elapsed: (
-                secs: 1,
-                nanos: 231904155,
+                secs: 2,
+                nanos: 166299737,
               ),
               is_paused: false,
             ),
@@ -71,7 +71,7 @@
         "bevyrpg::player::Player": (),
       },
     ),
-    68719473914: (
+    8589934165: (
       components: {
         "bevy_ecs::name::Name": "Rover",
         "bevy_transform::components::transform::Transform": (
