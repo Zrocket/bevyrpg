@@ -18,20 +18,28 @@ pub struct StartMenuUiPlugin;
 impl Plugin for StartMenuUiPlugin {
     fn build(&self, app: &mut App) {
        app
-           .add_systems(OnEnter(MetaState::MainMenu), spawn_start_menu);
+           .register_type::<UiStartMenu>()
+           .add_systems(OnEnter(MetaState::MainMenu), spawn_start_menu_camera)
+           .add_systems(OnEnter(MenuState::MainMenu), spawn_start_menu);
     }
+}
+
+fn spawn_start_menu_camera(
+    mut commands: Commands,
+) {
+    commands.spawn((
+        StartMenuCamera,
+        DespawnOnExit(MetaState::MainMenu),
+    ));
 }
 
 fn spawn_start_menu(
     mut commands: Commands,
 ) {
     commands.spawn((
-        StartMenuCamera,
-        DespawnOnExit(MetaState::MainMenu),
-        ));
-    commands.spawn((
         widgets::ui_root("Start Menu"),
-        DespawnOnExit(MetaState::MainMenu),
+        //DespawnOnExit(MetaState::MainMenu),
+        DespawnOnExit(MenuState::MainMenu),
         GlobalZIndex(2),
         children![
             widgets::button("Start Game", start_game),
