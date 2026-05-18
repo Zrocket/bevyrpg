@@ -500,17 +500,17 @@ pub(crate) fn cctv_icon_double_click_observer(
     mut timer_query: Query<&mut IconClickTimer>,
     mut commands: Commands,
     computer_ui_query: Query<Entity, With<ComputerUiNode>>,
-    rover_camera_query: Query<Entity, With<RoverCamera>>,
+    cctv_camera_query: Query<Entity, With<crate::CctvCam>>,
 ) {
     if let Ok(mut timer) = timer_query.get_mut(trigger.entity)
     && let Ok(computer_ui) = computer_ui_query.single()
-    && let Ok(rover_camrea) = rover_camera_query.single() {
+    && let Ok(cctv_camrea) = cctv_camera_query.single() {
         if timer.0.is_finished() {
             timer.0.reset();
         } else {
             let window = commands.spawn((
                     ComputerNode,
-                    floating_computer_rover_window_root("ROVER".to_string(), (
+                    floating_computer_rover_window_root("CCTV".to_string(), (
                         Node {
                             width: Val::Auto,
                             height: px(300),
@@ -519,10 +519,10 @@ pub(crate) fn cctv_icon_double_click_observer(
                             flex_direction: FlexDirection::ColumnReverse,
                             ..default()
                         },
-                        ViewportNode::new(rover_camrea),
+                        ViewportNode::new(cctv_camrea),
                         BorderColor::all(Color::WHITE),
                         Children::spawn(SpawnWith(|root_parent: &mut ChildSpawner| {
-                            root_parent.spawn(ButtonsNode);
+                           // root_parent.spawn(ButtonsNode);
                         })),
                     )),
             )).id();
