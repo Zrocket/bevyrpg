@@ -7,8 +7,8 @@ use super::Weight;
 pub struct TestsPlugin;
 impl Plugin for TestsPlugin {
     fn build(&self, app: &mut App) {
-        app;
-            //.add_systems(Update, (
+        app
+            .add_systems(Update, (
                     //dynamic_asset_test
                     //health_test,
                     //mana_test,
@@ -16,7 +16,8 @@ impl Plugin for TestsPlugin {
                     //inventory_add_test,
                     //inventory_remove_test,
                     //equipt_ui_test.run_if(input_just_pressed(KeyCode::KeyP)),
-           // ));
+                    check_states.run_if(input_just_pressed(KeyCode::F2))
+            ));
     }
 }
 
@@ -83,4 +84,12 @@ fn inventory_add_test(
         println!("{:?}", item);
         commands.entity(player).trigger(|entity| AddToInventoryEvent { entity, item });
     }
+}
+
+fn check_states(
+    meta_state: Res<State<crate::MetaState>>,
+    menu_state: Res<State<crate::MenuState>>,
+) {
+    println!("{:?}", meta_state.get());
+    println!("{:?}", menu_state.get());
 }
