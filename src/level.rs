@@ -133,11 +133,8 @@ fn change_level_message_handler(
     asset_server: Res<AssetServer>,
     mut change_level_messages: MessageReader<ChangeLevelMessage>,
     current_level_query: Query<Entity, With<CurrentLevel>>,
-    //mut spawn_player_message_writer: MessageWriter<crate::SpawnPlayerMessage>,
-    //mut spawn_rover_message_writer: MessageWriter<crate::SpawnRoverMessage>,
     mut game_state: ResMut<NextState<crate::MetaState>>,
-    //pending: Option<Res<crate::PendingSaveLoad>>,
-    mut load_game_message_writer: MessageWriter<crate::LoadGameMessage>,
+    mut menu_state: ResMut<NextState<crate::MenuState>>,
 ) {
     trace!("SYSTEM: change_level_message_handler");
     for message in change_level_messages.read() {
@@ -156,47 +153,6 @@ fn change_level_message_handler(
             CurrentLevel,
         ));
         game_state.set(crate::MetaState::Gameplay);
-
-        /*if pending.is_some() {
-            load_game_message_writer.write(crate::LoadGameMessage);
-            commands.remove_resource::<crate::PendingSaveLoad>();
-        }*/
-
-        //spawn_player_message_writer.write(crate::SpawnPlayerMessage);
-        //spawn_rover_message_writer.write(crate::SpawnRoverMessage);
-
-        /*let sun_id = commands.spawn((
-                DirectionalLight {
-                    shadows_enabled: true,
-                    illuminance: light_consts::lux::RAW_SUNLIGHT, // Adjust illuminance as needed
-                    ..default()
-                },
-                Transform::default(),
-        ))
-        .id();
-
-        let timed_sky_config = TimedSkyConfig {
-            sun_entity: sun_id,
-            day_duration_secs: 10.0, // 10 seconds of dadylight
-            night_duration_secs: 5.0, // 5 seconds of nighttime (15s total cycle)
-            max_sun_height_deg: 60.0, // Sun reaches 60 degrees at noon
-            planet_tilt_degrees: 23.5, // Earth's tilt (default)
-        };
-
-        // Calculate  and spawn the SkyCenter
-        if let Some(sky_center) = SkyCenter::from_timed_config(&timed_sky_config) {
-            commands.spawn((
-                    sky_center,
-                    // Optional: Add StarSpawner if you want the built-in stars
-                    StarSpawner {
-                        star_count: 1000,
-                        spawn_radius: 5000.0, // Star distance
-                    },
-            ));
-        } else {
-            // Handle case where calculation failed (e.g., impossible parameters)
-            error!("Failed to create SkyCenter from timed config");
-        }*/
-
+        menu_state.set(crate::MenuState::Off);
     }
 }
