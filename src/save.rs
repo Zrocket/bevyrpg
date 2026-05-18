@@ -1,11 +1,17 @@
+use std::{fs, path};
+
 use bevy::{asset::LoadState, input::common_conditions::input_just_pressed, prelude::*, tasks::IoTaskPool};
 
 use crate::MetaState;
+use crate::load_game::SaveRef;
 
 pub const SCENE_FILE_PATH: &str = "saves/world.scn.ron";
 
 #[derive(Resource)]
-pub struct PendingSaveLoad;
+pub struct PendingSave(pub Entity);
+
+#[derive(Resource)]
+pub struct PendingSaveLoad(pub Entity);
 
 #[derive(Resource)]
 struct PendingSceneSpawn;
@@ -16,19 +22,31 @@ pub struct LoadGameMessage;
 #[derive(Message)]
 pub struct SaveGameMessage;
 
+#[derive(Component, Reflect)]
+#[reflect(Component)]
+pub struct SaveFile(pub String);
+
+#[derive(Resource, Reflect)]
+#[reflect(Resource)]
+pub struct SaveStorage(pub Vec<Entity>);
+
 pub struct MySavePlugin;
 impl Plugin for MySavePlugin {
     fn build(&self, app: &mut App) {
        app
+           .register_type::<SaveStorage>()
+           .register_type::<SaveFile>()
            .add_message::<LoadGameMessage>()
            .add_message::<SaveGameMessage>()
            .add_systems(Update, quick_save.run_if(input_just_pressed(KeyCode::F5)))
            .add_systems(Update, quick_load.run_if(input_just_pressed(KeyCode::F9)))
+           //.add_systems(Update, initialize_save_files.run_if(input_just_pressed(KeyCode::F1)))
+           .add_systems(Startup, initialize_save_files)
            .add_systems(PostUpdate, (
                    save_observer,
                    load_scene.run_if(in_state(MetaState::Gameplay)),
                    spawn_scene_when_reloaded.run_if(in_state(MetaState::Gameplay)),
-                   check_pending_save_load.run_if(in_state(MetaState::Gameplay))
+                   check_pending_load.run_if(in_state(MetaState::Gameplay))
            ));
     }
 }
@@ -77,7 +95,26 @@ fn load_scene(
         let scene = asset_server.load(SCENE_FILE_PATH);
         commands.spawn(DynamicSceneRoot(scene));
     }
+}
 
+fn initialize_save_files(
+    mut commands: Commands,
+) {
+    let tmp = format!("assets/saves/");
+    let path = path::Path::new(&tmp);
+    if let Ok(dir) = fs::read_dir(path) {
+        let mut save_files: Vec<Entity> = Vec::new();
+        for file in dir {
+            if let Ok(file) = file {
+                if let Ok(file_name) = file.file_name().into_string() {
+                    println!("{:?}", file_name);
+                    let save = commands.spawn(SaveFile(file_name.clone())).id();
+                    save_files.push(save.clone());
+                }
+            }
+            commands.insert_resource(SaveStorage(save_files.clone()));
+        }
+    }
 }
 
 fn spawn_scene_when_reloaded(
@@ -152,28 +189,60 @@ fn save_scene(world: &mut World) {
     .detach();
 }
 
-fn check_pending_save_load(
+
+#[allow(clippy::too_many_arguments)]
+fn check_pending_load(
     mut commands: Commands,
     pending: Option<Res<PendingSaveLoad>>,
     asset_server: Res<AssetServer>,
     level_gltf: Option<Res<crate::LevelGltf>>,
-    mut load_game_message_writer: MessageWriter<crate::LoadGameMessage>,
+    player_query: Query<Entity, With<crate::Player>>,
+    rover_query: Query<Entity, With<crate::Rover>>,
+    scene_root_query: Query<Entity, With<DynamicSceneRoot>>,
+    save_file_query: Query<&SaveFile>,
 ) {
     if pending.is_none() { return; }
+    let pending = pending.unwrap();
 
-
-    if let Some(level_gltf) = level_gltf {
-        if let LoadState::Loaded = asset_server.load_state(&level_gltf.0) {
-            load_game_message_writer.write(crate::LoadGameMessage);
-            commands.remove_resource::<PendingSaveLoad>();
+    if let Some(level_gltf) = level_gltf
+    && let Ok(save) = save_file_query.get(pending.0)
+    && let LoadState::Loaded = asset_server.load_state(&level_gltf.0) {
+        for entity in player_query.iter() {
+            commands.entity(entity).despawn();
         }
-        //if asset_server.load_state(&level_gltf.0) == LoadState::Loaded {
-        //match asset_server.load_state(&level_gltf.0) {
-        //    LoadState::Loaded => {
-        //        load_game_message_writer.write(crate::LoadGameMessage);
-        //        commands.remove_resource::<PendingSaveLoad>();
-        //    },
-        //    _ => {}
-        //}
+        for entity in rover_query.iter() {
+            commands.entity(entity).despawn();
+        }
+        for entity in scene_root_query.iter() {
+            commands.entity(entity).despawn();
+        }
+
+        let file = save.0.clone();
+        let file = format!("saves/{file}");
+
+        let scene = asset_server.load(file);
+
+        commands.spawn(DynamicSceneRoot(scene));
+        commands.remove_resource::<PendingSaveLoad>();
+    }
+}
+
+#[allow(clippy::too_many_arguments)]
+fn check_pending_save(
+    mut commands: Commands,
+    pending: Option<Res<PendingSave>>,
+    asset_server: Res<AssetServer>,
+    level_gltf: Option<Res<crate::LevelGltf>>,
+    save_file_query: Query<&SaveFile>,
+) {
+    if pending.is_none() { return; }
+    let pending = pending.unwrap();
+
+    if let Some(level_gltf) = level_gltf
+    && let Ok(save) = save_file_query.get(pending.0) {
+        let file = save.0.clone();
+        let file = format!("saves/{file}");
+
+        commands.remove_resource::<PendingSave>();
     }
 }
