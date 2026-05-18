@@ -221,10 +221,8 @@ fn on_player_camera_add(
 fn init_player(
     mut spawn_player_message_writer: MessageWriter<SpawnPlayerMessage>,
     player_query: Query<Entity, With<Player>>,
-    pending: Option<Res<crate::PendingSaveLoad>>,
 ) {
     trace!("SYSTEM: init_player");
-    //if pending.is_some() { return; }
     for _player in player_query.iter() {
         return;
     }
