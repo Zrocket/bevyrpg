@@ -383,9 +383,9 @@ pub(crate) fn attachment_pressed(
     rover_query: Query<(Entity, &RoverAttachments), With<Rover>>,
 ) {
     if let Ok((rover_entity, attachment)) = rover_query.single() {
-    for entity in  attachment.iter() {
-        commands.entity(entity).trigger(|entity| UseRoverAttachmentEvent { entity });
-    }
+        for entity in  attachment.iter() {
+            commands.entity(entity).trigger(|entity| UseRoverAttachmentEvent { entity });
+        }
     }
 }
 
@@ -565,6 +565,7 @@ pub(crate) fn icon_drag_observer(
 #[allow(clippy::too_many_arguments)]
 pub(crate) fn drive_diegetic_pointer(
     mut cursor_last: Local<Vec2>,
+    mut hitting_screen: Local<bool>,
     mut raycast: MeshRayCast,
     rays: Res<RayMap>,
     cubes: Query<&Mesh3d, Or<(With<ComputerScreenCube>, With<Desktop>)>>,
@@ -593,8 +594,11 @@ pub(crate) fn drive_diegetic_pointer(
         filter: &|entity| cubes.contains(entity),
         early_exit_test: &|_| false,
     };
+
+    let mut hit_this_frame = false;
     for (_id, ray) in rays.iter() {
         for (_cube, hit) in raycast.cast_ray(*ray, &raycast_settings) {
+            hit_this_frame = true;
             let position = size * hit.uv.unwrap();
             if position != *cursor_last {
                 pointer_inputs.write(PointerInput::new(
@@ -612,8 +616,20 @@ pub(crate) fn drive_diegetic_pointer(
         }
     }
 
+    if *hitting_screen && !hit_this_frame {
+        pointer_inputs.write(PointerInput::new(
+                CUBE_POINTER_ID, 
+                Location { target: target.clone(), position: *cursor_last },
+                PointerAction::Cancel,
+        ));
+    }
+    *hitting_screen = hit_this_frame;
+
     // Pipe pointer button presses to the virtual pointer on the UI texture.
     for window_event in window_events.read() {
+        if !hit_this_frame {
+            continue;
+        }
         if let WindowEvent::MouseButtonInput(input) = window_event {
             let button = match input.button {
                 MouseButton::Left => PointerButton::Primary,
