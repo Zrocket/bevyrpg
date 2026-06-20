@@ -216,6 +216,7 @@ fn transfer_item_observer(
     if let Ok(invref) = invref_query.get(trigger.entity)
     && let Ok(item) = owner_query.get(trigger.dropped)
     && let Ok(childof) = childof_query.get(trigger.dropped) {
+        commands.entity(trigger.dropped).despawn();
         trace!("Removing item: {:?}, from inventory: {:?}", item.item_owner, item.inv_owner);
         commands.entity(item.inv_owner).trigger(|entity| RemoveFromInventoryEvent { entity, item: item.item_owner });
         trace!("Adding item: {:?}, to inventory: {:?}", item.item_owner, invref.0);
