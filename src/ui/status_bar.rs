@@ -139,10 +139,15 @@ impl Plugin for StatusUIPlugin {
            .add_plugins(UiMaterialPlugin::<HealthUiMaterial>::default())
            .add_plugins(UiMaterialPlugin::<ManaUiMaterial>::default())
            .add_plugins(UiMaterialPlugin::<SleepUiMaterial>::default())
-           .add_systems(OnEnter(GameState::Gameplay), draw_status_ui)
-           .add_systems(Update, animate_health_material)
-           .add_systems(Update, animate_mana_material)
-           .add_systems(Update, animate_sleep_material);
+           .add_systems(Update, draw_status_ui.run_if(in_state(GameState::Gameplay)))
+           //.add_systems(OnEnter(GameState::Gameplay), draw_status_ui.after(spawn_player_observer))
+           //.add_systems(OnEnter(GameState::Gameplay), draw_status_ui.after(init_player))
+           //.add_systems(OnEnter(GameState::Gameplay), draw_status_ui.after(spawn_player_observer))
+           .add_systems(Update, (
+                   animate_health_material,
+                   animate_mana_material,
+                   animate_sleep_material,
+           ));
     }
 }
 
@@ -248,11 +253,14 @@ pub fn draw_status_ui(
     mut commands: Commands,
     health_query: Query<(&Health, &MaxHealth), With<Player>>,
     mana_query: Query<(&Mana, &MaxMana), With<Player>>,
+    status_node_query: Query<Entity, With<UiStatus>>,
 ) {
     trace!("draw_status_ui");
+    if let Ok(_status_bar) = status_node_query.single() {
+        return;
+    }
     if let Ok((_mana, _max_mana)) = mana_query.single()
-        && let Ok((_health, _max_health)) = health_query.single() {
-
+    && let Ok((_health, _max_health)) = health_query.single() {
             let status_bar_node = commands
                 .spawn((
                     UiStatus,
