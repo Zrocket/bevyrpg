@@ -143,7 +143,6 @@ fn main() {
         //SunMovePlugin,
         RandomStarsPlugin,
         Landmass3dPlugin::default(),
-        Landmass3dDebugPlugin::default(),
         LandmassRerecastPlugin::default(),
         NavmeshPlugins::default(),
         AvianBackendPlugin::default(),
@@ -226,6 +225,7 @@ fn main() {
     }
     if args.debug {
         app.add_plugins(PhysicsDebugPlugin);
+        app.add_plugins(Landmass3dDebugPlugin::default());
     }
     if args.stepping {
         app.add_plugins(
