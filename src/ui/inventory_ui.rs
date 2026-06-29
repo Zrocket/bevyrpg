@@ -1,6 +1,6 @@
 use bevy::{app::{HierarchyPropagatePlugin, Propagate}, color::palettes::css::{DARK_BLUE, DARK_GRAY, DARK_GREEN, DARK_KHAKI, DARK_RED}, ecs::{lifecycle::HookContext, system::SystemId, world::DeferredWorld}};
 
-use crate::widgets::{anchored::{Anchor, AnchorDirection, AnchorOption, AnchorTarget, DropdownMenu}, floating_window_focus::{FocusDetectShouldClose, FocusParernt}, floating_window_ordering::UiZOrderLayer, floating_windows::floating_window_root, tooltip::{TooltipChild, TooltipParent, TooltipSource}};
+use crate::{analyzer_ui::UiActiveSampleIcon, widgets::{anchored::{Anchor, AnchorDirection, AnchorOption, AnchorTarget, DropdownMenu}, floating_window_focus::{FocusDetectShouldClose, FocusParernt}, floating_window_ordering::UiZOrderLayer, floating_windows::floating_window_root, tooltip::{TooltipChild, TooltipParent, TooltipSource}}};
 
 use super::*;
 
@@ -62,8 +62,8 @@ pub struct RightClickMenuItems(pub Vec<SystemId>);
 #[derive(Component, Reflect, Debug, Clone, Copy, PartialEq, Eq)]
 #[reflect(Component)]
 pub struct Owner {
-    item_owner: Entity,
-    inv_owner: Entity,
+    pub item_owner: Entity,
+    pub inv_owner: Entity,
 }
 
 #[derive(Component, Debug)]
@@ -75,8 +75,7 @@ fn on_inventory_ui_add(
 ) {
     world.commands()
         .entity(context.entity)
-        .observe(transfer_item_observer)
-        .observe(refresh_window_observer);
+        .observe(transfer_item_observer);
 }
 
 fn on_inventory_item_ui_add(
@@ -95,7 +94,12 @@ impl Plugin for InventoryUIPlugin {
     fn build(&self, app: &mut App) {
        app
            .add_plugins(HierarchyPropagatePlugin::<Owner, (), ChildMenu>::new(Update))
-           .register_type::<Owner>();
+           .register_type::<Owner>()
+           .add_systems(Update,
+               (
+                   sync_inventory_ui,
+                   //react_on_inventory_removal,
+               ));
     }
 }
 
@@ -109,7 +113,6 @@ pub fn display_inventory_event_observer(
     mut menu_state_setter: ResMut<NextState<UiState>>,
 ) {
     trace!("OBSERVER: display_inventory_event_observer");
-
 
     //if *menu_state == UiState::Inventory {
     //    return;
@@ -131,6 +134,8 @@ pub fn display_inventory_event_observer(
         }
     }
 
+    //let item_vec = collect_inventory_items(trigger.entity, &inventory, &item_query);
+
     commands.spawn((
         DespawnOnExit(UiState::Inventory),
         floating_window_root(
@@ -139,8 +144,7 @@ pub fn display_inventory_event_observer(
             UiInventory,
             Children::spawn(SpawnWith(|parent: &mut ChildSpawner| {
                 for (item, entity, inv) in item_vec {
-                    parent.spawn(
-                (
+                    parent.spawn((
                             UiInventoryItem,
                             Text(item.name),
                             Owner { item_owner: entity, inv_owner: inv },
@@ -154,50 +158,82 @@ pub fn display_inventory_event_observer(
     ));
 }
 
-#[derive(EntityEvent)]
-#[entity_event(propagate, auto_propagate)]
-pub struct RefreshInventory {
-    pub entity: Entity,
+fn collect_inventory_items(
+    inv_entity: Entity,
+    inv_query: &Query<&Inventory>,
+    item_query: &Query<&ItemDetails>,
+) -> Vec<(ItemDetails, Entity)> {
+    let Ok(inventory_handle) = inv_query.get(inv_entity) else {
+        return vec![];
+    };
+
+    inventory_handle.iter()
+        .filter_map(|item| item_query.get(item).ok().map(|details| (details.clone(), item)))
+        .collect()
 }
 
-fn refresh_window_observer(
-    trigger: On<RefreshInventory>,
+/*fn react_on_inventory_removal(
+    mut removed: RemovedComponents<Inventory>,
+    ui_windows: Query<(Entity, &InvRef, Option<&Children>), Without<UiActiveSampleIcon>>,
     mut commands: Commands,
-    mut children_query: Query<(Entity, Option<&mut Children>, &mut InvRef)>,
-    item_query: Query<&ItemDetails>,
-    inventory: Query<&Inventory>,
 ) {
-    trace!("OBSERVER: refresh_window_observer");
-    if let Ok((parent_entity, children, invref)) = children_query.get_mut(trigger.entity) {
-        trace!("Got children: {:?}, invref: {:?}", children, invref);
-
-        if let Some(children) = children {
-            for child in children.iter() {
-                trace!("Despawning child: {:?}", child);
-                commands.entity(child).despawn();
+    removed.read().for_each(|removed_entity| {
+        println!("AASKL:HGDFSKHJDGSKLJH:GD");
+        for (ui_entity, invref, children) in ui_windows.iter() {
+            if invref.0 != removed_entity {
+                continue;
             }
-        }
-
-        let mut item_vec = vec![];
-
-        if let Ok(inventory_handle) = inventory.get(invref.0) {
-            for item in inventory_handle.iter() {
-                if let Ok(item_name) = item_query.get(item) {
-                    trace!("Pushing item: {:?}, item_name: {:?}, to item_vec", item, item_name.name);
-                    item_vec.push((item_name.clone(), item.clone(), invref.0.clone()));
+            if let Some(children) = children {
+                for child in children.iter() {
+                    commands.entity(child).despawn();
                 }
             }
         }
+    });
+}*/
 
-        for (item, entity, inv) in item_vec {
-            let child = commands.spawn((
-                    UiInventoryItem,
-                    Text(item.name),
-                    Owner { item_owner: entity, inv_owner: inv },
-                    Propagate( Owner { item_owner: entity, inv_owner: inv }),
+fn sync_inventory_ui(
+    mut removed: RemovedComponents<Inventory>,
+    changed_inventories: Query<Entity, Changed<Inventory>>,
+    ui_windows: Query<(Entity, &InvRef, Option<&Children>), Without<UiActiveSampleIcon>>,
+    item_query: Query<&ItemDetails>,
+    inv_query: Query<&Inventory>,
+    mut commands: Commands,
+) {
+    removed.read().for_each(|removed_entity| {
+        println!("AASKL:HGDFSKHJDGSKLJH:GD");
+        for (ui_entity, invref, children) in ui_windows.iter() {
+            if invref.0 != removed_entity {
+                continue;
+            }
+            if let Some(children) = children {
+                for child in children.iter() {
+                    commands.entity(child).despawn();
+                }
+            }
+        }
+    });
+    for inv_entity in changed_inventories.iter() {
+        for (ui_entity, invref, children) in ui_windows.iter() {
+            if invref.0 != inv_entity {
+                continue;
+            }
+            if let Some(children) = children {
+                for child in children.iter() {
+                    commands.entity(child).despawn();
+                }
+            }
+
+            let items = collect_inventory_items(inv_entity, &inv_query, &item_query);
+
+            for (details, item_entity) in items {
+                let child = commands.spawn((
+                        UiInventoryItem,
+                        Text(details.name),
+                        Owner { item_owner: item_entity, inv_owner: inv_entity },
                 )).id();
-            commands.entity(parent_entity)
-                .add_child(child);
+                commands.entity(ui_entity).add_child(child);
+            }
         }
     }
 }
@@ -215,16 +251,11 @@ fn transfer_item_observer(
     }
     if let Ok(invref) = invref_query.get(trigger.entity)
     && let Ok(item) = owner_query.get(trigger.dropped)
-    && let Ok(childof) = childof_query.get(trigger.dropped) {
-        commands.entity(trigger.dropped).despawn();
+    && let Ok(_childof) = childof_query.get(trigger.dropped) {
         trace!("Removing item: {:?}, from inventory: {:?}", item.item_owner, item.inv_owner);
         commands.entity(item.inv_owner).trigger(|entity| RemoveFromInventoryEvent { entity, item: item.item_owner });
         trace!("Adding item: {:?}, to inventory: {:?}", item.item_owner, invref.0);
         commands.entity(invref.0).trigger(|entity| AddToInventoryEvent { entity, item: item.item_owner });
-        trace!("Refreshing new inventory window: {:?}", trigger.entity);
-        commands.entity(trigger.entity).trigger(|entity| RefreshInventory { entity });
-        trace!("Refreshing old inventory window: {:?}", childof.0);
-        commands.entity(childof.0).trigger(|entity| RefreshInventory { entity });
     }
 }
 
@@ -345,7 +376,7 @@ fn drop_item_button_observer(
     && let Ok(owner) = owner_query.get(parent.0)
     && let Ok(actor) = inv_query.get(owner.inv_owner)
     && let Ok(actor_transform) = transform_query.get(owner.inv_owner)
-    && let Ok(childmenu) = childmenu_query.get(parent.0)
+    && let Ok(_childmenu) = childmenu_query.get(parent.0)
     && let Ok(item_parent) = parent_query.get(owner.item_owner)
     && let Ok(parent_shelf) = shelf_query.get(item_parent.0)
     && let Ok(mut parent_visibility) = visibility_query.get_mut(item_parent.0)
@@ -358,7 +389,6 @@ fn drop_item_button_observer(
         commands.entity(owner.item_owner)
             .insert(*item_shelf.0);
         commands.entity(actor).trigger(|entity| RemoveFromInventoryEvent { entity, item: owner.item_owner});
-        commands.entity(childmenu.0).trigger(|entity| RefreshInventory { entity });
     }
 }
 

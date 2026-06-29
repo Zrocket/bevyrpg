@@ -1,7 +1,8 @@
-use crate::{widgets::{anchored::AnchoredUiPlugin, floating_window_ordering::FloatingWindowOrderingPlugin, floating_windows::FloatingWindowPlugin}};
+use crate::{analyzer_ui::AnalyzerUiPlugin, widgets::{anchored::AnchoredUiPlugin, floating_window_ordering::FloatingWindowOrderingPlugin, floating_windows::FloatingWindowPlugin, progress_bar::ProgressBarWidgetPlugin}};
 
 use super::*;
 
+pub mod analyzer_ui;
 pub mod book_ui;
 pub mod crosshair;
 pub mod equip_ui;
@@ -64,6 +65,7 @@ impl Plugin for UiPlugin {
         app
             .register_type::<DAUiAssets>()
             .add_plugins((
+                    AnalyzerUiPlugin,
                     AnchoredUiPlugin,
                     StatusUIPlugin,
                     InspectUiPlugin,
@@ -75,6 +77,7 @@ impl Plugin for UiPlugin {
                     FloatingWindowPlugin,
                     FloatingWindowOrderingPlugin,
                     EquipUiPlugin,
+                    ProgressBarWidgetPlugin,
             ))
             .add_loading_state(
                 LoadingState::new(BootStrap::Preload)

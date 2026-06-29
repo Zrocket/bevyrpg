@@ -10,6 +10,7 @@ pub mod floating_windows;
 pub mod floating_window_ordering;
 pub mod tooltip;
 pub mod utils;
+pub mod progress_bar;
 
 pub fn dragable_test(name: impl Into<Cow<'static, str>>) -> impl Bundle {
     (

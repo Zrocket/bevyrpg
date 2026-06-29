@@ -132,8 +132,11 @@ fn on_rover_add(
                 rover_mesh,
                 rover_material,
         ))
+        //.insert(related!(RoverAttachments[
+        //        (FoamGunAttachment),
+        //]))
         .insert(related!(RoverAttachments[
-                (FoamGunAttachment),
+                (SampleDrillAttachment),
         ]))
         .add_child(rover_camera)
         .observe(on_rover_forward_observer)
@@ -246,10 +249,12 @@ impl Plugin for RoverPlugin {
             .add_message::<SpawnRoverMessage>()
             .add_message::<RoverSpawnedMessage>()
             .add_systems(OnEnter(MetaState::Gameplay), spawn_rover)
-            .add_systems(Update, apply_rover_movement.run_if(in_state(GameState::Gameplay)))
-            .add_systems(Update, test_rover_interact.run_if(in_state(GameState::Gameplay)))
-            .add_systems(Update, spawn_rover_observer)
-            .add_systems(Update, dart_timer.run_if(in_state(GameState::Gameplay)));
+            .add_systems(Update, (
+                    apply_rover_movement.run_if(in_state(GameState::Gameplay)),
+                    test_rover_interact.run_if(in_state(GameState::Gameplay)),
+                    spawn_rover_observer,
+                    dart_timer.run_if(in_state(GameState::Gameplay)),
+            ));
     }
 }
 

@@ -45,6 +45,7 @@ pub fn add_to_inventory_observer<T: Component>(
 ) {
     trace!("OBSERVER: add_to_inventory_observer");
     if let Ok(entity) = query.get(trigger.entity) {
+        println!("ADDING: {:?}", trigger.item);
         commands.entity(trigger.item).insert(InInventory(entity));
     }
 }
@@ -56,6 +57,7 @@ pub fn remove_from_inventory_observer<T: Component>(
 ) {
     trace!("OBSERVER: remove_from_inventory_observer");
     if query.get(trigger.entity).is_ok() {
+        println!("REMOVING: {:?}", trigger.item);
         commands.entity(trigger.item).remove::<InInventory>();
     }
 }
