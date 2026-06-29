@@ -13,14 +13,6 @@ use crate::{AddToInventoryEvent, InspectEvent, Interactable, InteractionEvent, I
 #[type_path("api")]
 pub struct MiscItem;
 
-pub struct MiscItemPlugin;
-
-impl Plugin for MiscItemPlugin {
-    fn build(&self, app: &mut App) {
-        app.register_type::<MiscItem>();
-    }
-}
-
 fn on_misc_add(
     mut world: DeferredWorld,
     context: HookContext,
@@ -31,6 +23,14 @@ fn on_misc_add(
         .observe(misc_interaction_observer)
         .observe(misc_pickup_observer)
         .observe(misc_inspection_observer);
+}
+
+pub struct MiscItemPlugin;
+
+impl Plugin for MiscItemPlugin {
+    fn build(&self, app: &mut App) {
+        app.register_type::<MiscItem>();
+    }
 }
 
 fn misc_interaction_observer(
