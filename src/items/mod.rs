@@ -10,10 +10,12 @@ mod armor;
 mod books;
 mod consumable;
 mod container;
+mod drillable;
 mod equip;
 mod health_pack;
 mod mana_pack;
 mod misc;
+mod sample;
 mod weapons;
 
 pub use ammo::*;
@@ -21,8 +23,10 @@ pub use armor::*;
 pub use books::*;
 pub use consumable::*;
 pub use container::*;
+pub use drillable::*;
 pub use equip::*;
 pub use misc::*;
+pub use sample::*;
 pub use weapons::*;
 
 #[derive(Component, Reflect, Clone, Default)]
@@ -82,6 +86,8 @@ impl Plugin for ItemPlugin {
                     MiscItemPlugin,
                     ContainerPlugin,
                     WeaponPlugin,
+                    SampleItemPlugin,
+                    DrillableItemPlugin,
             ))
             .add_observer(disabled_held_prop_collision)
             .add_observer(enable_dropped_prop_collision)

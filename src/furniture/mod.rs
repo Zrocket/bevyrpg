@@ -1,5 +1,6 @@
 use bevy::{ecs::query::QueryData, prelude::*};
 
+mod analyzer;
 mod bed;
 mod cctv;
 mod ceiling_light;
@@ -11,7 +12,9 @@ mod garage;
 mod ladder;
 mod lever;
 mod vending;
+mod elevator;
 
+pub use analyzer::*;
 pub use bed::*;
 pub use cctv::*;
 pub use ceiling_light::*;
@@ -36,6 +39,7 @@ pub struct FurniturePlugin;
 impl Plugin for FurniturePlugin {
     fn build(&self, app: &mut App) {
         app.add_plugins((
+            AnalyzerPlugin,
             CctvPlugin,
             CeilingLightPlugin,
             ChairPlugin,

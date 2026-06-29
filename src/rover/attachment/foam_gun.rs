@@ -1,7 +1,11 @@
-use avian3d::prelude::{Collider, CollisionEventsEnabled, CollisionStart, LinearVelocity, RigidBody};
-use bevy::{ecs::{lifecycle::HookContext, world::DeferredWorld}, prelude::*};
+use avian3d::collision::collision_events::CollisionStart;
+use avian3d::dynamics::rigid_body::LinearVelocity;
+use avian3d::prelude::{RigidBody, Collider, CollisionEventsEnabled};
+use bevy::ecs::lifecycle::HookContext;
+use bevy::ecs::world::DeferredWorld;
+use bevy::prelude::*;
 
-use crate::{InteractionEvent, Rover, RoverCamera};
+use crate::{InteractionEvent, Rover, RoverCamera, UseRoverAttachmentEvent};
 
 #[derive(Debug, Component, Reflect)]
 #[require(
@@ -28,19 +32,6 @@ fn on_foam_dart_add(
         .observe(dart_interaction);
 }
 
-#[derive(Component, Default)]
-#[relationship_target(relationship = AttachedToRover)]
-pub struct RoverAttachments(Vec<Entity>);
-
-#[derive(Component)]
-#[relationship(relationship_target = RoverAttachments)]
-pub struct AttachedToRover(pub Entity);
-
-#[derive(EntityEvent)]
-pub struct UseRoverAttachmentEvent {
-    pub entity: Entity,
-}
-
 #[derive(Component)]
 #[require(
     Name::new("Foam Gun"),
@@ -55,6 +46,13 @@ fn on_foam_gun_add(
     world.commands()
         .entity(context.entity)
         .observe(use_foam_gun_observer);
+}
+
+pub struct FoamGunAttachmentPlugin;
+impl Plugin for FoamGunAttachmentPlugin {
+    fn build(&self, app: &mut App) {
+       app;
+    }
 }
 
 fn use_foam_gun_observer(
@@ -99,6 +97,5 @@ pub(crate) fn dart_interaction(
     trigger: On<CollisionStart>,
     mut commands: Commands,
 ) {
-    println!("AAAAAAAAAAAAAAAAAA");
     commands.entity(trigger.event().collider2).trigger(|entity| InteractionEvent { entity, actor: trigger.collider1 });
 }
