@@ -3,6 +3,7 @@ use bevy_landmass::{AgentTarget3d};
 use avian3d::{prelude::{Collider, SpatialQuery, SpatialQueryFilter}};
 
 mod attachment;
+mod battery;
 mod movement;
 
 pub use attachment::*;
