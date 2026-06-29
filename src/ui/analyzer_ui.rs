@@ -120,7 +120,7 @@ fn start_sample_analysis(
         }
         println!("ITEM2: {:?}", item.item_owner);
         commands.entity(item.item_owner).insert(ActiveSample);
-        commands.entity(trigger.entity).trigger(|entity| RefreshAnalyzerUi { entity });
+        //commands.entity(trigger.entity).trigger(|entity| RefreshAnalyzerUi { entity });
     }
 }
 
@@ -374,21 +374,25 @@ fn sync_analyzer_ui(
     mut commands: Commands,
     name_query: Query<&Name>,
     active_sample_node_query: Query<Entity, With<UiActiveSampleIcon>>,
-    active_sample_query: Query<Entity, Or<(Changed<ActiveSample>, Added<ActiveSample>)>>,
+    active_sample_query: Query<Entity, Added<ActiveSample>>,
 ) {
     let mut active_sample = String::from("ACTIVESAMPLE");
 
-    /*removed.read().for_each(|entity| {
-        commands.entity(entity)
-            .remove::<Text>()
-            .insert(Text(active_sample.clone()));
-    });*/
+    removed.read().for_each(|entity| {
+        println!("ACTIVE SAMPLE REMOVED");
+        if let Ok(entity) = active_sample_node_query.single() {
+            commands.entity(entity)
+                .remove::<Text>()
+                .insert(Text(active_sample.clone()));
+        }
+    });
 
     if let Ok(active_sample_entity) = active_sample_query.single()
     && let Ok(active_sample_name) = name_query.get(active_sample_entity) {
         println!("ITEM: {:?}", active_sample_entity);
         active_sample = active_sample_name.into();
         if let Ok(entity) = active_sample_node_query.single() {
+            println!("ACTIVE SAMPLE ADDED");
             commands.entity(entity)
                 .remove::<Text>()
                 .insert(Text(active_sample));
