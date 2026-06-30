@@ -2,21 +2,25 @@ use bevy::prelude::*;
 
 #[derive(EntityEvent)]
 pub struct AddToInventoryEvent {
+    /// The entity who's inventory the item should be added to
     pub entity: Entity,
+    /// The item to be added to the inventory
     pub item: Entity,
 }
 
 #[derive(EntityEvent)]
 pub struct RemoveFromInventoryEvent {
+    /// The entity who's inventory the item should be removed from
     pub entity: Entity,
+    /// The item to be removed from the inventory
     pub item: Entity,
 }
 
-#[derive(Message)]
+/*#[derive(Message)]
 pub struct RemoveMessage {
     pub actor: Entity,
     pub target: Entity,
-}
+}*/
 
 #[derive(Component)]
 #[relationship_target(relationship = InInventory, linked_spawn)]
@@ -29,8 +33,8 @@ pub struct InInventory(pub Entity);
 pub struct InventoryPlugin;
 impl Plugin for InventoryPlugin {
     fn build(&self, app: &mut App) {
-        app
-            .add_message::<RemoveMessage>();
+        app;
+            //.add_message::<RemoveMessage>();
             //.add_systems(
             //    Update,
             //    remove_from_inventory.run_if(in_state(GameState::Gameplay)),
@@ -38,6 +42,8 @@ impl Plugin for InventoryPlugin {
     }
 }
 
+
+/// Allows an entity to accept items into their inventory
 pub fn add_to_inventory_observer<T: Component>(
     trigger: On<AddToInventoryEvent>,
     mut commands: Commands,
@@ -50,6 +56,7 @@ pub fn add_to_inventory_observer<T: Component>(
     }
 }
 
+/// Allows an entity to remove items from their inventory
 pub fn remove_from_inventory_observer<T: Component>(
     trigger: On<RemoveFromInventoryEvent>,
     mut commands: Commands,

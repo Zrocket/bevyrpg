@@ -12,6 +12,7 @@ const ROCKET_SIZE: f32 = 0.1;
 #[derive(Event, Message)]
 pub struct ShootEvent;
 
+/// Cooldown timer for Grenade
 #[derive(Debug, Component, Reflect)]
 pub struct Cooldown(Timer);
 

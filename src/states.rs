@@ -35,6 +35,9 @@ impl Plugin for StatesPlugin {
     }
 }
 
+/// The initial bootstrap state
+///
+/// In charge of boostraping everything the game needs before anything else is run
 #[derive(Clone, Hash, Debug, Eq, PartialEq, Default, States, Reflect)]
 pub enum BootStrap {
     #[default]
@@ -44,6 +47,7 @@ pub enum BootStrap {
     Finished,
 }
 
+/// MetaState
 #[derive(Clone, Hash, Debug, Eq, PartialEq, Default, SubStates, Reflect)]
 #[source(BootStrap = BootStrap::Finished)]
 pub enum MetaState {

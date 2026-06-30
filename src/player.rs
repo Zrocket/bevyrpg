@@ -10,6 +10,7 @@ use moonshine_save::prelude::Save;
 
 use crate::{BootStrap, CameraConfig, CharacterBundle, CollisionLayer, DeathEvent, Description, Experience, FetchQuest, FloatHeight, GameState, Health, ItemDetails, Mana, MaxHealth, MaxMana, MetaState, PlayerControlScheme, PlayerController, PlayerControllerConfig, PlayerControllerInput, Quest, QuestOf, RayHit, RenderPlayer, Sleep, TnuaPlayerController, Walk, Weight, add_to_inventory_observer, display_equip_event_observer, display_inventory_event_observer, display_quest_event_observer, display_stats_event_observer, drink_event_observer, eat_event_observer, level::DAGunAssets, remove_from_inventory_observer};
 
+/// The current state of the player Entity.
 #[derive(Clone, Component, Hash, Debug, Eq, PartialEq, Default, States)]
 pub enum PlayerState {
     #[default]
@@ -22,6 +23,12 @@ pub enum PlayerState {
     NoClip,
 }
 
+/// The state of the player camera
+///
+/// CameraState::Player -> camrea follows the player entity
+/// CameraState::Indipendent -> camera is moving indipendently of the player entity
+///
+/// Usefull for more cinematic camera control
 #[derive(Clone, Component, Hash, Debug, Eq, PartialEq, Default, States)]
 pub enum CameraState {
     #[default]
@@ -29,6 +36,9 @@ pub enum CameraState {
     Indipendent,
 }
 
+/// The main player component.
+///
+/// Only one Entity should ever have a player component.
 #[derive(Component, Reflect, Default)]
 #[reflect(Component)]
 #[require(
@@ -81,6 +91,7 @@ pub enum CameraState {
 #[component(on_add = on_player_add)]
 pub struct Player;
 
+/// The main player camera
 #[derive(Component, Reflect, Default)]
 #[reflect(Component)]
 #[require(
@@ -111,6 +122,9 @@ pub struct Player;
 #[component(on_add = on_player_camera_add)]
 pub struct PlayerCamera;
 
+/// The player flashlight.
+///
+/// Emits light.
 #[derive(Component, Reflect, Default)]
 #[reflect(Component)]
 #[require(
@@ -122,6 +136,10 @@ pub struct PlayerCamera;
 )]
 pub struct PlayerFlashlight;
 
+/// Player Spawner
+///
+/// Entities marked with a PlayerSpawner component designate the location
+/// in game-space where the player spawns
 #[derive(Component, Reflect, Default)]
 #[reflect(Component)]
 #[type_path("api")]
@@ -132,6 +150,7 @@ pub struct PlayerSpawner;
 #[type_path("api")]
 pub struct PlayerTrigger;
 
+/// Marker Component for the currently active player weapon.
 #[derive(Component, Reflect, Default)]
 #[reflect(Component)]
 pub struct ActiveWeapon;
