@@ -1,9 +1,7 @@
 use bevy::prelude::*;
 use avian_pickup::prop::HeldProp;
-use avian3d::prelude::{CollisionLayers, CollisionStart, Position, RigidBodyDisabled, Rotation};
+use avian3d::prelude::CollisionLayers;
 use std::iter;
-
-use crate::{level::CollisionLayer};
 
 mod ammo;
 mod armor;
@@ -17,6 +15,7 @@ mod health_pack;
 mod mana_pack;
 mod misc;
 mod sample;
+mod socket;
 mod weapons;
 
 pub use ammo::*;
@@ -29,6 +28,7 @@ pub use drillable::*;
 pub use equip::*;
 pub use misc::*;
 pub use sample::*;
+pub use socket::*;
 pub use weapons::*;
 
 #[derive(Component, Reflect, Clone, Default)]
@@ -45,23 +45,6 @@ pub struct Description(pub String);
 
 #[derive(EntityEvent)]
 pub struct ItemInteractionEvent {
-    entity: Entity,
-}
-
-#[derive(Component, Reflect, Clone, Default)]
-#[reflect(Component)]
-pub struct SocketItem;
-
-#[derive(Component, Reflect, Clone, Default)]
-#[reflect(Component)]
-pub struct PlugItem;
-
-#[derive(Component, Reflect, Clone, Default)]
-#[reflect(Component)]
-pub struct MountPoint;
-
-#[derive(EntityEvent)]
-pub struct PlugSocketEvent {
     entity: Entity,
 }
 
@@ -90,10 +73,10 @@ impl Plugin for ItemPlugin {
                     WeaponPlugin,
                     SampleItemPlugin,
                     DrillableItemPlugin,
+                    SocketItemPlugin,
             ))
             .add_observer(disabled_held_prop_collision)
-            .add_observer(enable_dropped_prop_collision)
-            .add_systems(Update, register_socket_items);
+            .add_observer(enable_dropped_prop_collision);
     }
 }
 
@@ -122,31 +105,5 @@ fn enable_dropped_prop_collision(
             continue;
         };
         //collision_layers.filters.add(CollisionLayer::Player);
-    }
-}
-
-fn register_socket_items(
-    mut commands: Commands,
-    mut socket_query: Query<Entity, (With<SocketItem>, Without<RegisteredItem>)>
-) {
-    for socket in socket_query.iter_mut() {
-        commands.entity(socket)
-            .observe(socket_test)
-            .insert(RegisteredItem);
-    }
-}
-
-#[allow(clippy::type_complexity)]
-fn socket_test(
-    trigger: On<CollisionStart>,
-    mut commands: Commands,
-    mut plug_query: Query<(Entity, &mut Position, &mut Rotation), With<PlugItem>>,
-    mount_query: Query<(&Position, &Rotation), (With<MountPoint>, Without<PlugItem>)>,
-) {
-    if let Ok((plug_entity, mut plug_position, mut plug_rotation)) = plug_query.get_mut(trigger.event().collider2)
-    && let Ok((mount_position, mount_rotation)) = mount_query.single() {
-        *plug_position = mount_position.clone();
-        *plug_rotation = mount_rotation.clone();
-        commands.entity(plug_entity).insert(RigidBodyDisabled);
     }
 }
