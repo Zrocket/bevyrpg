@@ -27,6 +27,8 @@ pub use ladder::*;
 pub use lever::*;
 pub use vending::*;
 
+use crate::furniture::elevator::ElevatorPlugin;
+
 #[derive(QueryData)]
 pub struct ObstacleQueryHelper {
     pub climbable: Has<Climbable>,
@@ -47,6 +49,7 @@ impl Plugin for FurniturePlugin {
             DoorPlugin,
             GaragePlugin,
             LadderPlugin,
+            ElevatorPlugin,
         ));
     }
 }
