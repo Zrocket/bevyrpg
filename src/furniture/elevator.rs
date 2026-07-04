@@ -1,9 +1,11 @@
 use bevy::{ecs::{lifecycle::HookContext, world::DeferredWorld}, mesh::VertexAttributeValues, prelude::*};
 
-#[derive(Component)]
+#[derive(Component, Reflect)]
+#[reflect(Component)]
 pub struct ElevatorCurve;
 
-#[derive(Component)]
+#[derive(Component, Reflect)]
+#[reflect(Component)]
 #[require(
     crate::Interactable,
 )]
@@ -19,7 +21,8 @@ fn on_elevator_button_add(
         .observe(elevator_button_interaction_observer);
 }
 
-#[derive(Component)]
+#[derive(Component, Reflect)]
+#[reflect(Component)]
 #[require(
 )]
 pub struct Elevator {
@@ -31,7 +34,10 @@ pub struct Elevator {
 pub struct ElevatorPlugin;
 impl Plugin for ElevatorPlugin {
     fn build(&self, app: &mut App) {
-       app;
+       app
+           .register_type::<Elevator>()
+           .register_type::<ElevatorButton>()
+           .register_type::<ElevatorCurve>();
     }
 }
 

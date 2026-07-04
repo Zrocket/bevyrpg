@@ -9,6 +9,7 @@ use crate::{AddToInventoryEvent, InspectEvent, Interactable, InteractionEvent, I
 #[component(on_add = on_misc_add)]
 #[require(
     Interactable,
+    Name::new("ElevatorCurve"),
 )]
 #[type_path("api")]
 pub struct MiscItem;
