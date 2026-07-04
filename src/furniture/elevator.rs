@@ -26,9 +26,9 @@ fn on_elevator_button_add(
 #[require(
 )]
 pub struct Elevator {
-    min: i32,
-    max: i32,
-    current: i32,
+    min: usize,
+    max: usize,
+    current: usize,
 }
 
 pub struct ElevatorPlugin;
@@ -44,22 +44,38 @@ impl Plugin for ElevatorPlugin {
 fn elevator_button_interaction_observer(
     _trigger: On<crate::InteractionEvent>,
     meshes: Res<Assets<Mesh>>,
-    mut elevator_query: Query<(Entity, &mut Elevator)>,
+    mut elevator_query: Query<(Entity, &mut Elevator, &mut Transform)>,
     curve_mesh_query: Query<(&Mesh3d, &GlobalTransform), With<ElevatorCurve>>,
 ) {
-    if let Ok((entity, mut elevator)) = elevator_query.single_mut()
+    if let Ok((entity, mut elevator, mut elevator_transform)) = elevator_query.single_mut()
     && let Ok((curve_mesh3d, curve_global_transform)) = curve_mesh_query.single()
     && let Some(mesh) = meshes.get(&curve_mesh3d.0)
     && let Some(VertexAttributeValues::Float32x3(positions)) = mesh.attribute(Mesh::ATTRIBUTE_POSITION) {
+        if let Some(_current_point) = positions.get(elevator.current) {
+            elevator.current += 1;
+            if let Some(next_point) = positions.get(elevator.current) {
+                let world_position = curve_global_transform.transform_point(Vec3::from(*next_point));
+                *elevator_transform = Transform {
+                    translation:  world_position,
+                    rotation: elevator_transform.rotation,
+                    scale: elevator_transform.scale,
+                }
+            } else {
+                elevator.current = 0;
+                if let Some(next_point) = positions.get(elevator.current) {
+                    let world_position = curve_global_transform.transform_point(Vec3::from(*next_point));
+                    *elevator_transform = Transform {
+                        translation:  world_position,
+                        rotation: elevator_transform.rotation,
+                        scale: elevator_transform.scale,
+                    }
+                }
+            }
+        }
+
         for &position in positions {
             let world_position = curve_global_transform.transform_point(Vec3::from(position));
             println!("{:?}", world_position);
         }
-
-        /*if elevator.current == elevator.max {
-            elevator.current = elevator.min;
-        } else {
-            elevator.current += 1;
-        }*/
     }
 }
