@@ -1,7 +1,17 @@
-use bevy::{color::palettes::css::DARK_GREEN, ecs::{entity::Entity, event::EntityEvent, hierarchy::{ChildSpawner, Children}, name::Name, observer::On, query::With, relationship::RelationshipTarget, spawn::{SpawnRelated, SpawnWith}, system::{Commands, Query, Res, ResMut}}, prelude::{Node, Plugin, Text}, state::{state::{NextState, State}, state_scoped::DespawnOnExit}, ui::{BackgroundColor, Overflow}, utils::default};
+use bevy::{color::palettes::css::DARK_GREEN, ecs::{component::Component, entity::Entity, event::EntityEvent, hierarchy::{ChildSpawner, Children}, name::Name, observer::On, query::With, relationship::RelationshipTarget, spawn::{SpawnRelated, SpawnWith}, system::{Commands, Query, Res, ResMut}}, prelude::{Node, Plugin, Text}, state::{state::{NextState, State}, state_scoped::DespawnOnExit}, ui::{BackgroundColor, Overflow}, utils::default};
 
 use crate::{Equiptment, Player, UiState, widgets::floating_windows::floating_window_root};
 
+#[derive(Component)]
+#[require(
+    Node {
+        flex_grow: 1.,
+        flex_direction: bevy::ui::FlexDirection::Column,
+        overflow: Overflow { x: bevy::ui::OverflowAxis::Hidden, y: bevy::ui::OverflowAxis::Hidden },
+        ..default()
+    },
+)]
+pub struct UiEquipRoot;
 
 #[derive(EntityEvent)]
 pub struct DisplayEquipEvent {
@@ -50,12 +60,7 @@ pub fn display_equip_event_observer(
             DespawnOnExit(UiState::Equiptment),
             floating_window_root("Equiptment".to_string(),
                 (
-                    Node {
-                        flex_grow: 1.,
-                        flex_direction: bevy::ui::FlexDirection::Column,
-                        overflow: Overflow { x: bevy::ui::OverflowAxis::Hidden, y: bevy::ui::OverflowAxis::Hidden },
-                        ..default()
-                    },
+                    UiEquipRoot,
                     Children::spawn(SpawnWith(|parent: &mut ChildSpawner| {
                         for (name, _entity) in equip_vec {
                             parent.spawn((
