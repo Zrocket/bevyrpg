@@ -48,70 +48,71 @@ pub fn display_quest_event_observer(
 
     commands.spawn((
         DespawnOnExit(UiState::QuestLog),
-floating_window_root("Quest Log".into(),
-(
-        UiQuest,
-        Children::spawn(SpawnWith(|parent: &mut ChildSpawner| {
-            parent.spawn((
-                    Node {
-                        flex_grow: 1.,
-                        flex_direction: FlexDirection::Column,
-                        ..default()
-                    },
-                    BackgroundColor::from(DARK_GREEN),
-                    Children::spawn(SpawnWith(|parent: &mut ChildSpawner| {
-                        parent.spawn((
-                                Node {
-                                    align_self: AlignSelf::Center,
-                                    ..default()
-                                },
-                                Text("Active".into())
-                        ));
-                        parent.spawn((
-                                Node {
-                                    ..default()
-                                },
-                                Text("quest 1".into())
-                        ));
-                        parent.spawn((
-                                Node {
-                                    align_self: AlignSelf::Center,
-                                    ..default()
-                                },
-                                Text("Inactive".into())
-                        ));
-                        parent.spawn((
-                                Node {
-                                    ..default()
-                                },
-                                Text("quest 2".into())
-                        ));
-                    })),
-            ));
-            parent.spawn((
-                    Node {
-                        flex_grow: 1.,
-                        flex_direction: FlexDirection::Column,
-                        ..default()
-                    },
-                    //Text("Quest".into()),
-                    BackgroundColor::from(DARK_VIOLET),
-                    Children::spawn(SpawnWith(|parent: &mut ChildSpawner| {
-                        parent.spawn((
+        floating_window_root("Quest Log".into(),
+        (
+                UiQuest,
+                Children::spawn(SpawnWith(|parent: &mut ChildSpawner| {
+                    parent.spawn((
                             Node {
-                                align_self: AlignSelf::Center,
+                                flex_grow: 1.,
+                                flex_direction: FlexDirection::Column,
                                 ..default()
                             },
-                            Text("Quest".into()),
-                        ));
-                        parent.spawn((
+                            BackgroundColor::from(DARK_GREEN),
+                            Children::spawn(SpawnWith(|parent: &mut ChildSpawner| {
+                                parent.spawn((
+                                        Node {
+                                            align_self: AlignSelf::Center,
+                                            ..default()
+                                        },
+                                        Text("Active".into())
+                                ));
+                                parent.spawn((
+                                        Node {
+                                            ..default()
+                                        },
+                                        Text("quest 1".into())
+                                ));
+                                parent.spawn((
+                                        Node {
+                                            align_self: AlignSelf::Center,
+                                            ..default()
+                                        },
+                                        Text("Inactive".into())
+                                ));
+                                parent.spawn((
+                                        Node {
+                                            ..default()
+                                        },
+                                        Text("quest 2".into())
+                                ));
+                            })),
+                    ));
+                    parent.spawn((
                             Node {
+                                flex_grow: 1.,
+                                flex_direction: FlexDirection::Column,
                                 ..default()
                             },
-                            Text("ZZZZZZZZZZZz".into()),
-                        ));
-                    })),
-            ));
-        }))
-    ))));
+                            //Text("Quest".into()),
+                            BackgroundColor::from(DARK_VIOLET),
+                            Children::spawn(SpawnWith(|parent: &mut ChildSpawner| {
+                                parent.spawn((
+                                    Node {
+                                        align_self: AlignSelf::Center,
+                                        ..default()
+                                    },
+                                    Text("Quest".into()),
+                                ));
+                                parent.spawn((
+                                    Node {
+                                        ..default()
+                                    },
+                                    Text("ZZZZZZZZZZZz".into()),
+                                ));
+                            })),
+                    ));
+                }))
+            ))
+    ));
 }
