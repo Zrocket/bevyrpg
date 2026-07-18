@@ -109,8 +109,8 @@ pub fn display_inventory_event_observer(
     name_query: Query<&Name>,
     item_query: Query<&ItemDetails>,
     inventory: Query<&Inventory>,
-    menu_state: Res<State<UiState>>,
-    mut menu_state_setter: ResMut<NextState<UiState>>,
+    //menu_state: Res<State<UiState>>,
+    //mut menu_state_setter: ResMut<NextState<UiState>>,
 ) {
     trace!("OBSERVER: display_inventory_event_observer");
 
@@ -201,7 +201,6 @@ fn sync_inventory_ui(
     mut commands: Commands,
 ) {
     removed.read().for_each(|removed_entity| {
-        println!("AASKL:HGDFSKHJDGSKLJH:GD");
         for (ui_entity, invref, children) in ui_windows.iter() {
             if invref.0 != removed_entity {
                 continue;
