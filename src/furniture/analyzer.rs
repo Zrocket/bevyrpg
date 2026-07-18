@@ -15,9 +15,6 @@ pub struct Analyzer {
     progress: f32,
 }
 
-#[derive(Component)]
-pub struct ActiveSample;
-
 fn on_analyzer_add(
     mut world: DeferredWorld,
     context: HookContext,
@@ -30,6 +27,9 @@ fn on_analyzer_add(
         //.observe(display_inventory_event_observer);
         .observe(display_analyzer_ui);
 }
+
+#[derive(Component)]
+pub struct ActiveSample;
 
 #[derive(EntityEvent)]
 pub struct AnalyzeSampleCancel(pub Entity);
