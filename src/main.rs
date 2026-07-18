@@ -28,6 +28,7 @@ mod audio;
 mod character;
 mod console;
 mod controller;
+mod crafting;
 mod devroom;
 mod dialog;
 mod enemy;
@@ -57,6 +58,7 @@ pub use audio::*;
 pub use character::*;
 pub use console::*;
 pub use controller::*;
+pub use crafting::*;
 pub use devroom::*;
 pub use dialog::*;
 pub use furniture::*;
@@ -185,6 +187,7 @@ fn main() {
         QuestPlugin,
         RoverPlugin,
         MySavePlugin,
+        CraftingPlugin,
     ));
     app.add_systems(Update, pause_game.run_if(in_state(MetaState::Gameplay)));
 

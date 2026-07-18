@@ -4,6 +4,7 @@ use super::*;
 
 pub mod analyzer_ui;
 pub mod book_ui;
+pub mod crafting_ui;
 pub mod crosshair;
 pub mod equip_ui;
 pub mod inventory_ui;
@@ -22,6 +23,7 @@ use crosshair::*;
 pub use equip_ui::*;
 pub use inventory_ui::*;
 use status_bar::*;
+use crafting_ui::*;
 //use dialog_ui::*;
 pub use menu::*;
 pub use quest_ui::*;
@@ -67,6 +69,7 @@ impl Plugin for UiPlugin {
             .add_plugins((
                     AnalyzerUiPlugin,
                     AnchoredUiPlugin,
+                    CraftingUiPlugin,
                     StatusUIPlugin,
                     InspectUiPlugin,
                     InventoryUIPlugin,
