@@ -268,7 +268,6 @@ pub fn display_analyzer_ui(
     let mut item_vec = vec![];
 
     if let Ok(inventory_handle) = inventory.get(trigger.entity) {
-        println!("AEIUOAEIOU");
         for item in inventory_handle.iter() {
             if let Ok(item_name) = item_query.get(item) {
                 trace!("Pushing item: {:?}, item_name: {:?}, to item_vec", item, item_name.name);
@@ -305,7 +304,6 @@ pub fn display_analyzer_ui(
                                     }
                                 })),
                                 InvRef(inv_ref.clone()),
-                                println!("{:?}", inv_ref)
                         ));
                         parent.spawn((
                                 UiAnalyzer,
