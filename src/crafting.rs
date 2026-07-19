@@ -16,9 +16,11 @@ fn craft_event_observer(
     recipe_book: Res<RecipeBook>,
     inventory_query: Query<(Entity ,&Inventory), With<Player>>,
     tag_query: Query<&CraftTag>,
+    crafting_station_query: Query<Entity, With<CraftingStation>>,
 ) {
     if let Ok((entity, inventory)) = inventory_query.single()
-    && let Some(recipe) = recipe_book.0.get(&trigger.id) {
+    && let Some(recipe) = recipe_book.0.get(&trigger.id)
+    && let Ok(crafting_station) = crafting_station_query.single() {
         let tags = tally_tags(inventory, &tag_query);
         if recipe_is_craftable(recipe, &tags) {
             for (id, num) in &recipe.inputs {
@@ -26,7 +28,6 @@ fn craft_event_observer(
                 for item in inventory.iter() {
                     if let Ok(tag) = tag_query.get(item)
                     && tag.0 == *id {
-                        println!("ASDFOFJKHDFGKJH");
                         current += 1;
                         commands.entity(entity).trigger(|entity| RemoveFromInventoryEvent { entity, item});
                     }
@@ -35,6 +36,8 @@ fn craft_event_observer(
                     }
                 }
             }
+                commands.entity(crafting_station).insert(CraftTimer(Timer::from_seconds(recipe.craft_time, TimerMode::Once)));
+                println!("NEW TIMER");
         }
     }
 }
@@ -62,6 +65,19 @@ fn on_crafting_station_add(
 #[derive(Component, Reflect, Clone, PartialEq, Eq, Hash, Debug)]
 #[reflect(Component)]
 pub struct CraftTag(pub String);
+
+#[derive(Component, Reflect, Clone, PartialEq, Eq, Debug)]
+#[reflect(Component)]
+pub struct CraftTimer(pub Timer);
+
+fn update_craft_timer(
+    mut timer_query: Query<&mut CraftTimer>,
+    time: Res<Time>,
+) {
+    if let Ok(mut timer) = timer_query.single_mut() {
+        timer.0.tick(time.delta());
+    }
+}
 
 #[derive(Clone, Debug, Reflect)]
 pub struct Recipe {
@@ -98,7 +114,8 @@ impl Plugin for CraftingPlugin {
     fn build(&self, app: &mut App) {
        app
            .init_resource::<RecipeBook>()
-           .register_type::<CraftingStation>();
+           .register_type::<CraftingStation>()
+           .add_systems(Update, update_craft_timer);
     }
 }
 
