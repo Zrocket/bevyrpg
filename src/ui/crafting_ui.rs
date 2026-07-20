@@ -2,7 +2,7 @@ use std::collections::HashMap;
 
 use bevy::{color::palettes::css::{BLUE, DARK_KHAKI, DARK_SLATE_GRAY, DARK_SLATE_GREY, DARK_TURQUOISE, DARK_VIOLET, GRAY, GREEN, PINK, YELLOW}, ecs::{lifecycle::HookContext, world::DeferredWorld}, prelude::*};
 
-use crate::{CraftEvent, CraftTag, CraftTimer, CraftingStation, DisplayInventoryEvent, Inventory, ItemDetails, Player, RecipeBook, UiState, analyzer_ui::ProgressTimer, recipe_is_craftable, tally_tags, widgets::{floating_windows::floating_window_root, progress_bar::ProgressBar}};
+use crate::{AddToInventoryEvent, CraftEvent, CraftTag, CraftTimer, CraftingStation, DisplayInventoryEvent, Inventory, ItemDetails, Player, RecipeBook, UiState, analyzer_ui::ProgressTimer, recipe_is_craftable, tally_tags, widgets::{floating_windows::floating_window_root, progress_bar::ProgressBar}};
 
 #[derive(Component)]
 #[require(
@@ -29,12 +29,35 @@ pub struct UiCraftResult;
     },
     BackgroundColor::from(YELLOW),
 )]
+#[component(on_add = on_craft_result_icon_add)]
 pub struct UiCraftResultIcon;
 
-fn on_craft_result_icon_click(
-    trigger: On<Pointer<Click>>,
-    mut commands: Commands,
+fn on_craft_result_icon_add(
+    mut world: DeferredWorld,
+    context: HookContext,
 ) {
+    world.commands()
+        .entity(context.entity)
+        .observe(on_craft_result_icon_click);
+}
+
+fn on_craft_result_icon_click(
+    _trigger: On<Pointer<Click>>,
+    mut commands: Commands,
+    timer_query: Query<Entity, With<CraftTimer>>,
+    player_query: Query<Entity, With<Player>>,
+    active_recipe_query: Query<&UiActiveRecipe>,
+    recipe_book: Res<RecipeBook>,
+) {
+    if let Ok(timer_entity) = timer_query.single()
+    && let Ok(player) = player_query.single()
+    && let Ok(active_recipe) = active_recipe_query.single()
+    && let Some(active_recipe) = &active_recipe.0
+    && let Some(recipe) = recipe_book.0.get(active_recipe) {
+        let item = (recipe.output)(&mut commands);
+        commands.entity(player).trigger(|entity| AddToInventoryEvent { entity, item });
+        commands.entity(timer_entity).remove::<CraftTimer>();
+    }
 }
 
 #[derive(Component, Reflect)]
