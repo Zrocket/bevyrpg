@@ -33,10 +33,10 @@ fn drill_event_observer(
     drillable_query: Query<&Drillable>,
     rover_query: Query<Entity, With<Rover>>,
 ) {
-    println!("Q QQQQQQQQQQQQQQQQQQQQQQQQQQQQQQQQQQQQQQQq");
     if let Ok(drillable) = drillable_query.get(trigger.entity)
     && let Ok(rover) = rover_query.single() {
-        let item = commands.spawn((SampleItem {
+        let item = spawn_sample(&mut commands);
+        /*let item = commands.spawn((SampleItem {
                 info: vec!["TEST".to_string()],
                 analyzed: 0,
                 botched: false,
@@ -46,7 +46,21 @@ fn drill_event_observer(
                 description: super::Description("SAMPLE".to_string()),
                 weight: super::Weight(5),
             }
-        )).id();
+        )).id();*/
         commands.entity(rover).trigger(|entity| AddToInventoryEvent { entity, item });
     }
+}
+
+pub fn spawn_sample(commands: &mut Commands) -> Entity {
+    commands.spawn((SampleItem {
+            info: vec!["TEST".to_string()],
+            analyzed: 0,
+            botched: false,
+        },
+        ItemDetails {
+            name: "SAMPLE".to_string(),
+            description: super::Description("SAMPLE".to_string()),
+            weight: super::Weight(5),
+        }
+    )).id()
 }

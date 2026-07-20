@@ -1,8 +1,8 @@
 use std::collections::HashMap;
 
-use bevy::{ecs::{lifecycle::HookContext, world::DeferredWorld}, prelude::*};
+use bevy::{ecs::{component::ComponentId, lifecycle::HookContext, world::DeferredWorld}, prelude::*};
 
-use crate::{Inventory, Player, RemoveFromInventoryEvent, container_interaction_observer, crafting_ui::display_crafting_ui};
+use crate::{Inventory, Player, RemoveFromInventoryEvent, container_interaction_observer, crafting_ui::display_crafting_ui, spawn_sample};
 
 #[derive(EntityEvent)]
 pub struct CraftEvent {
@@ -79,7 +79,7 @@ fn update_craft_timer(
     }
 }
 
-#[derive(Clone, Debug, Reflect)]
+#[derive(Clone, Debug)]
 pub struct Recipe {
     pub id: String,
     pub description: String,
@@ -87,6 +87,7 @@ pub struct Recipe {
     pub output_tag: String,
     pub output_name: String,
     pub craft_time: f32,
+    pub output: fn(&mut Commands) -> Entity,
 }
 
 #[derive(Resource)]
@@ -102,6 +103,7 @@ impl FromWorld for RecipeBook {
                         output_tag: "fungacide".into(),
                         output_name: "fungacide".into(),
                         craft_time: 100.,
+                        output: spawn_sample,
                     },
             );
 
