@@ -1,11 +1,21 @@
+use std::collections::HashMap;
+
 use bevy::{ecs::{lifecycle::HookContext, world::DeferredWorld}, prelude::*, state::commands};
 
 use crate::{AddToInventoryEvent, ItemDetails, Rover, SampleItem};
 
+/*#[derive(Resource)]
+pub struct DrillSampleTable(pub HashMap<String, fn(&mut Commands) -> Entity>);
+impl FromWorld for DrillSampleTable {
+    fn from_world(world: &mut World) -> Self {
+        let tmp = HashMap::new();
+    }
+}*/
+
 #[derive(Component, Debug, Clone, Reflect, Default)]
 #[reflect(Component)]
 #[component(on_add = on_drillable_add)]
-pub struct Drillable;
+pub struct Drillable(pub String);
 
 fn on_drillable_add(
     mut world: DeferredWorld,
@@ -36,17 +46,6 @@ fn drill_event_observer(
     if let Ok(drillable) = drillable_query.get(trigger.entity)
     && let Ok(rover) = rover_query.single() {
         let item = spawn_sample(&mut commands);
-        /*let item = commands.spawn((SampleItem {
-                info: vec!["TEST".to_string()],
-                analyzed: 0,
-                botched: false,
-            },
-            ItemDetails {
-                name: "SAMPLE".to_string(),
-                description: super::Description("SAMPLE".to_string()),
-                weight: super::Weight(5),
-            }
-        )).id();*/
         commands.entity(rover).trigger(|entity| AddToInventoryEvent { entity, item });
     }
 }
