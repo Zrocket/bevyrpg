@@ -1,6 +1,6 @@
 use bevy::{app::Propagate, color::palettes::css::{DARK_KHAKI, DARK_RED, DARK_SLATE_GRAY, DARK_TURQUOISE, DARK_VIOLET, LIGHT_PINK, PURPLE, SADDLE_BROWN}, ecs::{lifecycle::HookContext, world::DeferredWorld}, prelude::*};
 
-use crate::{ActiveSample, Analyzer, DisplayInventoryEvent, InvRef, Inventory, ItemDetails, Owner, SampleItem, UiInventory, UiInventoryItem, UiState, widgets::{floating_windows::floating_window_root, progress_bar::ProgressBar}};
+use crate::{ActiveSample, AnalyzeSampleEvent, Analyzer, AnalyzerTimer, DisplayInventoryEvent, InvRef, Inventory, ItemDetails, Owner, SampleItem, UiInventory, UiInventoryItem, UiState, widgets::{floating_windows::floating_window_root, progress_bar::ProgressBar}};
 
 #[derive(Component)]
 pub struct ProgressTimer(pub Timer);
@@ -105,7 +105,7 @@ fn start_sample_analysis(
     invref_query: Query<&InvRef>,
     childof_query: Query<&ChildOf>,
     sample_query: Query<&SampleItem>,
-    analyzer_query: Query<&Analyzer>,
+    analyzer_query: Query<Entity, With<Analyzer>>,
     active_sample_query: Query<Entity, With<ActiveSample>>,
 ) {
     if trigger.event().button == PointerButton::Secondary {
@@ -114,12 +114,11 @@ fn start_sample_analysis(
     if let Ok(invref) = invref_query.get(trigger.entity)
     && let Ok(item) = owner_query.get(trigger.dropped)
     && let Ok(childof) = childof_query.get(trigger.dropped)
-    && let Ok(_analyzer) = analyzer_query.get(item.inv_owner) {
+    && let Ok(analyzer) = analyzer_query.single() {
         for active in active_sample_query.iter() {
             commands.entity(active).remove::<ActiveSample>();
         }
-        println!("ITEM2: {:?}", item.item_owner);
-        commands.entity(item.item_owner).insert(ActiveSample);
+        commands.entity(analyzer).trigger(|entity| AnalyzeSampleEvent(item.item_owner));
         //commands.entity(trigger.entity).trigger(|entity| RefreshAnalyzerUi { entity });
     }
 }
@@ -205,7 +204,12 @@ fn on_ui_analysis_input_pause_add(
 
 fn on_analysis_pause_observer(
     _trigger: On<Pointer<Click>>,
+    mut commands: Commands,
+    analyzer_query: Query<Entity, With<Analyzer>>,
 ) {
+    if let Ok(analyzer) = analyzer_query.single() {
+        commands.entity(analyzer).trigger(|entity| AnalyzeSampleEvent(entity));
+    }
 }
 
 #[derive(Component, Reflect)]
@@ -218,16 +222,21 @@ fn on_analysis_pause_observer(
     },
     Text("PROGRESS".into()),
     BackgroundColor::from(DARK_TURQUOISE),
+    ProgressBar {
+        value: 0.,
+        output: Val::Percent(100.),
+    },
 )]
-#[component(on_add = on_ui_progress_bar_add)]
-pub struct UiProgressBar;
+pub struct UiAnalyzerProgressBar;
 
-fn on_ui_progress_bar_add(
-    mut world: DeferredWorld,
-    context: HookContext,
+fn update_ui_analyzer_progress(
+    mut ui_query: Query<&mut ProgressBar, With<UiAnalysisProgress>>,
+    craft_query: Query<&AnalyzerTimer>,
 ) {
-    world.commands()
-        .entity(context.entity);
+    if let Ok(mut ui) = ui_query.single_mut()
+    && let Ok(timer) = craft_query.single() {
+        ui.value = timer.0.fraction();
+    }
 }
 
 pub struct AnalyzerUiPlugin;
@@ -235,8 +244,9 @@ impl Plugin for AnalyzerUiPlugin {
     fn build(&self, app: &mut App) {
        app
            .add_systems(Update, (
-                   update_progress_bar,
+                   //update_progress_bar,
                    sync_analyzer_ui,
+                   update_ui_analyzer_progress,
            ));
     }
 }
@@ -245,13 +255,13 @@ pub fn update_progress_bar(
     time: Res<Time>,
     mut progress_bar_query: Query<(&mut ProgressBar, &mut ProgressTimer)>,
 ) {
-    if let Ok((mut progress_bar, mut progress_timer)) = progress_bar_query.single_mut() {
-        //println!("{:?}", progress_bar.value);
+    if let Ok((mut progress_bar, mut progress_timer)) = progress_bar_query.single_mut() { //println!("{:?}", progress_bar.value);
         progress_timer.0.tick(time.delta());
         progress_bar.value = progress_timer.0.fraction();
     }
 }
 
+#[allow(clippy::complexity)]
 pub fn display_analyzer_ui(
     trigger: On<DisplayInventoryEvent>,
     mut commands: Commands,
@@ -322,12 +332,12 @@ pub fn display_analyzer_ui(
                                             UiAnalysisProgress,
                                             Children::spawn(SpawnWith(|parent: &mut ChildSpawner| {
                                                 parent.spawn((
-                                                        UiProgressBar,
-                                                        ProgressBar {
-                                                            value: 0.,
-                                                            output: Val::Percent(100.),
-                                                        },
-                                                        ProgressTimer(Timer::from_seconds(60., TimerMode::Repeating)),
+                                                        UiAnalyzerProgressBar,
+                                                        //ProgressBar {
+                                                        //    value: 0.,
+                                                        //    output: Val::Percent(100.),
+                                                        //},
+                                                        //ProgressTimer(Timer::from_seconds(60., TimerMode::Repeating)),
                                                 ));
                                             })),
                                     ));
@@ -373,6 +383,7 @@ fn sync_analyzer_ui(
     name_query: Query<&Name>,
     active_sample_node_query: Query<Entity, With<UiActiveSampleIcon>>,
     active_sample_query: Query<Entity, Added<ActiveSample>>,
+    analyzer_timer_query: Query<&AnalyzerTimer>,
 ) {
     let mut active_sample = String::from("ACTIVESAMPLE");
 
