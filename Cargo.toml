@@ -84,46 +84,46 @@ ratatui = { version = "0.30.0", default-features = false }
 # BEVY ADDONS
 #
 
-# Pull ready
-bevy_sun_move = { git = "https://github.com/Zrocket/bevy_sun_move", branch = "main" }
-soft_ratatui = { git = "https://github.com/Zrocket/soft_ratatui.git", branch ="togit", features = ["embedded-graphics", "unicodefonts"] }
-
 # bevy 0.18 ready
-bevy_console = { git = "https://github.com/Zrocket/bevy-console.git" }
-avian3d = { version = "0.6.1", features = ["collider-from-mesh"] }
-avian_rerecast = "0.5.0-rc.3"
-bevy_rerecast = "0.4.0"
-bevy_seedling = "0.7.0"
-bevy_yarnspinner = "0.7.0"
-bevy_hanabi = "0.18.0"
+soft_ratatui = { git = "https://github.com/Zrocket/soft_ratatui.git", branch ="togit", features = ["embedded-graphics", "unicodefonts"] }
+bevy_sun_move = { git = "https://github.com/Zrocket/bevy_sun_move", branch = "main" }
 landmass = "0.9.1"
-landmass_rerecast = "0.2.0"
-bevy_landmass = "0.11.0"
-bevy_yarnspinner_example_dialogue_view = "0.7.0"
-bevy-tnua-physics-integration-layer = "0.12.0"
-bevy_asset_loader = {version = "0.25.0", features = ["2d", "standard_dynamic_assets"]}
-bevy_flycam = "0.18.0"
-bevy_sprite3d = "8.0.0"
-bevy-tnua-avian3d = "0.11.0"
-bevy_bae = "0.1.0"
+avian_rerecast = "0.5.0-rc.3"
+bevy_seedling = "0.7.0"
 #bevy_hotpatching_experiments = "0.4.0"
 #bevy_mod_scripting = { version = "0.19.0", features = ["rhai"] }
-bevy_ingame_clock = { git = "https://github.com/GuillaumeDelorme/bevy_ingame_clock.git", branch = "bevy-0.18-update" }
-chill_bevy_console = "0.1.1"
 bevy_old_tv_shader = { git = "https://github.com/Zrocket/bevy_old_tv_shader.git", version = "0.5.0", features=["ui"] }
-bevy_save = "2.0.1"
-moonshine-save = "0.6.1"
+#bevy_save = "2.0.1"
 #bevy_old_tv_shader = { git = "https://github.com/gituseridk/bevy_old_tv_shader.git", version = "0.5.0", features=["ui"] }
 
+# bevy 0.19 pull request
+bevy_rerecast = "0.4.0"
+bevy_bae = "0.1.0"
+bevy_console = { git = "https://github.com/Zrocket/bevy-console.git" }
+bevy_yarnspinner = "0.7.0"
+bevy_yarnspinner_example_dialogue_view = "0.7.0"
+bevy_ingame_clock = { git = "https://github.com/GuillaumeDelorme/bevy_ingame_clock.git", branch = "bevy-0.18-update" }
+landmass_rerecast = "0.2.0"
+
 # bevy 0.19 ready
+avian3d = { version = "0.6.1", features = ["collider-from-mesh"] }
 avian_pickup = "0.5.0-rc.1"
+bevy_asset_loader = {version = "0.25.0", features = ["2d", "standard_dynamic_assets"]}
+bevy_landmass = "0.11.0"
 bevy-tnua = "0.30.0"
+bevy-tnua-avian3d = "0.11.0"
+bevy-tnua-physics-integration-layer = "0.12.0"
 bevy_skein = "0.5.0"
+bevy_flycam = "0.18.0"
+bevy_sprite3d = "8.0.0"
+bevy_hanabi = "0.18.0"
 bevy_enhanced_input = "0.23.1"
 bevy_egui = "0.39.0"
 bevy-inspector-egui = "0.36.0"
 bevy_simple_text_input = "0.13.0"
 bevy-yoleck = "0.31.0"
+chill_bevy_console = "0.1.1"
+moonshine-save = "0.6.1"
 
 [profile.dev]
 opt-level=3
