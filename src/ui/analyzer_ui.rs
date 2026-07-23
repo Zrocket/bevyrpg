@@ -118,7 +118,8 @@ fn start_sample_analysis(
         for active in active_sample_query.iter() {
             commands.entity(active).remove::<ActiveSample>();
         }
-        commands.entity(analyzer).trigger(|entity| AnalyzeSampleEvent(item.item_owner));
+        println!("ANALYZER ENTITY: {:?}", analyzer);
+        commands.entity(analyzer).trigger(|entity| AnalyzeSampleEvent{ entity, sample: item.item_owner });
         //commands.entity(trigger.entity).trigger(|entity| RefreshAnalyzerUi { entity });
     }
 }
@@ -208,7 +209,7 @@ fn on_analysis_pause_observer(
     analyzer_query: Query<Entity, With<Analyzer>>,
 ) {
     if let Ok(analyzer) = analyzer_query.single() {
-        commands.entity(analyzer).trigger(|entity| AnalyzeSampleEvent(entity));
+        //commands.entity(analyzer).trigger(|entity| AnalyzeSampleEvent(entity));
     }
 }
 
@@ -230,12 +231,21 @@ fn on_analysis_pause_observer(
 pub struct UiAnalyzerProgressBar;
 
 fn update_ui_analyzer_progress(
-    mut ui_query: Query<&mut ProgressBar, With<UiAnalysisProgress>>,
-    craft_query: Query<&AnalyzerTimer>,
+    mut ui_query: Query<&mut ProgressBar, With<UiAnalyzerProgressBar>>,
+    timer_query: Query<&AnalyzerTimer>,
+    mut sample_query: Query<&mut SampleItem>,
+    active_sample_query: Query<Entity, With<ActiveSample>>,
 ) {
     if let Ok(mut ui) = ui_query.single_mut()
-    && let Ok(timer) = craft_query.single() {
-        ui.value = timer.0.fraction();
+    && let Ok(timer) = timer_query.single() {
+        if timer.0.is_finished() {
+            if let Ok(active_sample) = active_sample_query.single()
+            && let Ok(mut sample) = sample_query.get_mut(active_sample) {
+                sample.analyzed += 1;
+            }
+        } else {
+            ui.value = timer.0.fraction();
+        }
     }
 }
 
@@ -244,7 +254,6 @@ impl Plugin for AnalyzerUiPlugin {
     fn build(&self, app: &mut App) {
        app
            .add_systems(Update, (
-                   //update_progress_bar,
                    sync_analyzer_ui,
                    update_ui_analyzer_progress,
            ));
@@ -290,7 +299,6 @@ pub fn display_analyzer_ui(
 
     if let Ok(active_sample_entity) = active_sample_query.single()
     && let Ok(active_sample_name) = name_query.get(active_sample_entity) {
-        println!("ITEM: {:?}", active_sample_entity);
         active_sample = active_sample_name.into();
     }
 
@@ -333,11 +341,6 @@ pub fn display_analyzer_ui(
                                             Children::spawn(SpawnWith(|parent: &mut ChildSpawner| {
                                                 parent.spawn((
                                                         UiAnalyzerProgressBar,
-                                                        //ProgressBar {
-                                                        //    value: 0.,
-                                                        //    output: Val::Percent(100.),
-                                                        //},
-                                                        //ProgressTimer(Timer::from_seconds(60., TimerMode::Repeating)),
                                                 ));
                                             })),
                                     ));
@@ -381,26 +384,27 @@ fn sync_analyzer_ui(
     mut removed: RemovedComponents<ActiveSample>,
     mut commands: Commands,
     name_query: Query<&Name>,
-    active_sample_node_query: Query<Entity, With<UiActiveSampleIcon>>,
-    active_sample_query: Query<Entity, Added<ActiveSample>>,
+    active_sample_icon_query: Query<Entity, With<UiActiveSampleIcon>>,
+    active_sample_added_query: Query<Entity, Added<ActiveSample>>,
     analyzer_timer_query: Query<&AnalyzerTimer>,
 ) {
     let mut active_sample = String::from("ACTIVESAMPLE");
 
+    // ActiveSample Removed
     removed.read().for_each(|entity| {
         println!("ACTIVE SAMPLE REMOVED");
-        if let Ok(entity) = active_sample_node_query.single() {
-            commands.entity(entity)
+        if let Ok(active_sample_icon) = active_sample_icon_query.single() {
+            commands.entity(active_sample_icon)
                 .remove::<Text>()
                 .insert(Text(active_sample.clone()));
         }
     });
 
-    if let Ok(active_sample_entity) = active_sample_query.single()
+    if let Ok(active_sample_entity) = active_sample_added_query.single()
     && let Ok(active_sample_name) = name_query.get(active_sample_entity) {
         println!("ITEM: {:?}", active_sample_entity);
         active_sample = active_sample_name.into();
-        if let Ok(entity) = active_sample_node_query.single() {
+        if let Ok(entity) = active_sample_icon_query.single() {
             println!("ACTIVE SAMPLE ADDED");
             commands.entity(entity)
                 .remove::<Text>()

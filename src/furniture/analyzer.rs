@@ -37,7 +37,6 @@ fn on_analyzer_add(
         .observe(add_to_inventory_observer::<Analyzer>)
         .observe(analyze_sample_event_observer)
         .observe(container_interaction_observer)
-        //.observe(display_inventory_event_observer);
         .observe(display_analyzer_ui);
 }
 
@@ -51,7 +50,10 @@ pub struct AnalyzeSampleCancel(pub Entity);
 pub struct AnalyzeSamplePause(pub Entity);
 
 #[derive(EntityEvent)]
-pub struct AnalyzeSampleEvent(pub Entity);
+pub struct AnalyzeSampleEvent{
+    pub entity: Entity,
+    pub sample: Entity,
+}
 
 pub struct AnalyzerPlugin;
 impl Plugin for AnalyzerPlugin {
@@ -64,13 +66,8 @@ impl Plugin for AnalyzerPlugin {
 fn analyze_sample_event_observer(
     trigger: On<AnalyzeSampleEvent>,
     mut commands: Commands,
-    sample_query: Query<&mut crate::SampleItem>,
-    analyzer_query: Query<Entity, With<Analyzer>>,
 ) {
-    //if let Ok(sample) = sample_query.get(trigger.0)
-    println!("ZZZZZZZZZ");
-    if let Ok(analyzer) = analyzer_query.single() {
-        println!("ASDFASDF");
-        commands.entity(analyzer).insert(AnalyzerTimer(Timer::from_seconds(60., TimerMode::Once)));
-    }
+    commands.entity(trigger.entity).insert(AnalyzerTimer(Timer::from_seconds(60., TimerMode::Once)));
+    commands.entity(trigger.entity).remove::<ActiveSample>();
+    commands.entity(trigger.entity).insert(ActiveSample(trigger.sample));
 }
