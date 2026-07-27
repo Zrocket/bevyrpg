@@ -1,8 +1,9 @@
 use bevy::{ecs::{lifecycle::HookContext, world::DeferredWorld}, prelude::*};
+use serde::Deserialize;
 
 use crate::{Interactable, InteractionEvent};
 
-#[derive(Component, Debug, Clone, Reflect, Default)]
+#[derive(Component, Deserialize, Debug, Clone, Reflect, Default)]
 #[reflect(Component)]
 pub enum ArmorType {
     #[default]
@@ -23,8 +24,8 @@ pub enum ArmorType {
     Interactable,
 )]
 pub struct Armor {
-    armor_type: ArmorType,
-    defense: i32,
+    pub armor_type: ArmorType,
+    pub defense: i32,
 }
 
 pub struct ArmorPlugin;

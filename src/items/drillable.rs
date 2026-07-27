@@ -43,6 +43,7 @@ fn drill_event_observer(
     drillable_query: Query<&Drillable>,
     rover_query: Query<Entity, With<Rover>>,
 ) {
+    println!("DRILLDRILLDRILL");
     if let Ok(drillable) = drillable_query.get(trigger.entity)
     && let Ok(rover) = rover_query.single() {
         let item = spawn_sample(&mut commands);
@@ -52,8 +53,7 @@ fn drill_event_observer(
 
 pub fn spawn_sample(commands: &mut Commands) -> Entity {
     commands.spawn((SampleItem {
-            info: vec!["TEST".to_string()],
-            analyzed: 0,
+            analyzed: false,
             botched: false,
         },
         ItemDetails {
