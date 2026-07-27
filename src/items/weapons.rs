@@ -1,8 +1,9 @@
 use bevy::{ecs::{lifecycle::HookContext, world::DeferredWorld}, prelude::*};
+use serde::Deserialize;
 
 use crate::{Interactable, InteractionEvent};
 
-#[derive(Component, Debug, Clone, Reflect, Default)]
+#[derive(Component, Deserialize, Debug, Clone, Reflect, Default)]
 #[reflect(Component)]
 pub enum WeaponType {
     #[default]
@@ -16,7 +17,7 @@ pub enum WeaponType {
     Interactable,
 )]
 pub struct Weapon {
-    weapon_type: WeaponType,
+    pub weapon_type: WeaponType,
 }
 
 pub struct WeaponPlugin;

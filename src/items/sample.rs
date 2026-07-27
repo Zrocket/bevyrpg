@@ -3,8 +3,7 @@ use bevy::prelude::*;
 #[derive(Component, Reflect)]
 #[reflect(Component)]
 pub struct SampleItem {
-    pub info: Vec<String>,
-    pub analyzed: i32,
+    pub analyzed: bool,
     pub botched: bool,
 }
 
