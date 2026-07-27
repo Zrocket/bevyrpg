@@ -1,0 +1,19 @@
+#![enable(unwrap_newtypes)]
+[
+    (
+        id: "sample_iron_rich_rock",
+        name: "Iron-rich Rock Sample",
+        description: "A chunk of stone flecked with rust-colored deposits.",
+        weight: 5,
+        kind: Sample(
+            analysis: ["Contains trace iron oxide.", "Radiation signature: none."],
+        ),
+    ),
+    (
+        id: "tin_cup",
+        name: "Tin Cup",
+        description: "Dented but functional.",
+        weight: 1,
+        kind: Misc,
+    ),
+]
