@@ -1,10 +1,24 @@
+use std::collections::HashSet;
+
 use bevy::{ecs::{lifecycle::HookContext, world::DeferredWorld}, prelude::*};
+use serde::Deserialize;
 
 use crate::{add_to_inventory_observer, analyzer_ui::{display_analyzer_ui}, container_interaction_observer};
 
 #[derive(Component, Reflect, Clone, PartialEq, Eq, Debug)]
 #[reflect(Component)]
 pub struct AnalyzerTimer(pub Timer);
+
+#[derive(Resource, Deserialize, Clone, Debug)]
+pub struct AnalysisResults(pub Vec<String>);
+
+#[derive(Component, Reflect, Clone, Default, PartialEq, Eq, Debug)]
+#[reflect(Component)]
+pub struct Analyzed;
+
+#[derive(Resource, Reflect, Default)]
+#[reflect(Resource)]
+pub struct DiscoveredItems(pub HashSet<String>);
 
 fn update_analyzer_timer(
     mut timer_query: Query<&mut AnalyzerTimer>,
