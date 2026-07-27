@@ -104,7 +104,7 @@ fn start_sample_analysis(
     owner_query: Query<&Owner>,
     invref_query: Query<&InvRef>,
     childof_query: Query<&ChildOf>,
-    sample_query: Query<&SampleItem>,
+    sample_query: Query<Entity, With<SampleItem>>,
     analyzer_query: Query<Entity, With<Analyzer>>,
     active_sample_query: Query<Entity, With<ActiveSample>>,
 ) {
@@ -114,12 +114,13 @@ fn start_sample_analysis(
     if let Ok(invref) = invref_query.get(trigger.entity)
     && let Ok(item) = owner_query.get(trigger.dropped)
     && let Ok(childof) = childof_query.get(trigger.dropped)
-    && let Ok(analyzer) = analyzer_query.single() {
+    && let Ok(analyzer) = analyzer_query.single()
+    && let Ok(sample) = sample_query.get(item.item_owner) {
         for active in active_sample_query.iter() {
             commands.entity(active).remove::<ActiveSample>();
         }
         println!("ANALYZER ENTITY: {:?}", analyzer);
-        commands.entity(analyzer).trigger(|entity| AnalyzeSampleEvent{ entity, sample: item.item_owner });
+        commands.entity(analyzer).trigger(|entity| AnalyzeSampleEvent{ entity, sample});
         //commands.entity(trigger.entity).trigger(|entity| RefreshAnalyzerUi { entity });
     }
 }
@@ -203,13 +204,28 @@ fn on_ui_analysis_input_pause_add(
         .observe(on_analysis_pause_observer);
 }
 
+#[allow(clippy::complexity)]
 fn on_analysis_pause_observer(
     _trigger: On<Pointer<Click>>,
     mut commands: Commands,
     analyzer_query: Query<Entity, With<Analyzer>>,
+    inventory: Query<&Inventory>,
+    name_query: Query<&Name>,
+    item_query: Query<&ItemDetails>,
+    active_sample_query: Query<Entity, With<ActiveSample>>,
+    sample_query: Query<Entity, With<SampleItem>>,
 ) {
-    if let Ok(analyzer) = analyzer_query.single() {
-        //commands.entity(analyzer).trigger(|entity| AnalyzeSampleEvent(entity));
+    if let Ok(analyzer) = analyzer_query.single()
+    && let Ok(analyzer_inventory) = inventory.get(analyzer) {
+        for item in analyzer_inventory.iter() {
+            if let Ok(sample) = sample_query.get(item) {
+                for active in active_sample_query.iter() {
+                    commands.entity(active).remove::<ActiveSample>();
+                }
+                commands.entity(analyzer).trigger(|entity| AnalyzeSampleEvent{ entity, sample});
+                break;
+            }
+        }
     }
 }
 
@@ -241,7 +257,7 @@ fn update_ui_analyzer_progress(
         if timer.0.is_finished() {
             if let Ok(active_sample) = active_sample_query.single()
             && let Ok(mut sample) = sample_query.get_mut(active_sample) {
-                sample.analyzed += 1;
+                sample.analyzed = true;
             }
         } else {
             ui.value = timer.0.fraction();
@@ -392,7 +408,6 @@ fn sync_analyzer_ui(
 
     // ActiveSample Removed
     removed.read().for_each(|entity| {
-        println!("ACTIVE SAMPLE REMOVED");
         if let Ok(active_sample_icon) = active_sample_icon_query.single() {
             commands.entity(active_sample_icon)
                 .remove::<Text>()
