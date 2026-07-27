@@ -124,6 +124,7 @@ bevy_simple_text_input = "0.13.0"
 bevy-yoleck = "0.31.0"
 chill_bevy_console = "0.1.1"
 moonshine-save = "0.6.1"
+bevy_common_assets = { version = "0.15.0", features = ["ron"] }
 
 [profile.dev]
 opt-level=3
