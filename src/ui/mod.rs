@@ -6,6 +6,7 @@ pub mod analyzer_ui;
 pub mod book_ui;
 pub mod crafting_ui;
 pub mod crosshair;
+pub mod database_ui;
 pub mod equip_ui;
 pub mod inventory_ui;
 pub mod status_bar;
