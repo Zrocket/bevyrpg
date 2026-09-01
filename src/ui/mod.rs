@@ -1,4 +1,4 @@
-use crate::{analyzer_ui::AnalyzerUiPlugin, widgets::{anchored::AnchoredUiPlugin, floating_window_ordering::FloatingWindowOrderingPlugin, floating_windows::FloatingWindowPlugin, progress_bar::ProgressBarWidgetPlugin}};
+use crate::{analyzer_ui::AnalyzerUiPlugin, database_ui::DatabaseUiPlugin, widgets::{anchored::AnchoredUiPlugin, floating_window_ordering::FloatingWindowOrderingPlugin, floating_windows::FloatingWindowPlugin, progress_bar::ProgressBarWidgetPlugin}};
 
 use super::*;
 
@@ -82,6 +82,7 @@ impl Plugin for UiPlugin {
                     FloatingWindowOrderingPlugin,
                     EquipUiPlugin,
                     ProgressBarWidgetPlugin,
+                    DatabaseUiPlugin,
             ))
             .add_loading_state(
                 LoadingState::new(BootStrap::Preload)

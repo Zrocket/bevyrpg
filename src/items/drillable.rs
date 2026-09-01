@@ -2,7 +2,7 @@ use std::collections::HashMap;
 
 use bevy::{ecs::{lifecycle::HookContext, world::DeferredWorld}, prelude::*, state::commands};
 
-use crate::{AddToInventoryEvent, ItemDetails, Rover, SampleItem};
+use crate::{AddToInventoryEvent, ItemDatabase, ItemDetails, ItemId, Rover, SampleItem};
 
 /*#[derive(Resource)]
 pub struct DrillSampleTable(pub HashMap<String, fn(&mut Commands) -> Entity>);
@@ -40,13 +40,27 @@ impl Plugin for DrillableItemPlugin {
 fn drill_event_observer(
     trigger: On<DrillEvent>,
     mut commands: Commands,
+    item_database: Res<ItemDatabase>,
     drillable_query: Query<&Drillable>,
     rover_query: Query<Entity, With<Rover>>,
 ) {
     println!("DRILLDRILLDRILL");
     if let Ok(drillable) = drillable_query.get(trigger.entity)
+    && let Some(item_details) = item_database.0.get(&drillable.0)
     && let Ok(rover) = rover_query.single() {
-        let item = spawn_sample(&mut commands);
+        let item = commands.spawn((
+                SampleItem {
+                    analyzed: false,
+                    botched: false,
+                },
+                ItemDetails {
+                    name: item_details.name.clone(),
+                    description: super::Description("SAMPLE".to_string()),
+                    weight: super::Weight(5),
+                },
+                ItemId(item_details.id.clone()),
+            )).id();
+        //let item = spawn_sample(&mut commands);
         commands.entity(rover).trigger(|entity| AddToInventoryEvent { entity, item });
     }
 }

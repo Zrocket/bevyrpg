@@ -32,6 +32,7 @@ mod crafting;
 mod devroom;
 mod dialog;
 mod enemy;
+mod fungus;
 mod furniture;
 mod interact;
 mod inventory;
@@ -81,7 +82,7 @@ use level::*;
 use tests::TestsPlugin;
 use stepping::*;
 
-use crate::{enemy::EnemyPlugin, particles::ParticlePlugin};
+use crate::{enemy::EnemyPlugin, fungus::FungusPlugin, particles::ParticlePlugin};
 
 #[derive(Parser, Debug)]
 struct Args {
@@ -188,6 +189,7 @@ fn main() {
         RoverPlugin,
         MySavePlugin,
         CraftingPlugin,
+        FungusPlugin,
     ));
     app.add_systems(Update, pause_game.run_if(in_state(MetaState::Gameplay)));
 
