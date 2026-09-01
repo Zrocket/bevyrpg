@@ -85,11 +85,8 @@ ratatui = { version = "0.30.0", default-features = false }
 #
 
 # bevy 0.18 ready
-soft_ratatui = { git = "https://github.com/Zrocket/soft_ratatui.git", branch ="togit", features = ["embedded-graphics", "unicodefonts"] }
+#soft_ratatui = { git = "https://github.com/Zrocket/soft_ratatui.git", branch ="togit", features = ["embedded-graphics", "unicodefonts"] }
 bevy_sun_move = { git = "https://github.com/Zrocket/bevy_sun_move", branch = "main" }
-landmass = "0.9.1"
-avian_rerecast = "0.5.0-rc.3"
-bevy_seedling = "0.7.0"
 #bevy_hotpatching_experiments = "0.4.0"
 #bevy_mod_scripting = { version = "0.19.0", features = ["rhai"] }
 bevy_old_tv_shader = { git = "https://github.com/Zrocket/bevy_old_tv_shader.git", version = "0.5.0", features=["ui"] }
@@ -97,15 +94,18 @@ bevy_old_tv_shader = { git = "https://github.com/Zrocket/bevy_old_tv_shader.git"
 #bevy_old_tv_shader = { git = "https://github.com/gituseridk/bevy_old_tv_shader.git", version = "0.5.0", features=["ui"] }
 
 # bevy 0.19 pull request
-bevy_rerecast = "0.4.0"
 bevy_bae = "0.1.0"
+bevy_ingame_clock = { git = "https://github.com/GuillaumeDelorme/bevy_ingame_clock.git", branch = "bevy-0.18-update" }
+
+# bevy 0.19 ready
 bevy_console = { git = "https://github.com/Zrocket/bevy-console.git" }
 bevy_yarnspinner = "0.7.0"
 bevy_yarnspinner_example_dialogue_view = "0.7.0"
-bevy_ingame_clock = { git = "https://github.com/GuillaumeDelorme/bevy_ingame_clock.git", branch = "bevy-0.18-update" }
 landmass_rerecast = "0.2.0"
-
-# bevy 0.19 ready
+landmass = "0.9.1"
+avian_rerecast = "0.5.0-rc.3"
+bevy_rerecast = "0.4.0"
+bevy_seedling = "0.7.0"
 avian3d = { version = "0.6.1", features = ["collider-from-mesh"] }
 avian_pickup = "0.5.0-rc.1"
 bevy_asset_loader = {version = "0.25.0", features = ["2d", "standard_dynamic_assets"]}

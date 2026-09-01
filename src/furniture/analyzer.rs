@@ -3,7 +3,7 @@ use std::collections::HashSet;
 use bevy::{ecs::{lifecycle::HookContext, world::DeferredWorld}, prelude::*};
 use serde::Deserialize;
 
-use crate::{add_to_inventory_observer, analyzer_ui::{display_analyzer_ui}, container_interaction_observer};
+use crate::{ItemId, add_to_inventory_observer, analyzer_ui::display_analyzer_ui, container_interaction_observer};
 
 #[derive(Component, Reflect, Clone, PartialEq, Eq, Debug)]
 #[reflect(Component)]
@@ -21,11 +21,20 @@ pub struct Analyzed;
 pub struct DiscoveredItems(pub HashSet<String>);
 
 fn update_analyzer_timer(
-    mut timer_query: Query<&mut AnalyzerTimer>,
+    mut timer_query: Query<(&mut AnalyzerTimer, &ActiveSample)>,
+    mut discovered_items: ResMut<DiscoveredItems>,
+    name_query: Query<&Name>,
+    item_id_query: Query<&ItemId>,
     time: Res<Time>,
 ) {
-    if let Ok(mut timer) = timer_query.single_mut() {
-        timer.0.tick(time.delta());
+    if let Ok((mut timer, active_sample)) = timer_query.single_mut() {
+        if timer.0.is_finished()
+        //&& let Ok(value) = name_query.get(active_sample.0)
+        && let Ok(item_id) = item_id_query.get(active_sample.0) {
+            discovered_items.0.insert(item_id.0.clone());
+        } else {
+            timer.0.tick(time.delta());
+        }
     }
 }
 
@@ -54,7 +63,8 @@ fn on_analyzer_add(
         .observe(display_analyzer_ui);
 }
 
-#[derive(Component)]
+#[derive(Component, Reflect, Debug)]
+#[reflect(Component)]
 pub struct ActiveSample(pub Entity);
 
 #[derive(EntityEvent)]
@@ -73,7 +83,8 @@ pub struct AnalyzerPlugin;
 impl Plugin for AnalyzerPlugin {
     fn build(&self, app: &mut App) {
        app
-           .add_systems(Update, update_analyzer_timer);
+           .add_systems(Update, update_analyzer_timer)
+           .init_resource::<DiscoveredItems>();
     }
 }
 

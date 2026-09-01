@@ -22,11 +22,13 @@ pub struct RemoveMessage {
     pub target: Entity,
 }*/
 
-#[derive(Component)]
+#[derive(Component, Reflect, Debug)]
+#[reflect(Component)]
 #[relationship_target(relationship = InInventory, linked_spawn)]
 pub struct Inventory(Vec<Entity>);
 
-#[derive(Component)]
+#[derive(Component, Reflect, Debug)]
+#[reflect(Component)]
 #[relationship(relationship_target = Inventory)]
 pub struct InInventory(pub Entity);
 

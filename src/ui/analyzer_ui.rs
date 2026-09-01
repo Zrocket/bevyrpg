@@ -1,6 +1,6 @@
 use bevy::{app::Propagate, color::palettes::css::{DARK_KHAKI, DARK_RED, DARK_SLATE_GRAY, DARK_TURQUOISE, DARK_VIOLET, LIGHT_PINK, PURPLE, SADDLE_BROWN}, ecs::{lifecycle::HookContext, world::DeferredWorld}, prelude::*};
 
-use crate::{ActiveSample, AnalyzeSampleEvent, Analyzer, AnalyzerTimer, DisplayInventoryEvent, InvRef, Inventory, ItemDetails, Owner, SampleItem, UiInventory, UiInventoryItem, UiState, widgets::{floating_windows::floating_window_root, progress_bar::ProgressBar}};
+use crate::{ActiveSample, AnalyzeSampleEvent, Analyzer, AnalyzerTimer, DiscoveredItems, DisplayInventoryEvent, GameState, InvRef, Inventory, ItemDetails, ItemId, Owner, SampleItem, UiInventory, UiInventoryItem, UiState, widgets::{floating_windows::floating_window_root, progress_bar::ProgressBar}};
 
 #[derive(Component)]
 pub struct ProgressTimer(pub Timer);
@@ -217,11 +217,15 @@ fn on_analysis_pause_observer(
 ) {
     if let Ok(analyzer) = analyzer_query.single()
     && let Ok(analyzer_inventory) = inventory.get(analyzer) {
+        println!("INV: {:?}", analyzer_inventory);
         for item in analyzer_inventory.iter() {
+            println!("ITEM: {:?}", item);
             if let Ok(sample) = sample_query.get(item) {
                 for active in active_sample_query.iter() {
                     commands.entity(active).remove::<ActiveSample>();
                 }
+                println!("SAMPLE: {:?}", sample);
+                println!("ENTITY: {:?}", analyzer);
                 commands.entity(analyzer).trigger(|entity| AnalyzeSampleEvent{ entity, sample});
                 break;
             }
@@ -247,17 +251,20 @@ fn on_analysis_pause_observer(
 pub struct UiAnalyzerProgressBar;
 
 fn update_ui_analyzer_progress(
+    mut commands: Commands,
+    mut discovered_items: ResMut<DiscoveredItems>,
     mut ui_query: Query<&mut ProgressBar, With<UiAnalyzerProgressBar>>,
     timer_query: Query<&AnalyzerTimer>,
-    mut sample_query: Query<&mut SampleItem>,
-    active_sample_query: Query<Entity, With<ActiveSample>>,
+    active_sample_query: Query<(Entity, &ActiveSample)>,
+    item_id_query: Query<&ItemId>,
 ) {
     if let Ok(mut ui) = ui_query.single_mut()
     && let Ok(timer) = timer_query.single() {
         if timer.0.is_finished() {
-            if let Ok(active_sample) = active_sample_query.single()
-            && let Ok(mut sample) = sample_query.get_mut(active_sample) {
-                sample.analyzed = true;
+            if let Ok((entity, active_sample)) = active_sample_query.single()
+            && let Ok(item_id) = item_id_query.get(entity) {
+                discovered_items.0.replace(item_id.0.clone());
+                commands.entity(active_sample.0).despawn();
             }
         } else {
             ui.value = timer.0.fraction();
@@ -271,7 +278,7 @@ impl Plugin for AnalyzerUiPlugin {
        app
            .add_systems(Update, (
                    sync_analyzer_ui,
-                   update_ui_analyzer_progress,
+                   update_ui_analyzer_progress.run_if(in_state(GameState::Gameplay)),
            ));
     }
 }

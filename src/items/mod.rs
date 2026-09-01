@@ -68,7 +68,7 @@ pub struct ItemDefinitions(pub Vec<ItemDefinition>);
 pub struct ItemDefinitionsHandle(pub Handle<ItemDefinitions>);
 
 #[derive(Resource, Default)]
-pub struct ItemDatabase(HashMap<String, ItemDefinition>);
+pub struct ItemDatabase(pub HashMap<String, ItemDefinition>);
 
 #[derive(Component, Reflect, Clone, Default)]
 #[reflect(Component)]
@@ -144,7 +144,8 @@ impl Plugin for ItemPlugin {
                     SocketItemPlugin,
                     RonAssetPlugin::<ItemDefinitions>::new(&["items.ron"]),
             ))
-            .add_systems(OnEnter(BootStrap::Loading), (load_items, build_item_database).chain())
+            .add_systems(OnEnter(BootStrap::Loading), (load_items))
+            .add_systems(OnEnter(BootStrap::Postload), (build_item_database))
             .add_observer(disabled_held_prop_collision)
             .add_observer(enable_dropped_prop_collision);
     }
