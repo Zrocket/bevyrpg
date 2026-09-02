@@ -156,7 +156,7 @@ fn on_sleep_ui_node_add(
     context: HookContext,
 ) {
     let asset_server = world.resource::<AssetServer>();
-    let font = asset_server.load("FiraSans-Bold.ttf");
+    let font: Handle<Font> = asset_server.load("FiraSans-Bold.ttf");
 
     let ui_assets = world.resource::<DAUiAssets>();
     let image = ui_assets.health_1.clone();
@@ -172,8 +172,8 @@ fn on_sleep_ui_node_add(
     world.commands()
         .entity(context.entity)
         .insert(TextFont {
-            font,
-            font_size: 50.0,
+            font: font.into(),
+            font_size: FontSize::Px(50.0),
             ..default()
         })
         .insert((
@@ -186,7 +186,7 @@ fn on_health_ui_node_add(
     context: HookContext,
 ) {
     let asset_server = world.resource::<AssetServer>();
-    let font = asset_server.load("FiraSans-Bold.ttf");
+    let font: Handle<Font> = asset_server.load("FiraSans-Bold.ttf");
 
     let ui_assets = world.resource::<DAUiAssets>();
     let image = ui_assets.health_1.clone();
@@ -202,8 +202,8 @@ fn on_health_ui_node_add(
     world.commands()
         .entity(context.entity)
         .insert(TextFont {
-            font,
-            font_size: 50.0,
+            font: font.into(),
+            font_size: FontSize::Px(50.0),
             ..default()
         })
         .insert((
@@ -216,7 +216,7 @@ fn on_mana_ui_node_add(
     context: HookContext,
 ) {
     let asset_server = world.resource::<AssetServer>();
-    let font = asset_server.load("FiraSans-Bold.ttf");
+    let font: Handle<Font> = asset_server.load("FiraSans-Bold.ttf");
 
     let ui_assets = world.resource::<DAUiAssets>();
     let image = ui_assets.mana_1.clone();
@@ -232,8 +232,8 @@ fn on_mana_ui_node_add(
     world.commands()
         .entity(context.entity)
         .insert(TextFont {
-            font,
-            font_size: 50.0,
+            font: font.into(),
+            font_size: FontSize::Px(50.0),
             ..default()
         })
     .insert((
@@ -299,7 +299,7 @@ fn animate_sleep_material(
 ) {
     //let duration = 2.0;
     for handle in &query {
-        if let Some(material) = materials.get_mut(handle)
+        if let Some(mut material) = materials.get_mut(handle)
         && let Ok(sleep) = sleep_query.single() {
             let value = sleep.value as f32 / 100.0;
             // rainbow color effect
@@ -322,7 +322,7 @@ fn animate_health_material(
 ) {
     //let duration = 2.0;
     for handle in &query {
-        if let Some(material) = materials.get_mut(handle)
+        if let Some(mut material) = materials.get_mut(handle)
         && let Ok((health, max_health)) = health_query.single() {
             let value = health.0 as f32 / max_health.0 as f32;
             // rainbow color effect
@@ -345,7 +345,7 @@ fn animate_mana_material(
 ) {
     //let duration = 2.0;
     for handle in &query {
-        if let Some(material) = materials.get_mut(handle)
+        if let Some(mut material) = materials.get_mut(handle)
         && let Ok((mana, max_mana)) = mana_query.single() {
             let value = mana.0 as f32 / max_mana.0 as f32;
             //println!("{:?}", value);

@@ -78,7 +78,7 @@ fn load_scene(
     mut load_game_message_reader: MessageReader<LoadGameMessage>,
     player_query: Query<Entity, With<crate::Player>>,
     rover_query: Query<Entity, With<crate::Rover>>,
-    scene_root_query: Query<Entity, With<DynamicSceneRoot>>,
+    scene_root_query: Query<Entity, With<DynamicWorldRoot>>,
 ) {
     for _message in load_game_message_reader.read() {
         for entity in player_query.iter() {
@@ -93,7 +93,7 @@ fn load_scene(
 
         asset_server.reload(SCENE_FILE_PATH);
         let scene = asset_server.load(SCENE_FILE_PATH);
-        commands.spawn(DynamicSceneRoot(scene));
+        commands.spawn(DynamicWorldRoot(scene));
     }
 }
 
@@ -121,7 +121,7 @@ fn spawn_scene_when_reloaded(
     mut commands: Commands,
     asset_server: Res<AssetServer>,
     pending: Option<Res<PendingSceneSpawn>>,
-    mut scene_events: MessageReader<AssetEvent<DynamicScene>>,
+    mut scene_events: MessageReader<AssetEvent<DynamicWorld>>,
 ) {
     if pending.is_none() { return; }
 
@@ -129,7 +129,7 @@ fn spawn_scene_when_reloaded(
         match event {
             AssetEvent::Modified { .. } | AssetEvent::LoadedWithDependencies { .. } => {
                 let scene = asset_server.load(SCENE_FILE_PATH);
-                commands.spawn(DynamicSceneRoot(scene));
+                commands.spawn(DynamicWorldRoot(scene));
                 commands.remove_resource::<PendingSceneSpawn>();
                 break;
             }
@@ -151,7 +151,7 @@ fn save_scene(world: &mut World) {
     let type_registry = world.resource::<AppTypeRegistry>().clone();
     let registry = type_registry.read();
 
-    let scene = DynamicSceneBuilder::from_world(world)
+    let scene = DynamicWorldBuilder::from_world(world, &type_registry.read())
         .deny_all()
         .allow_component::<Name>()
         //.allow_component::<GlobalTransform>()
@@ -198,7 +198,7 @@ fn check_pending_load(
     level_gltf: Option<Res<crate::LevelGltf>>,
     player_query: Query<Entity, With<crate::Player>>,
     rover_query: Query<Entity, With<crate::Rover>>,
-    scene_root_query: Query<Entity, With<DynamicSceneRoot>>,
+    scene_root_query: Query<Entity, With<DynamicWorldRoot>>,
     save_file_query: Query<&SaveFile>,
 ) {
     if pending.is_none() { return; }
@@ -222,7 +222,7 @@ fn check_pending_load(
 
         let scene = asset_server.load(file);
 
-        commands.spawn(DynamicSceneRoot(scene));
+        commands.spawn(DynamicWorldRoot(scene));
         commands.remove_resource::<PendingSaveLoad>();
     }
 }

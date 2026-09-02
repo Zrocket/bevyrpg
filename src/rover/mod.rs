@@ -40,7 +40,7 @@ pub struct RoverSpawnedMessage;
 #[require(
     SpotLight {
         intensity: 1_000_000_000.0,
-        shadows_enabled: true,
+        shadow_maps_enabled: true,
         ..default()
     },
 )]

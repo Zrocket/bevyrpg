@@ -1,5 +1,5 @@
 use bevy::{asset::RenderAssetUsages, camera::RenderTarget, ecs::{lifecycle::HookContext, world::DeferredWorld}, prelude::*, render::{extract_resource::ExtractResource, render_resource::{Extent3d, TextureFormat, TextureUsages}}};
-use bevy_old_tv_shader::prelude::OldTvSettings;
+//use bevy_old_tv_shader::prelude::OldTvSettings;
 
 #[derive(Resource, Clone, ExtractResource)]
 pub struct ComputerImage(pub Handle<Image>);
@@ -82,7 +82,7 @@ fn poll_screen_material_loaded(
         ..default()
     },
     Name::new("ComputerTextureCam"),
-    OldTvSettings {
+    /*OldTvSettings {
         //screen_shape_factor: 0.0004,
         screen_shape_factor: 0.01,
         rows: 16000.0,
@@ -90,7 +90,7 @@ fn poll_screen_material_loaded(
         brightness: 5.0,
         edges_transition_size: 0.025,
         channels_mask_min: 0.0,
-    }
+    }*/
 )]
 #[component(on_add = on_computer_texture_cam_add)]
 pub struct ComputerTextureCam;

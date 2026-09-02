@@ -147,7 +147,7 @@ fn change_level_message_handler(
         let temp = message.0.clone();
 
         commands.spawn((
-            SceneRoot(asset_server.load(
+            WorldAssetRoot(asset_server.load(
                     GltfAssetLabel::Scene(0).from_asset(temp),
             )),
             CurrentLevel,

@@ -1,6 +1,6 @@
 use avian3d::prelude::{Collider, SpatialQuery, SpatialQueryFilter};
 use bevy::prelude::*;
-use bevy_bae::{prelude::OperatorInput, task::OperatorStatus};
+//use bevy_bae::{prelude::OperatorInput, task::OperatorStatus};
 use bevy_landmass::{Agent, Agent3dBundle, AgentSettings, AgentTarget3d, Archipelago3d, ArchipelagoRef3d};
 use rand::random_range;
 
@@ -46,7 +46,7 @@ fn spawn_agent(
     }
 }
 
-pub fn run_from_player(
+/*pub fn run_from_player(
     In(input): In<OperatorInput>,
     spatial_query: SpatialQuery,
     player_query: Query<(Entity, &Transform), With<Player>>,
@@ -100,4 +100,4 @@ pub fn idle(
         }
     }
     OperatorStatus::Failure
-}
+}*/
