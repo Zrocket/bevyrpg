@@ -113,7 +113,7 @@ fn weapon_1(
         let path = gltf_assets.get(&gun_assets.uzi).unwrap().scenes[0].path().unwrap();
         let gun = commands.spawn((
                 Transform::from_translation(vec3(0.1, -0.2, -0.5)),
-                SceneRoot(asset_server.load(path)),
+                WorldAssetRoot(asset_server.load(path)),
                 ItemDetails {
                     name: "Uzi".to_string(),
                     description: crate::Description("gun".to_string()),
@@ -145,7 +145,7 @@ fn weapon_2(
         let path = gltf_assets.get(&gun_assets.shotgun).unwrap().scenes[0].path().unwrap();
         let gun = commands.spawn((
                 Transform::from_translation(vec3(0.1, -0.2, -0.5)),
-                SceneRoot(asset_server.load(path)),
+                WorldAssetRoot(asset_server.load(path)),
                 ItemDetails {
                     name: "Shotgun".to_string(),
                     description: crate::Description("gun".to_string()),
@@ -177,7 +177,7 @@ fn weapon_3(
         let path = gltf_assets.get(&gun_assets.sniper).unwrap().scenes[0].path().unwrap();
         let gun = commands.spawn((
                 Transform::from_translation(vec3(0.1, -0.2, -0.5)),
-                SceneRoot(asset_server.load(path)),
+                WorldAssetRoot(asset_server.load(path)),
                 ItemDetails {
                     name: "Sniper".to_string(),
                     description: crate::Description("gun".to_string()),
@@ -209,7 +209,7 @@ fn weapon_4(
         let path = gltf_assets.get(&gun_assets.mp5).unwrap().scenes[0].path().unwrap();
         let gun = commands.spawn((
                 Transform::from_translation(vec3(0.1, -0.2, -0.5)),
-                SceneRoot(asset_server.load(path)),
+                WorldAssetRoot(asset_server.load(path)),
                 ItemDetails {
                     name: "MP5".to_string(),
                     description: crate::Description("gun".to_string()),

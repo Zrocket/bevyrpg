@@ -1,6 +1,6 @@
 use bevy::prelude::*;
 use bevy_enhanced_input::{action::InputAction, prelude::{Fire, Start}};
-use bevy_seedling::{SeedlingPlugin, pool::SamplerPool, prelude::{PoolLabel, Volume}, sample::SamplePlayer};
+use bevy_seedling::{SeedlingPlugins, pool::SamplerPool, prelude::{PoolLabel, Volume}, sample::SamplePlayer};
 use bevy_tnua::TnuaController;
 use rand::random_range;
 
@@ -83,7 +83,7 @@ impl Plugin for AudioPlugin {
     fn build(&self, app: &mut App) {
        app
            .register_type::<VolumeSettings>()
-           .add_plugins(SeedlingPlugin::default())
+           .add_plugins(SeedlingPlugins)
            .add_systems(Startup, init_audio)
            .add_observer(walk_audio::<MovementAction>)
            .add_observer(jump_audio)

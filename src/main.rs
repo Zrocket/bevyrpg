@@ -5,7 +5,7 @@ use bevy::{
     dev_tools::fps_overlay::{FpsOverlayConfig, FpsOverlayPlugin, FrameTimeGraphConfig}, light::light_consts::lux::{FULL_DAYLIGHT, OFFICE}, log::LogPlugin, prelude::*, text::FontSmoothing, window::{ CursorGrabMode, CursorOptions, WindowResolution,}
 };
 use bevy_asset_loader::prelude::*;
-use bevy_bae::BaePlugin;
+//use bevy_bae::BaePlugin;
 use bevy_egui::{EguiGlobalSettings, EguiPlugin};
 use bevy_hanabi::HanabiPlugin;
 //use bevy_hotpatching_experiments::SimpleSubsecondPlugin;
@@ -17,7 +17,7 @@ use bevy_rerecast::NavmeshPlugins;
 use bevy_simple_text_input::TextInputPlugin;
 use bevy_skein::SkeinPlugin;
 use bevy_sprite3d::Sprite3dPlugin;
-use bevy_sun_move::{/*SunMovePlugin,*/ random_stars::RandomStarsPlugin};
+//use bevy_sun_move::{/*SunMovePlugin,*/ random_stars::RandomStarsPlugin};
 use bevy_yarnspinner::prelude::YarnSpinnerPlugin;
 use bevy_yarnspinner_example_dialogue_view::ExampleYarnSpinnerDialogueViewPlugin;
 use bevy_yoleck::prelude::*;
@@ -144,12 +144,12 @@ fn main() {
         ExampleYarnSpinnerDialogueViewPlugin::new(),
         Sprite3dPlugin,
         //SunMovePlugin,
-        RandomStarsPlugin,
+        //RandomStarsPlugin,
         Landmass3dPlugin::default(),
         LandmassRerecastPlugin::default(),
         NavmeshPlugins::default(),
         AvianBackendPlugin::default(),
-        BaePlugin::default(),
+        //BaePlugin::default(),
         HanabiPlugin,
         TextInputPlugin,
     ))
@@ -210,7 +210,7 @@ fn main() {
         app.add_plugins(FpsOverlayPlugin {
             config: FpsOverlayConfig {
                 text_config: TextFont {
-                    font_size: 42.0,
+                    font_size: FontSize::Px(42.0),
                     font: default(),
                     font_smoothing: FontSmoothing::default(),
                     ..default()

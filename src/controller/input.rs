@@ -5,10 +5,10 @@ use bevy::{app::Plugin, asset::Assets, ecs::{component::Component, lifecycle::Ho
 use bevy_enhanced_input::{action::Action, actions, bindings, prelude::{Axial, Bindings, Cardinal, DeadZone, EnhancedInputPlugin, Hold, InputAction, InputContextAppExt, SmoothNudge, Tap}, modifier::scale::Scale};
 use bevy_tnua::{TnuaConfig, TnuaController, builtins::{TnuaBuiltinClimbConfig, TnuaBuiltinCrouchConfig, TnuaBuiltinDashConfig, TnuaBuiltinJumpConfig, TnuaBuiltinWalkConfig, TnuaBuiltinWallSlideConfig}, control_helpers::TnuaSimpleAirActionsCounter};
 use bevy_tnua_avian3d::TnuaAvian3dSensorShape;
-use bevy_bae::{plan::Plan, prelude::{Operator, Sequence}, tasks};
+//use bevy_bae::{plan::Plan, prelude::{Operator, Sequence}, tasks};
 use bevy_tnua_physics_integration_layer::math::float_consts;
 
-use crate::{IdleTimer, Player, PlayerControlScheme, PlayerControlSchemeConfig, Walk, idle, run_from_player, wander};
+use crate::{IdleTimer, Player, PlayerControlScheme, PlayerControlSchemeConfig, Walk, /*idle, run_from_player, wander*/};
 
 pub struct InputPlugin;
 impl Plugin for InputPlugin {
@@ -106,7 +106,7 @@ pub struct ShootAction;
     TnuaSimpleAirActionsCounter::<PlayerControlScheme>::default(),
     RigidBody::Dynamic,
     Walk::default(),
-    Plan::new(),
+    //Plan::new(),
 )]
 pub struct TnuaNpcController;
 
@@ -118,7 +118,7 @@ pub struct TnuaNpcController;
     TnuaSimpleAirActionsCounter::<PlayerControlScheme>::default(),
     RigidBody::Dynamic,
     Walk::default(),
-    Plan::new(),
+    //Plan::new(),
 )]
 pub struct TnuaEnemyController;
 
@@ -329,7 +329,7 @@ fn on_tnua_npc_controller_add(
     });
 
 
-    world.commands()
+    /*world.commands()
         .entity(context.entity)
         .insert((
                 TnuaConfig::<PlayerControlScheme>(handle),
@@ -341,7 +341,7 @@ fn on_tnua_npc_controller_add(
                 Operator::new(idle),
             ],
             IdleTimer(Timer::from_seconds(5.0, bevy::time::TimerMode::Once))
-        ));
+        ));*/
 }
 
 fn on_tnua_enemy_controller_add(
@@ -385,7 +385,7 @@ fn on_tnua_enemy_controller_add(
         },
     });
 
-    world.commands()
+    /*world.commands()
         .entity(context.entity)
         .insert((
                 TnuaConfig::<PlayerControlScheme>(handle),
@@ -398,7 +398,7 @@ fn on_tnua_enemy_controller_add(
                 Operator::new(run_from_player),
             ],
             IdleTimer(Timer::from_seconds(5.0, bevy::time::TimerMode::Once))
-        ));
+        ));*/
 }
 
 fn on_tnua_rover_controller_add(

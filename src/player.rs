@@ -1,6 +1,6 @@
 use avian_pickup::actor::{AvianPickupActor, AvianPickupActorHoldConfig};
 use avian3d::prelude::{CoefficientCombine, Collider, CollisionLayers, Friction, GravityScale, LayerMask, LockedAxes, RigidBody, SpatialQuery, SpatialQueryFilter, SweptCcd, CollisionMargin};
-use bevy::{camera::Exposure, core_pipeline::tonemapping::Tonemapping, ecs::{lifecycle::HookContext, world::DeferredWorld}, pbr::{Atmosphere, AtmosphereSettings, ScatteringMedium}, post_process::bloom::Bloom, prelude::*, render::view::Hdr};
+use bevy::{camera::{Exposure, Hdr}, core_pipeline::tonemapping::Tonemapping, ecs::{lifecycle::HookContext, world::DeferredWorld}, light::{Atmosphere, atmosphere::ScatteringMedium}, pbr::AtmosphereSettings, post_process::bloom::Bloom, prelude::*};
 use bevy_egui::PrimaryEguiContext;
 use bevy_flycam::{FlyCam, NoCameraPlayerPlugin};
 use bevy_tnua::{TnuaController, TnuaObstacleRadar, control_helpers::{TnuaBlipReuseAvoidance, TnuaSimpleAirActionsCounter}};
@@ -107,7 +107,7 @@ pub struct Player;
     }),
     AtmosphereSettings {
         aerial_view_lut_max_distance: 3.2e5,
-        scene_units_to_m: 1e+4,
+        //scene_units_to_m: 1e+4,
         ..Default::default()
     },
     Hdr,
@@ -130,7 +130,7 @@ pub struct PlayerCamera;
 #[require(
     SpotLight {
         intensity: 1_000_000.0,
-        shadows_enabled: true,
+        shadow_maps_enabled: true,
         ..default()
     },
 )]
@@ -233,7 +233,7 @@ fn on_player_camera_add(
 
     world.commands()
         .entity(context.entity)
-        .insert(Atmosphere::earthlike(scattering_mediums_handle))
+        .insert(Atmosphere::earth(scattering_mediums_handle))
         .insert(PrimaryEguiContext);
 }
 
@@ -280,7 +280,7 @@ fn spawn_player_observer(
             .spawn((
                 Transform::from_translation(vec3(0.1, -0.2, -0.5)),
                 //SceneRoot(asset_server.load("guns/uzi.glb#Scene0")),
-                SceneRoot(asset_server.load(uzi)),
+                WorldAssetRoot(asset_server.load(uzi)),
                 ItemDetails {
                     name: "gun".to_string(),
                     description: Description("gun".to_string()),

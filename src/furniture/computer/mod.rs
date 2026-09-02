@@ -9,7 +9,7 @@ use bevy::picking::pointer::PointerId;
 use bevy::prelude::*;
 use bevy::color::palettes::css::{BLUE, GRAY};
 use bevy_ingame_clock::InGameClock;
-use bevy_old_tv_shader::OldTvPlugin;
+//use bevy_old_tv_shader::OldTvPlugin;
 
 use crate::{CameraInterpolation2, CameraTarget, Interactable, InteractionEvent, Player, PlayerCamera, PlayerState};
 
@@ -237,7 +237,7 @@ pub struct ComputerPlugin;
 impl Plugin for ComputerPlugin {
     fn build(&self, app: &mut App) {
         app
-            .add_plugins(OldTvPlugin)
+            //.add_plugins(OldTvPlugin)
             .register_type::<ComputerScreenCube>()
             .register_type::<ComputerTextureCam>()
             .register_type::<CrtTv>()
