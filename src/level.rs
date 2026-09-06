@@ -1,5 +1,5 @@
 use bevy_asset_loader::{asset_collection::AssetCollection, loading_state::{config::ConfigureLoadingState, LoadingState, LoadingStateAppExt}, standard_dynamic_asset::StandardDynamicAssetCollection};
-//use bevy_sun_move::{SkyCenter, TimedSkyConfig, random_stars::StarSpawner};
+use bevy_sun_move::{SkyCenter, TimedSkyConfig, random_stars::StarSpawner};
 
 use crate::{BootStrap, MiscItem, Obstacle};
 use avian3d::{prelude::{ColliderConstructor, CollisionLayers, LayerMask, PhysicsLayer, RigidBody}};

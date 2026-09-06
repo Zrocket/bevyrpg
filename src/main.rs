@@ -17,7 +17,7 @@ use bevy_rerecast::NavmeshPlugins;
 use bevy_simple_text_input::TextInputPlugin;
 use bevy_skein::SkeinPlugin;
 use bevy_sprite3d::Sprite3dPlugin;
-//use bevy_sun_move::{/*SunMovePlugin,*/ random_stars::RandomStarsPlugin};
+use bevy_sun_move::{SunMovePlugin, random_stars::RandomStarsPlugin};
 use bevy_yarnspinner::prelude::YarnSpinnerPlugin;
 use bevy_yarnspinner_example_dialogue_view::ExampleYarnSpinnerDialogueViewPlugin;
 use bevy_yoleck::prelude::*;
@@ -143,8 +143,8 @@ fn main() {
         YarnSpinnerPlugin::new(),
         ExampleYarnSpinnerDialogueViewPlugin::new(),
         Sprite3dPlugin,
-        //SunMovePlugin,
-        //RandomStarsPlugin,
+        SunMovePlugin,
+        RandomStarsPlugin,
         Landmass3dPlugin::default(),
         LandmassRerecastPlugin::default(),
         NavmeshPlugins::default(),
