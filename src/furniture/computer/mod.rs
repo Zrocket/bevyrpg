@@ -157,7 +157,7 @@ fn on_computer_cctv_icon_add(
             height: Val::Percent(25.),
             ..default()
         },
-        Text::new("TEST"),
+        Text::new("CCTV"),
     )).id();
 
     world.commands()

@@ -4,6 +4,11 @@ use crate::{DiscoveredItems, GameState, ItemDatabase, container_interaction_obse
 
 #[derive(Resource)]
 struct DatabaseActiveEntry(pub String);
+impl FromWorld for DatabaseActiveEntry {
+    fn from_world(world: &mut World) -> Self {
+        Self("".to_string())
+    }
+}
 
 #[derive(Component, Reflect, Clone, PartialEq, Eq, Hash, Debug)]
 #[reflect(Component)]
@@ -36,6 +41,7 @@ pub struct UiDatabaseRoot;
 #[derive(Component)]
 #[require(
     Node {
+        flex_direction: FlexDirection::Column,
         ..default()
     },
     BackgroundColor::from(BLUE),
@@ -87,7 +93,19 @@ fn on_ui_database_entry_click(
     },
     BackgroundColor::from(BLACK),
 )]
+#[component(on_add = on_ui_database_active_entry_add)]
 pub struct UiDatabaseActiveEntry;
+
+fn on_ui_database_active_entry_add(
+    mut world: DeferredWorld,
+    context: HookContext,
+) {
+    let mut res = world.resource_mut::<DatabaseActiveEntry>();
+    res.0 = "".to_string();
+
+    world.commands()
+        .entity(context.entity);
+}
 
 fn update_ui_database_active_entry(
     mut commands: Commands,
@@ -102,6 +120,7 @@ fn update_ui_database_active_entry(
     *previous_active = active_entry.0.clone();
     if let Some(item_details) = item_database.0.get(&active_entry.0)
     && let Ok(active_entry_node) = active_entry_node_query.single() {
+        commands.entity(active_entry_node).despawn_children();
         let icon = commands.spawn((
                 UiDatabaseActiveEntryIcon,
             )).id();
@@ -151,6 +170,7 @@ pub struct DatabaseUiPlugin;
 impl Plugin for DatabaseUiPlugin {
     fn build(&self, app: &mut App) {
        app
+           .init_resource::<DatabaseActiveEntry>()
            .add_systems(Update, update_ui_database_active_entry.run_if(in_state(GameState::Gameplay)));
     }
 }

@@ -1,4 +1,5 @@
 use bevy::{asset::RenderAssetUsages, camera::RenderTarget, ecs::{lifecycle::HookContext, world::DeferredWorld}, prelude::*, render::{render_resource::{TextureDimension, TextureFormat, TextureUsages}, view::{ColorGrading, ColorGradingGlobal}}};
+use bevy_egui::PrimaryEguiContext;
 use bevy_landmass::{AgentTarget3d};
 use avian3d::{prelude::{Collider, SpatialQuery, SpatialQueryFilter}};
 
@@ -89,6 +90,7 @@ fn on_rover_camrea_add(
                 //clear_color: Color::WHITE.into(),
                 ..default()
             },
+            //PrimaryEguiContext,
             RenderTarget::Image(render_image.into()),
             ColorGrading {
                 global: ColorGradingGlobal {

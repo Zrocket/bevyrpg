@@ -1,6 +1,6 @@
 use bevy::{camera::RenderTarget, color::palettes::css::{BLUE, GREEN, RED}, ecs::{lifecycle::HookContext, world::DeferredWorld}, input::ButtonState, picking::{backend::ray::RayMap, pointer::{Location, PointerAction, PointerInput}}, prelude::*, window::{PrimaryWindow, WindowEvent}};
 
-use crate::{ComputerNode, ComputerUiNode, Desktop, IconClickTimer, Rover, RoverAttachments, RoverBackwardEvent, RoverCamera, RoverCameraDownEvent, RoverCameraUpEvent, RoverForwardEvent, RoverInteractEvent, RoverLeftEvent, RoverRecallEvent, RoverRightEvent, RoverSpawnedMessage, UseRoverAttachmentEvent, furniture::computer::{CUBE_POINTER_ID, ComputerScreenCube}, widgets::floating_windows::floating_computer_rover_window_root};
+use crate::{CctvCam, CctvDownEvent, CctvLeftEvent, CctvParent, CctvRightEvent, CctvUpEvent, ComputerNode, ComputerUiNode, Desktop, IconClickTimer, Rover, RoverAttachments, RoverBackwardEvent, RoverCamera, RoverCameraDownEvent, RoverCameraUpEvent, RoverForwardEvent, RoverInteractEvent, RoverLeftEvent, RoverRecallEvent, RoverRightEvent, RoverSpawnedMessage, UseRoverAttachmentEvent, furniture::computer::{CUBE_POINTER_ID, ComputerScreenCube}, widgets::floating_windows::floating_computer_rover_window_root};
 
 #[derive(Component)]
 #[require(
@@ -84,6 +84,31 @@ fn on_left_button_add(
         //height: px(50),
         ..default()
     },
+    Text("<".into()),
+    BackgroundColor(GREEN.into()),
+)]
+#[component(on_add = on_cctv_left_button_add)]
+pub struct CctvLeftButton;
+
+fn on_cctv_left_button_add(
+    mut world: DeferredWorld,
+    context: HookContext,
+) {
+    world.commands()
+        .entity(context.entity)
+        .observe(icon_over)
+        .observe(icon_out)
+        .observe(cctv_left_pressed)
+        .observe(cctv_left_released);
+}
+
+#[derive(Component)]
+#[require(
+    Node {
+        //width: px(300),
+        //height: px(50),
+        ..default()
+    },
     BackgroundColor(GREEN.into()),
     Text(">".into()),
 )]
@@ -100,6 +125,31 @@ fn on_right_button_add(
         .observe(icon_out)
         .observe(right_pressed)
         .observe(right_released);
+}
+
+#[derive(Component)]
+#[require(
+    Node {
+        //width: px(300),
+        //height: px(50),
+        ..default()
+    },
+    BackgroundColor(GREEN.into()),
+    Text(">".into()),
+)]
+#[component(on_add = on_cctv_right_button_add)]
+pub struct CctvRightButton;
+
+fn on_cctv_right_button_add(
+    mut world: DeferredWorld,
+    context: HookContext,
+) {
+    world.commands()
+        .entity(context.entity)
+        .observe(icon_over)
+        .observe(icon_out)
+        .observe(cctv_right_pressed)
+        .observe(cctv_right_released);
 }
 
 #[derive(Component)]
@@ -157,6 +207,70 @@ fn on_buttons_node_add(
                 parent.spawn(BackwardButton);
                 parent.spawn(CameraUpButton);
                 parent.spawn(CameraDownButton);
+            })),
+    )).id();
+
+    world.commands()
+        .entity(context.entity)
+        .add_child(top)
+        .add_child(middle)
+        .add_child(bottom);
+}
+
+#[derive(Component)]
+#[require(
+    Node {
+        width: px(50),
+        //height: px(50),
+        flex_direction: FlexDirection::Column,
+        justify_content: JustifyContent::Stretch,
+        ..default()
+    },
+    BackgroundColor(RED.into()),
+)]
+#[component(on_add = on_cctv_buttons_node_add)]
+pub struct CctvButtonsNode;
+
+fn on_cctv_buttons_node_add(
+    mut world: DeferredWorld,
+    context: HookContext,
+) {
+    let top = world.commands().spawn((
+            Node {
+                flex_direction: FlexDirection::Row,
+                justify_content: JustifyContent::Center,
+                flex_grow: 1.,
+                ..default()
+            },
+            //Children::spawn(SpawnWith(|parent: &mut ChildSpawner| {
+            //    parent.spawn(ForwardButton);
+            //})),
+    )).id();
+
+    let middle = world.commands().spawn((
+            Node {
+                flex_direction: FlexDirection::Row,
+                justify_content: JustifyContent::Center,
+                flex_grow: 1.,
+                ..default()
+            },
+            Children::spawn(SpawnWith(|parent: &mut ChildSpawner| {
+                parent.spawn(CctvLeftButton);
+                parent.spawn(CctvRightButton);
+            })),
+    )).id();
+
+    let bottom = world.commands().spawn((
+            Node {
+                flex_direction: FlexDirection::Row,
+                justify_content: JustifyContent::Center,
+                flex_grow: 1.,
+                ..default()
+            },
+            Children::spawn(SpawnWith(|parent: &mut ChildSpawner| {
+                //parent.spawn(BackwardButton);
+                parent.spawn(CctvCameraUpButton);
+                parent.spawn(CctvCameraDownButton);
             })),
     )).id();
 
@@ -259,6 +373,29 @@ fn on_camera_up_button_add(
     Node {
         ..default()
     },
+    Text("^".into()),
+    BackgroundColor(GREEN.into()),
+)]
+#[component(on_add = on_cctv_camera_up_button_add)]
+pub struct CctvCameraUpButton;
+
+fn on_cctv_camera_up_button_add(
+    mut world: DeferredWorld,
+    context: HookContext,
+) {
+    world.commands()
+        .entity(context.entity)
+        .observe(icon_over)
+        .observe(icon_out)
+        .observe(cctv_camera_up_pressed)
+        .observe(cctv_camera_up_released);
+}
+
+#[derive(Component)]
+#[require (
+    Node {
+        ..default()
+    },
     Text("v".into()),
     BackgroundColor(GREEN.into()),
 )]
@@ -275,6 +412,29 @@ fn on_camera_down_button_add(
         .observe(icon_out)
         .observe(camera_down_pressed)
         .observe(camera_down_released);
+}
+
+#[derive(Component)]
+#[require (
+    Node {
+        ..default()
+    },
+    Text("v".into()),
+    BackgroundColor(GREEN.into()),
+)]
+#[component(on_add = on_cctv_camera_down_button_add)]
+pub struct CctvCameraDownButton;
+
+fn on_cctv_camera_down_button_add(
+    mut world: DeferredWorld,
+    context: HookContext,
+) {
+    world.commands()
+        .entity(context.entity)
+        .observe(icon_over)
+        .observe(icon_out)
+        .observe(cctv_camera_down_pressed)
+        .observe(cctv_camera_down_released);
 }
 
 pub(crate) fn pickup_pressed(
@@ -337,6 +497,16 @@ pub(crate) fn left_pressed(
     }
 }
 
+pub(crate) fn cctv_left_pressed(
+    _trigger: On<Pointer<Press>>,
+    mut commands: Commands,
+    cctv_query: Query<Entity, With<CctvParent>>,
+) {
+    for entity in cctv_query.iter() {
+        commands.entity(entity).trigger(|entity| CctvLeftEvent { entity });
+    }
+}
+
 pub(crate) fn left_released(
     _trigger: On<Pointer<Release>>,
     mut commands: Commands,
@@ -344,6 +514,17 @@ pub(crate) fn left_released(
 ) {
     if let Ok(rover_entity) = rover_query.single() {
         commands.entity(rover_entity).trigger(|entity| RoverLeftEvent { entity });
+    }
+}
+
+pub(crate) fn cctv_left_released(
+    _trigger: On<Pointer<Release>>,
+    mut commands: Commands,
+    cctv_query: Query<Entity, With<CctvParent>>,
+) {
+    if let Ok(entity) = cctv_query.single() {
+    //for entity in cctv_query.iter() {
+        commands.entity(entity).trigger(|entity| CctvLeftEvent { entity });
     }
 }
 
@@ -357,6 +538,17 @@ pub(crate) fn right_pressed(
     }
 }
 
+pub(crate) fn cctv_right_pressed(
+    _trigger: On<Pointer<Press>>,
+    mut commands: Commands,
+    cctv_query: Query<Entity, With<CctvParent>>,
+) {
+    if let Ok(entity) = cctv_query.single() {
+    //for entity in cctv_query.iter() {
+        commands.entity(entity).trigger(|entity| CctvRightEvent { entity });
+    }
+}
+
 pub(crate) fn right_released(
     _trigger: On<Pointer<Release>>,
     mut commands: Commands,
@@ -364,6 +556,17 @@ pub(crate) fn right_released(
 ) {
     if let Ok(rover_entity) = rover_query.single() {
         commands.entity(rover_entity).trigger(|entity| RoverRightEvent { entity });
+    }
+}
+
+pub(crate) fn cctv_right_released(
+    _trigger: On<Pointer<Release>>,
+    mut commands: Commands,
+    cctv_query: Query<Entity, With<CctvParent>>,
+) {
+    if let Ok(entity) = cctv_query.single() {
+    //for entity in cctv_query.iter() {
+        commands.entity(entity).trigger(|entity| CctvRightEvent { entity });
     }
 }
 
@@ -399,6 +602,17 @@ pub(crate) fn camera_up_pressed(
     }
 }
 
+pub(crate) fn cctv_camera_up_pressed(
+    _trigger: On<Pointer<Press>>,
+    mut commands: Commands,
+    cctv_query: Query<Entity, With<CctvParent>>,
+) {
+    if let Ok(entity) = cctv_query.single() {
+    //for rover_entity in cctv_query.iter() {
+        commands.entity(entity).trigger(|entity| CctvUpEvent { entity });
+    }
+}
+
 pub(crate) fn camera_up_released(
     _trigger: On<Pointer<Release>>,
     mut commands: Commands,
@@ -406,6 +620,17 @@ pub(crate) fn camera_up_released(
 ) {
     if let Ok(rover_entity) = rover_query.single() {
         commands.entity(rover_entity).trigger(|entity| RoverCameraUpEvent { entity });
+    }
+}
+
+pub(crate) fn cctv_camera_up_released(
+    _trigger: On<Pointer<Release>>,
+    mut commands: Commands,
+    cctv_query: Query<Entity, With<CctvParent>>,
+) {
+    if let Ok(entity) = cctv_query.single() {
+    //for entity in cctv_query.iter() {
+        commands.entity(entity).trigger(|entity| CctvUpEvent { entity });
     }
 }
 
@@ -419,6 +644,17 @@ pub(crate) fn camera_down_pressed(
     }
 }
 
+pub(crate) fn cctv_camera_down_pressed(
+    _trigger: On<Pointer<Press>>,
+    mut commands: Commands,
+    cctv_query: Query<Entity, With<CctvParent>>,
+) {
+    if let Ok(entity) = cctv_query.single() {
+    //for entity in cctv_query.iter() {
+        commands.entity(entity).trigger(|entity| CctvDownEvent { entity });
+    }
+}
+
 pub(crate) fn camera_down_released(
     _trigger: On<Pointer<Release>>,
     mut commands: Commands,
@@ -426,6 +662,17 @@ pub(crate) fn camera_down_released(
 ) {
     if let Ok(rover_entity) = rover_query.single() {
         commands.entity(rover_entity).trigger(|entity| RoverCameraDownEvent { entity });
+    }
+}
+
+pub(crate) fn cctv_camera_down_released(
+    _trigger: On<Pointer<Release>>,
+    mut commands: Commands,
+    cctv_query: Query<Entity, With<CctvParent>>,
+) {
+    if let Ok(entity) = cctv_query.single() {
+    //for entity in cctv_query.iter() {
+        commands.entity(entity).trigger(|entity| CctvDownEvent { entity });
     }
 }
 
@@ -500,7 +747,7 @@ pub(crate) fn cctv_icon_double_click_observer(
     mut timer_query: Query<&mut IconClickTimer>,
     mut commands: Commands,
     computer_ui_query: Query<Entity, With<ComputerUiNode>>,
-    cctv_camera_query: Query<Entity, With<crate::CctvCam>>,
+    cctv_camera_query: Query<Entity, With<CctvCam>>,
 ) {
     if let Ok(mut timer) = timer_query.get_mut(trigger.entity)
     && let Ok(computer_ui) = computer_ui_query.single()
@@ -522,7 +769,7 @@ pub(crate) fn cctv_icon_double_click_observer(
                         ViewportNode::new(cctv_camrea),
                         BorderColor::all(Color::WHITE),
                         Children::spawn(SpawnWith(|root_parent: &mut ChildSpawner| {
-                           // root_parent.spawn(ButtonsNode);
+                            root_parent.spawn(CctvButtonsNode);
                         })),
                     )),
             )).id();
@@ -618,7 +865,7 @@ pub(crate) fn drive_diegetic_pointer(
 
     if *hitting_screen && !hit_this_frame {
         pointer_inputs.write(PointerInput::new(
-                CUBE_POINTER_ID, 
+                CUBE_POINTER_ID,
                 Location { target: target.clone(), position: *cursor_last },
                 PointerAction::Cancel,
         ));

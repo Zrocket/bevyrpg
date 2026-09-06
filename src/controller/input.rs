@@ -135,6 +135,17 @@ pub struct TnuaRoverController;
 
 #[derive(Component, Default)]
 #[require(
+    TnuaController::<PlayerControlScheme>::default(),
+    TnuaAvian3dSensorShape(Collider::cuboid(0.5, 0.5, 0.5)),
+    TnuaSimpleAirActionsCounter::<PlayerControlScheme>::default(),
+    RigidBody::Static,
+    Walk::default(),
+)]
+#[component(on_add = on_tnua_rover_controller_add)]
+pub struct TnuaCctvController;
+
+#[derive(Component, Default)]
+#[require(
 )]
 #[component(on_add = on_tnua_player_controller_add)]
 pub struct TnuaPlayerController;
