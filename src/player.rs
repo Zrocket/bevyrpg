@@ -97,19 +97,21 @@ pub struct Player;
 #[require(
     Name::new("PlayerCamera"),
     Camera {
+        order: 10000,
         clear_color: ClearColorConfig::Custom(Srgba::rgb(0.0, 0.0, 0.0).into()),
         ..default()
     },
     Camera3d { ..default() },
+    PrimaryEguiContext,
     Projection::Perspective(PerspectiveProjection {
         fov: std::f32::consts::PI / 2.0,
         ..default()
     }),
-    AtmosphereSettings {
+    /*AtmosphereSettings {
         aerial_view_lut_max_distance: 3.2e5,
         //scene_units_to_m: 1e+4,
         ..Default::default()
-    },
+    },*/
     Hdr,
     Exposure::SUNLIGHT,
     Tonemapping::AcesFitted,
@@ -233,8 +235,8 @@ fn on_player_camera_add(
 
     world.commands()
         .entity(context.entity)
-        .insert(Atmosphere::earth(scattering_mediums_handle))
-        .insert(PrimaryEguiContext);
+        .insert(Atmosphere::earth(scattering_mediums_handle));
+        //.insert(PrimaryEguiContext);
 }
 
 fn init_player(

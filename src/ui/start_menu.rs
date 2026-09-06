@@ -1,4 +1,5 @@
 use bevy::prelude::*;
+use bevy_egui::PrimaryEguiContext;
 
 use crate::{MenuState, MetaState, widgets};
 
@@ -8,6 +9,7 @@ use crate::{MenuState, MetaState, widgets};
         ..default()
     },
     Camera3d::default(),
+    //PrimaryEguiContext,
 )]
 pub struct StartMenuCamera;
 
