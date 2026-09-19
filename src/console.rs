@@ -1,8 +1,9 @@
 use avian3d::prelude::{Collider, GravityScale};
 use bevy::prelude::*;
+//use bevy_console::{AddConsoleCommand, ConsoleCommand};
 use bevy_flycam::FlyCam;
 use bevy_landmass::debug::EnableLandmassDebug;
-use chill_bevy_console::{ChillConsole, CommandArgs, ConsoleAppExt};
+use chill_bevy_console::{ChillConsole, CommandArgs, ConsoleAppExt, ConsoleCommand};
 
 use crate::{AddToInventoryEvent, DamageEvent, DeathEvent, Equiptable, GodMode, Health, ItemDetails, Player, PlayerCamera, PlayerState, level::ChangeLevelMessage};
 
@@ -10,16 +11,16 @@ pub struct MyConsolePlugin;
 impl Plugin for MyConsolePlugin {
     fn build(&self, app: &mut App) {
         app
-            .add_plugins(ChillConsole::default());
-            //.add_console_command("level", "level <file>", level_command)
-            //.add_console_command("gravity", "gravity <value>", gravity_command)
-            //.add_console_command("suicide", "suicide", suicide_command)
-            //.add_console_command("god", "god", god_command)
-            //.add_console_command("noclip", "noclip", noclip_command)
-            //.add_console_command("navmesh", "navmesh", navmesh_command)
-            //.add_console_command("damage", "damage", damage_command)
-            //.add_console_command("inventory", "inventory", inventory_command)
-            //.add_console_command("mana", "mana", mana_command);
+            .add_plugins(ChillConsole::default())
+            .add_console_command(ConsoleCommand::new("level", "level <file>", level_command))
+            .add_console_command(ConsoleCommand::new("gravity", "gravity <value>", gravity_command))
+            .add_console_command(ConsoleCommand::new("suicide", "suicide", suicide_command))
+            .add_console_command(ConsoleCommand::new("god", "god", god_command))
+            .add_console_command(ConsoleCommand::new("noclip", "noclip", noclip_command))
+            .add_console_command(ConsoleCommand::new("navmesh", "navmesh", navmesh_command))
+            .add_console_command(ConsoleCommand::new("damage", "damage", damage_command))
+            .add_console_command(ConsoleCommand::new("inventory", "inventory", inventory_command))
+            .add_console_command(ConsoleCommand::new("mana", "mana", mana_command));
     }
 }
 
