@@ -1,8 +1,10 @@
 use bevy::prelude::*;
 
+mod applicator;
 mod drill;
 mod foam_gun;
 
+pub use applicator::*;
 pub use drill::*;
 pub use foam_gun::*;
 
@@ -19,9 +21,21 @@ pub struct UseRoverAttachmentEvent {
     pub entity: Entity,
 }
 
+#[derive(EntityEvent)]
+pub struct SwitchRoveerAttachmentEvent {
+    pub entity: Entity,
+    pub attachment: Attachment,
+}
+
+pub enum Attachment {
+    Applicator,
+    Drill,
+    FoamGun,
+}
+
 pub struct RoverAttachmenntPlugin;
 impl Plugin for RoverAttachmenntPlugin {
     fn build(&self, app: &mut App) {
-       app; 
+       app;
     }
 }

@@ -1,5 +1,4 @@
 use bevy::{asset::RenderAssetUsages, camera::RenderTarget, ecs::{lifecycle::HookContext, world::DeferredWorld}, prelude::*, render::{render_resource::{TextureDimension, TextureFormat, TextureUsages}, view::{ColorGrading, ColorGradingGlobal}}};
-use bevy_egui::PrimaryEguiContext;
 use bevy_landmass::{AgentTarget3d};
 use avian3d::{prelude::{Collider, SpatialQuery, SpatialQueryFilter}};
 
@@ -10,7 +9,7 @@ mod movement;
 pub use attachment::*;
 pub use movement::*;
 
-use crate::{GameState, InteractionEvent, MetaState, TnuaRoverController, add_to_inventory_observer, level::CollisionLayer, Interactable, container_interaction_observer, display_inventory_event_observer};
+use crate::{DisplayInventoryEvent, GameState, Interactable, InteractionEvent, MetaState, TnuaRoverController, add_to_inventory_observer, container_interaction_observer, display_inventory_event_observer, display_rover_ui, level::CollisionLayer};
 
 #[derive(EntityEvent)]
 pub struct RoverRecallEvent {
@@ -138,8 +137,11 @@ fn on_rover_add(
         //.insert(related!(RoverAttachments[
         //        (FoamGunAttachment),
         //]))
+        //.insert(related!(RoverAttachments[
+        //        (SampleDrillAttachment),
+        //]))
         .insert(related!(RoverAttachments[
-                (SampleDrillAttachment),
+                (ApplicatorAttachment(None)),
         ]))
         .add_child(rover_camera)
         .observe(on_rover_forward_observer)
@@ -150,30 +152,41 @@ fn on_rover_add(
         .observe(on_rover_interact_observer)
         .observe(on_rover_recall_observer)
         .observe(container_interaction_observer)
-        .observe(display_inventory_event_observer)
+        //.observe(display_inventory_event_observer)
+        .observe(display_rover_ui)
         .observe(on_rover_camera_up_observer)
-        .observe(on_rover_camera_down_observer);
+        .observe(on_rover_camera_down_observer)
+        .observe(switch_rover_attachment_observer);
 
     world.write_message_default::<RoverSpawnedMessage>();
+}
+
+fn switch_rover_attachment_observer(
+    trigger: On<SwitchRoveerAttachmentEvent>,
+    mut commands: Commands,
+    mut rover_query: Query<Entity, With<crate::Rover>>,
+) {
+    if let Ok(rover_entity) = rover_query.single_mut() {
+        commands.entity(rover_entity)
+            .remove::<RoverAttachments>();
+        match trigger.event().attachment {
+            Attachment::Applicator => {
+                commands.entity(rover_entity).insert(related!(RoverAttachments[(ApplicatorAttachment(None))]));
+            }
+            Attachment::Drill => {
+                commands.entity(rover_entity).insert(related!(RoverAttachments[(SampleDrillAttachment)]));
+            }
+            Attachment::FoamGun => {
+                commands.entity(rover_entity).insert(related!(RoverAttachments[(FoamGunAttachment)]));
+            }
+        }
+    }
 }
 
 fn spawn_rover(
     mut spawn_rover_message_writer: MessageWriter<SpawnRoverMessage>,
 ) {
     spawn_rover_message_writer.write(SpawnRoverMessage);
-
-    /*let pickup_zone = commands.spawn((
-            RoverPickupZone,
-            //MeshMaterial3d(materials.add(Color::BLACK)),
-    )).id();
-
-    commands.spawn((
-            Rover,
-            Transform::from_xyz(15.0, 1.75, 15.0),
-            Mesh3d(meshes.add(Cuboid::new(1.0, 1.0, 1.0))),
-            MeshMaterial3d(materials.add(Color::WHITE)),
-    ))
-    .add_child(pickup_zone);*/
 }
 
 fn spawn_rover_observer(
@@ -231,14 +244,14 @@ impl FromWorld for RoverCamreaRenderImage {
     }
 }
 
-fn test_rover_interact(
+fn test_rover_switch_attachment(
     rover_query: Query<Entity, With<Rover>>,
     mut commands: Commands,
     key: Res<ButtonInput<KeyCode>>,
 ) {
     if let Ok(rover_entity) = rover_query.single()
     && key.just_pressed(KeyCode::KeyP) {
-        commands.entity(rover_entity).trigger(|entity| RoverInteractEvent { entity });
+        commands.entity(rover_entity).trigger(|entity| SwitchRoveerAttachmentEvent { entity, attachment: Attachment::FoamGun });
     }
 }
 
@@ -254,7 +267,7 @@ impl Plugin for RoverPlugin {
             .add_systems(OnEnter(MetaState::Gameplay), spawn_rover)
             .add_systems(Update, (
                     apply_rover_movement.run_if(in_state(GameState::Gameplay)),
-                    test_rover_interact.run_if(in_state(GameState::Gameplay)),
+                    test_rover_switch_attachment.run_if(in_state(GameState::Gameplay)),
                     spawn_rover_observer,
                     dart_timer.run_if(in_state(GameState::Gameplay)),
             ));
