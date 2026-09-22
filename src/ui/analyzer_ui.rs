@@ -40,7 +40,6 @@ fn on_ui_analyzer_root_add(
         overflow: Overflow { x: OverflowAxis::Hidden, y: OverflowAxis::Hidden },
         ..default()
     },
-    Text("AEIOU".into()),
     BackgroundColor::from(DARK_SLATE_GRAY),
 )]
 #[component(on_add = on_ui_analyzer_add)]

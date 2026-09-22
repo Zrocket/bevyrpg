@@ -65,7 +65,7 @@ pub(crate) fn misc_pickup_observer(
     mut avian_pickup_input_writer: MessageWriter<AvianPickupInput>,
     _held_prop_query: Query<&HeldProp>,
 ) {
-    trace!("OBSERVER: misc_interaction_observer");
+    trace!("OBSERVER: misc_pickup_observer");
     let actor = trigger.event().actor;
     commands.entity(trigger.event().entity).remove::<RigidBodyDisabled>();
     avian_pickup_input_writer.write(AvianPickupInput { actor, action: AvianPickupAction::Pull });

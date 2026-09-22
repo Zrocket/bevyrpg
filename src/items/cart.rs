@@ -10,7 +10,7 @@ use crate::misc_pickup_observer;
 #[component(on_add = on_cartridge_add)]
 pub struct Cartridge {
     pub title: String,
-    pub icon: Image,
+    pub icon: String,
 }
 
 fn on_cartridge_add(
