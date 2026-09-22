@@ -13,7 +13,7 @@ use crate::{CctvCam, CctvDownEvent, CctvLeftEvent, CctvParent, CctvRightEvent, C
     Text("^".into()),
 )]
 #[component(on_add = on_forward_button_add)]
-pub struct ForwardButton;
+pub struct RoverForwardButton;
 
 fn on_forward_button_add(
     mut world: DeferredWorld,
@@ -23,8 +23,8 @@ fn on_forward_button_add(
         .entity(context.entity)
         .observe(icon_over)
         .observe(icon_out)
-        .observe(forward_pressed)
-        .observe(forward_released);
+        .observe(rover_forward_pressed)
+        .observe(rover_forward_released);
 }
 
 #[derive(Component)]
@@ -38,7 +38,7 @@ fn on_forward_button_add(
     Text("v".into()),
 )]
 #[component(on_add = on_backward_button_add)]
-pub struct BackwardButton;
+pub struct RoverBackwardButton;
 
 fn on_backward_button_add(
     mut world: DeferredWorld,
@@ -48,8 +48,8 @@ fn on_backward_button_add(
         .entity(context.entity)
         .observe(icon_over)
         .observe(icon_out)
-        .observe(backward_pressed)
-        .observe(backward_released);
+        .observe(rover_backward_pressed)
+        .observe(rover_backward_released);
 }
 
 #[derive(Component)]
@@ -164,7 +164,7 @@ fn on_cctv_right_button_add(
     BackgroundColor(RED.into()),
 )]
 #[component(on_add = on_buttons_node_add)]
-pub struct ButtonsNode;
+pub struct RoverButtonsNode;
 
 fn on_buttons_node_add(
     mut world: DeferredWorld,
@@ -178,7 +178,7 @@ fn on_buttons_node_add(
                 ..default()
             },
             Children::spawn(SpawnWith(|parent: &mut ChildSpawner| {
-                parent.spawn(ForwardButton);
+                parent.spawn(RoverForwardButton);
             })),
     )).id();
 
@@ -204,8 +204,8 @@ fn on_buttons_node_add(
                 ..default()
             },
             Children::spawn(SpawnWith(|parent: &mut ChildSpawner| {
-                parent.spawn(BackwardButton);
                 parent.spawn(CameraUpButton);
+                parent.spawn(RoverBackwardButton);
                 parent.spawn(CameraDownButton);
             })),
     )).id();
@@ -447,7 +447,7 @@ pub(crate) fn pickup_pressed(
     }
 }
 
-pub(crate) fn forward_pressed(
+pub(crate) fn rover_forward_pressed(
     _trigger: On<Pointer<Press>>,
     mut commands: Commands,
     rover_query: Query<Entity, With<Rover>>,
@@ -457,7 +457,7 @@ pub(crate) fn forward_pressed(
     }
 }
 
-pub(crate) fn forward_released(
+pub(crate) fn rover_forward_released(
     _trigger: On<Pointer<Release>>,
     mut commands: Commands,
     rover_query: Query<Entity, With<Rover>>,
@@ -467,7 +467,7 @@ pub(crate) fn forward_released(
     }
 }
 
-pub(crate) fn backward_pressed(
+pub(crate) fn rover_backward_pressed(
     _trigger: On<Pointer<Press>>,
     mut commands: Commands,
     rover_query: Query<Entity, With<Rover>>,
@@ -477,7 +477,7 @@ pub(crate) fn backward_pressed(
     }
 }
 
-pub(crate) fn backward_released(
+pub(crate) fn rover_backward_released(
     _trigger: On<Pointer<Release>>,
     mut commands: Commands,
     rover_query: Query<Entity, With<Rover>>,
@@ -732,7 +732,7 @@ pub(crate) fn rover_icon_double_click_observer(
                         Children::spawn(SpawnWith(|root_parent: &mut ChildSpawner| {
                             root_parent.spawn(RecallButton);
                             root_parent.spawn(AttachmentButton);
-                            root_parent.spawn(ButtonsNode);
+                            root_parent.spawn(RoverButtonsNode);
                         })),
                     )),
             )).id();
