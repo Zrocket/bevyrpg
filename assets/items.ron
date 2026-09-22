@@ -16,4 +16,20 @@
         weight: 1,
         kind: Misc,
     ),
+    (
+        id: "fungal_mesh",
+        name: "Fungal Mesh",
+        description: "Fungal Mesh",
+        weight: 1,
+        kind: Sample(
+            analysis: ["Ostensibly the  mycelium of the super-organism. It grows exceptionally fast, being able to cover a football field in under a day."],
+        )
+    ),
+    (
+        id: "colloidal_copper",
+        name: "Colloidal Copper",
+        description: "A potent fungicide",
+        weight: 1,
+        kind: Misc,
+    ),
 ]

@@ -1,11 +1,13 @@
 use bevy::prelude::*;
 use avian_pickup::prop::HeldProp;
 use avian3d::prelude::CollisionLayers;
+use bevy_asset_loader::{asset_collection::AssetCollection, loading_state::{LoadingStateAppExt, config::{ConfigureLoadingState, LoadingStateConfig}}, standard_dynamic_asset::StandardDynamicAssetArrayCollection};
 use bevy_common_assets::ron::RonAssetPlugin;
 use serde::Deserialize;
 use std::{collections::HashMap, iter};
 
 mod ammo;
+mod applicable;
 mod armor;
 mod books;
 mod cart;
@@ -22,6 +24,7 @@ mod socket;
 mod weapons;
 
 pub use ammo::*;
+pub use applicable::*;
 pub use armor::*;
 pub use books::*;
 pub use cart::*;
@@ -62,13 +65,34 @@ pub struct ItemDefinition {
 }
 
 #[derive(Asset, TypePath, Deserialize, Clone, Debug)]
-pub struct ItemDefinitions(pub Vec<ItemDefinition>);
+pub struct ItemDefinitions(Vec<ItemDefinition>);
+
+#[derive(AssetCollection, Resource, TypePath, Clone, Debug)]
+pub struct ItemDefinitionsHandle{
+    #[asset(path = "items.ron")]
+    pub handle: Handle<ItemDefinitions>,
+}
 
 #[derive(Resource)]
-pub struct ItemDefinitionsHandle(pub Handle<ItemDefinitions>);
-
-#[derive(Resource, Default)]
 pub struct ItemDatabase(pub HashMap<String, ItemDefinition>);
+
+impl FromWorld for ItemDatabase {
+    fn from_world(world: &mut World) -> Self {
+        let handle = world.resource::<ItemDefinitionsHandle>();
+        let definitions = world.resource::<Assets<ItemDefinitions>>();
+
+        let list = definitions
+            .get(&handle.handle)
+            .expect("ItemDefinitions must be loaded before ItemDatabase is initialized");
+
+        ItemDatabase(
+            list.0
+                .iter()
+                .map(|def| (def.id.clone(), def.clone()))
+                .collect(),
+        )
+    }
+}
 
 #[derive(Component, Reflect, Clone, Default)]
 #[reflect(Component)]
@@ -142,10 +166,13 @@ impl Plugin for ItemPlugin {
                     SampleItemPlugin,
                     DrillableItemPlugin,
                     SocketItemPlugin,
-                    RonAssetPlugin::<ItemDefinitions>::new(&["items.ron"]),
+                    RonAssetPlugin::<ItemDefinitions>::new(&["ron"]),
             ))
-            .add_systems(OnEnter(BootStrap::Loading), (load_items))
-            .add_systems(OnEnter(BootStrap::Postload), (build_item_database))
+            .configure_loading_state(
+                LoadingStateConfig::new(BootStrap::Preload)
+                .load_collection::<ItemDefinitionsHandle>()
+                .finally_init_resource::<ItemDatabase>()
+            )
             .add_observer(disabled_held_prop_collision)
             .add_observer(enable_dropped_prop_collision);
     }
@@ -176,27 +203,5 @@ fn enable_dropped_prop_collision(
             continue;
         };
         //collision_layers.filters.add(CollisionLayer::Player);
-    }
-}
-
-fn load_items(mut commands: Commands, asset_server: Res<AssetServer>) {
-    let handle = asset_server.load("items.ron");
-    commands.insert_resource(ItemDefinitionsHandle(handle));
-}
-
-fn build_item_database(
-    mut commands: Commands,
-    mut events: MessageReader<AssetEvent<ItemDefinitions>>,
-    handle: Res<ItemDefinitionsHandle>,
-    definitions: Res<Assets<ItemDefinitions>>,
-) {
-    for event in events.read() {
-        if event.is_loaded_with_dependencies(&handle.0)
-        && let Some(list) = definitions.get(&handle.0) {
-            let db = list.0.iter()
-                .map(|def| (def.id.clone(), def.clone()))
-                .collect();
-            commands.insert_resource(ItemDatabase(db));
-        }
     }
 }
