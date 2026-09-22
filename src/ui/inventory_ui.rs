@@ -135,7 +135,7 @@ pub fn display_inventory_event_observer(
     }
 
     //let item_vec = collect_inventory_items(trigger.entity, &inventory, &item_query);
-
+    
     commands.spawn((
         DespawnOnExit(UiState::Inventory),
         floating_window_root(

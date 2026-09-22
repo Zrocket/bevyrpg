@@ -44,7 +44,6 @@ fn drill_event_observer(
     drillable_query: Query<&Drillable>,
     rover_query: Query<Entity, With<Rover>>,
 ) {
-    println!("DRILLDRILLDRILL");
     if let Ok(drillable) = drillable_query.get(trigger.entity)
     && let Some(item_details) = item_database.0.get(&drillable.0)
     && let Ok(rover) = rover_query.single() {

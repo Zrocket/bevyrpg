@@ -2,7 +2,7 @@ use avian_pickup::{AvianPickupPlugin};
 use avian_rerecast::AvianBackendPlugin;
 use avian3d::prelude::*;
 use bevy::{
-    dev_tools::fps_overlay::{FpsOverlayConfig, FpsOverlayPlugin, FrameTimeGraphConfig}, light::light_consts::lux::{FULL_DAYLIGHT, OFFICE}, log::LogPlugin, prelude::*, text::FontSmoothing, window::{ CursorGrabMode, CursorOptions, WindowResolution,}
+    dev_tools::fps_overlay::{FpsOverlayConfig, FpsOverlayPlugin, FrameTimeGraphConfig}, light::light_consts::lux::FULL_DAYLIGHT, log::LogPlugin, prelude::*, text::FontSmoothing, window::{ CursorGrabMode, CursorOptions, WindowResolution,}
 };
 use bevy_asset_loader::prelude::*;
 //use bevy_bae::BaePlugin;
@@ -127,7 +127,7 @@ fn main() {
             .set(LogPlugin {
                 level: bevy::log::Level::TRACE,
                 //filter: "info,wgpu=error,bevy_landmass=trace,bevyrpg=trace".into(),
-                filter: "info,wgpu=error".into(),
+                filter: "info,bevy_asset_loader=trace,wgpu=error".into(),
                 ..default()
             }),
     )
