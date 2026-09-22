@@ -1,0 +1,11 @@
+#![enable(unwrap_newtypes)]
+[
+    (
+        id: "colloidal_copper",
+        description: "colloidal_copper",
+        inputs: [("test", 1)],
+        output_tag: "colloidal_copper",
+        output_name: "colloidal copper",
+        craft_time: 100.,
+    )
+]

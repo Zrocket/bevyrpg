@@ -1,8 +1,11 @@
 use std::collections::HashMap;
 
 use bevy::{ecs::{component::ComponentId, lifecycle::HookContext, world::DeferredWorld}, prelude::*};
+use bevy_asset_loader::{asset_collection::AssetCollection, loading_state::{LoadingStateAppExt, config::{ConfigureLoadingState, LoadingStateConfig}}};
+use bevy_common_assets::ron::{RonAssetError, RonAssetPlugin};
+use serde::Deserialize;
 
-use crate::{Inventory, Player, RemoveFromInventoryEvent, container_interaction_observer, crafting_ui::display_crafting_ui, spawn_sample};
+use crate::{BootStrap, Inventory, Player, RemoveFromInventoryEvent, container_interaction_observer, crafting_ui::display_crafting_ui, spawn_sample};
 
 #[derive(EntityEvent)]
 pub struct CraftEvent {
@@ -18,6 +21,7 @@ fn craft_event_observer(
     tag_query: Query<&CraftTag>,
     crafting_station_query: Query<Entity, With<CraftingStation>>,
 ) {
+    println!("{}", trigger.id);
     if let Ok((entity, inventory)) = inventory_query.single()
     && let Some(recipe) = recipe_book.0.get(&trigger.id)
     && let Ok(crafting_station) = crafting_station_query.single() {
@@ -79,7 +83,7 @@ fn update_craft_timer(
     }
 }
 
-#[derive(Clone, Debug)]
+#[derive(Asset, TypePath, Deserialize, Clone, Debug)]
 pub struct Recipe {
     pub id: String,
     pub description: String,
@@ -87,27 +91,50 @@ pub struct Recipe {
     pub output_tag: String,
     pub output_name: String,
     pub craft_time: f32,
-    pub output: fn(&mut Commands) -> Entity,
+}
+
+#[derive(Asset, TypePath, Deserialize, Clone, Debug)]
+pub struct CraftingRecipes(Vec<Recipe>);
+
+
+#[derive(AssetCollection, Resource, TypePath, Clone, Debug)]
+pub struct CraftingRecipesHandle{
+    #[asset(path = "recipes.r.ron")]
+    pub handle: Handle<CraftingRecipes>,
 }
 
 #[derive(Resource)]
 pub struct RecipeBook(pub HashMap<String, Recipe>);
 impl FromWorld for RecipeBook {
     fn from_world(world: &mut World) -> Self {
-        let mut tmp = HashMap::<String, Recipe>::new();
+        let handle = world.resource::<CraftingRecipesHandle>();
+        let recipes = world.resource::<Assets<CraftingRecipes>>();
+
+        let list = recipes
+            .get(&handle.handle)
+            .expect("CraftingRecipes must be loaded before RecipeBook is initialized");
+
+        RecipeBook(
+            list.0
+                .iter()
+                .map(|recipe| (recipe.id.clone(), recipe.clone()))
+                .collect()
+        )
+
+        /*let mut tmp = HashMap::<String, Recipe>::new();
         tmp.insert("fungacide".into(),
                     Recipe {
-                        id: String::from("fungacide"),
+                        id: String::from("colloidal copper"),
                         description: String::from("a fungacide"),
                         inputs: vec![("test".into(), 1)],
-                        output_tag: "fungacide".into(),
-                        output_name: "fungacide".into(),
+                        output_tag: "colloidal_copper".into(),
+                        output_name: "colloidal copper".into(),
                         craft_time: 100.,
-                        output: spawn_sample,
                     },
             );
 
             Self(tmp)
+        */
     }
 }
 
@@ -115,7 +142,13 @@ pub struct CraftingPlugin;
 impl Plugin for CraftingPlugin {
     fn build(&self, app: &mut App) {
        app
-           .init_resource::<RecipeBook>()
+           .add_plugins(RonAssetPlugin::<CraftingRecipes>::new(&["r.ron"]))
+           .configure_loading_state(
+               LoadingStateConfig::new(BootStrap::Loading)
+               .load_collection::<CraftingRecipesHandle>()
+               .finally_init_resource::<RecipeBook>()
+           )
+           //.init_resource::<RecipeBook>()
            .register_type::<CraftingStation>()
            .add_systems(Update, update_craft_timer);
     }
