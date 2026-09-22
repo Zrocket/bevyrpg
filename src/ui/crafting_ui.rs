@@ -2,7 +2,7 @@ use std::collections::HashMap;
 
 use bevy::{color::palettes::css::{BLUE, DARK_KHAKI, DARK_SLATE_GRAY, DARK_SLATE_GREY, DARK_TURQUOISE, DARK_VIOLET, GRAY, GREEN, PINK, YELLOW}, ecs::{lifecycle::HookContext, world::DeferredWorld}, prelude::*};
 
-use crate::{AddToInventoryEvent, CraftEvent, CraftTag, CraftTimer, CraftingStation, DisplayInventoryEvent, Inventory, ItemDetails, Player, RecipeBook, UiState, analyzer_ui::ProgressTimer, recipe_is_craftable, tally_tags, widgets::{floating_windows::floating_window_root, progress_bar::ProgressBar}};
+use crate::{AddToInventoryEvent, CraftEvent, CraftTag, CraftTimer, CraftingStation, DisplayInventoryEvent, GameState, Inventory, ItemDatabase, ItemDetails, Player, RecipeBook, UiState, analyzer_ui::ProgressTimer, recipe_is_craftable, tally_tags, widgets::{floating_windows::floating_window_root, progress_bar::ProgressBar}};
 
 #[derive(Component)]
 #[require(
@@ -48,14 +48,24 @@ fn on_craft_result_icon_click(
     player_query: Query<Entity, With<Player>>,
     active_recipe_query: Query<&UiActiveRecipe>,
     recipe_book: Res<RecipeBook>,
+    item_database: Res<ItemDatabase>
 ) {
     if let Ok(timer_entity) = timer_query.single()
     && let Ok(player) = player_query.single()
     && let Ok(active_recipe) = active_recipe_query.single()
     && let Some(active_recipe) = &active_recipe.0
     && let Some(recipe) = recipe_book.0.get(active_recipe) {
-        let item = (recipe.output)(&mut commands);
-        commands.entity(player).trigger(|entity| AddToInventoryEvent { entity, item });
+        if let Some(output_item_def) = item_database.0.get(&recipe.output_tag) {
+            let item = commands.spawn(
+                    ItemDetails {
+                        name: output_item_def.name.clone(),
+                        description: crate::Description(output_item_def.description.clone()),
+                        weight: crate::Weight(output_item_def.weight),
+                    }
+            ).id();
+            commands.entity(player).trigger(|entity| AddToInventoryEvent { entity, item });
+        } 
+        //let item = (recipe.output)(&mut commands);
         commands.entity(timer_entity).remove::<CraftTimer>();
     }
 }
@@ -68,7 +78,10 @@ fn on_craft_result_icon_click(
     Text("CRAFT".into()),
 )]
 #[component(on_add = on_ui_craft_button_add)]
-pub struct UiCraftButton(bool);
+pub struct UiCraftButton{
+    pub id: String,
+    pub craftable: bool,
+}
 
 #[derive(Component, Reflect)]
 #[require(
@@ -112,7 +125,7 @@ fn on_ui_craft_button_add(
     mut world: DeferredWorld,
     context: HookContext,
 ) {
-    let enabled = world.get::<UiCraftButton>(context.entity).unwrap().0;
+    let enabled = world.get::<UiCraftButton>(context.entity).unwrap().craftable;
 
     if enabled {
         world.commands()
@@ -259,8 +272,8 @@ impl Plugin for CraftingUiPlugin {
     fn build(&self, app: &mut App) {
        app
            .add_systems(Update, (
-                   sync_active_recipe,
-                   update_ui_crafting_progress,
+                   sync_active_recipe.run_if(in_state(GameState::Gameplay)),
+                   update_ui_crafting_progress.run_if(in_state(GameState::Gameplay)),
                ));
     }
 }
@@ -358,6 +371,7 @@ fn sync_active_recipe(
             let recipe = recipe_book.0.get(&text).unwrap();
             let inputs = recipe.inputs.clone();
             let desc = recipe.description.clone();
+            let id = recipe.id.clone();
 
 
             let mut tally: HashMap<String, u32> = HashMap::new();
@@ -418,7 +432,7 @@ fn sync_active_recipe(
             }
 
             let craft_button = commands.spawn((
-                    UiCraftButton(craftable),
+                    UiCraftButton{id, craftable},
                     background,
             )).id();
 
@@ -444,11 +458,14 @@ fn on_craft_click(
     trigger: On<Pointer<Click>>,
     mut commands: Commands,
     crafting_station_query: Query<Entity, With<CraftingStation>>,
+    crafting_button_query: Query<&UiCraftButton>,
     mut active_recipe: Query<&mut UiActiveRecipe>,
 ) {
     if let Ok(crafting_station) = crafting_station_query.single()
+    && let Ok(crafting_button) = crafting_button_query.get(trigger.entity)
     && let Ok(mut active) = active_recipe.single_mut() {
-        commands.entity(crafting_station).trigger(|entity| CraftEvent { entity, id: "fungacide".into()});
+        //commands.entity(crafting_station).trigger(|entity| CraftEvent { entity, id: "colloidal_copper".into()});
+        commands.entity(crafting_station).trigger(|entity| CraftEvent { entity, id: crafting_button.id.clone()});
         let tmp = active.0.clone();
         active.0 = None;
         active.0 = tmp;
