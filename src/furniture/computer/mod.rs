@@ -13,10 +13,12 @@ use bevy_ingame_clock::InGameClock;
 
 use crate::{CameraInterpolation2, CameraTarget, Interactable, InteractionEvent, Player, PlayerCamera, PlayerState};
 
+mod cart_slot;
 mod computer_input;
 mod computer_display;
 //mod crt_shader;
 
+use cart_slot::*;
 use computer_input::*;
 use computer_display::*;
 //use crt_shader::*;
@@ -238,6 +240,7 @@ impl Plugin for ComputerPlugin {
     fn build(&self, app: &mut App) {
         app
             //.add_plugins(OldTvPlugin)
+            .add_plugins(CartSlotPlugin)
             .register_type::<ComputerScreenCube>()
             .register_type::<ComputerTextureCam>()
             .register_type::<CrtTv>()
