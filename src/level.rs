@@ -89,7 +89,7 @@ pub struct DALevelAsset {
     level: Handle<Gltf>,
 }
 
-#[derive(AssetCollection, Reflect, Resource, Debug)]
+/*#[derive(AssetCollection, Reflect, Resource, Debug)]
 #[reflect(Resource)]
 pub struct DAGunAssets {
     #[asset(key = "uzi")]
@@ -100,7 +100,7 @@ pub struct DAGunAssets {
     pub sniper: Handle<Gltf>,
     #[asset(key = "mp5")]
     pub mp5: Handle<Gltf>,
-}
+}*/
 
 pub struct BlenderTranslationPlugin;
 impl Plugin for BlenderTranslationPlugin {
@@ -114,15 +114,15 @@ impl Plugin for BlenderTranslationPlugin {
             .register_type::<BlenderProp>()
             .register_type::<BlenderNavmesh>()
             .register_type::<DALevelAsset>()
-            .register_type::<DAGunAssets>()
+            //.register_type::<DAGunAssets>()
             .register_type::<CollisionLayer>()
             .add_message::<ChangeLevelMessage>()
             .add_systems(Update, change_level_message_handler)
             .add_loading_state(
                 LoadingState::new(BootStrap::Preload)
-                    .with_dynamic_assets_file::<StandardDynamicAssetCollection>("gunassets.ron")
+                    //.with_dynamic_assets_file::<StandardDynamicAssetCollection>("gunassets.ron")
                     .with_dynamic_assets_file::<StandardDynamicAssetCollection>("devroom.ron")
-                    .load_collection::<DAGunAssets>()
+                    //.load_collection::<DAGunAssets>()
                     .load_collection::<DALevelAsset>()
             );
     }

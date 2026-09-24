@@ -8,7 +8,7 @@ use bevy_tnua_avian3d::TnuaAvian3dSensorShape;
 use bevy_seedling::spatial::SpatialListener3D;
 use moonshine_save::prelude::Save;
 
-use crate::{BootStrap, CameraConfig, CharacterBundle, CollisionLayer, DeathEvent, Description, Experience, FetchQuest, FloatHeight, GameState, Health, ItemDetails, Mana, MaxHealth, MaxMana, MetaState, PlayerControlScheme, PlayerController, PlayerControllerConfig, PlayerControllerInput, Quest, QuestOf, RayHit, RenderPlayer, Sleep, TnuaPlayerController, Walk, Weight, add_to_inventory_observer, display_equip_event_observer, display_inventory_event_observer, display_quest_event_observer, display_stats_event_observer, drink_event_observer, eat_event_observer, level::DAGunAssets, remove_from_inventory_observer};
+use crate::{BootStrap, CameraConfig, CharacterBundle, CollisionLayer, DeathEvent, Description, Experience, FetchQuest, FloatHeight, GameState, Health, ItemDetails, Mana, MaxHealth, MaxMana, MetaState, PlayerControlScheme, PlayerController, PlayerControllerConfig, PlayerControllerInput, Quest, QuestOf, RayHit, RenderPlayer, Sleep, TnuaPlayerController, Walk, Weight, add_to_inventory_observer, display_equip_event_observer, display_inventory_event_observer, display_quest_event_observer, display_stats_event_observer, drink_event_observer, eat_event_observer, /*level::DAGunAssets,*/ remove_from_inventory_observer};
 
 /// The current state of the player Entity.
 #[derive(Clone, Component, Hash, Debug, Eq, PartialEq, Default, States)]
@@ -176,7 +176,8 @@ impl Plugin for GamePlayerPlugin {
             .register_type::<PlayerSpawner>()
             .register_type::<PlayerTrigger>()
             .add_message::<SpawnPlayerMessage>()
-            .add_systems(Update, spawn_player_observer.run_if(resource_exists::<DAGunAssets>))
+            //.add_systems(Update, spawn_player_observer.run_if(resource_exists::<DAGunAssets>))
+            .add_systems(Update, spawn_player_observer)
             //.add_systems(OnEnter(BootStrap::Postload), init_player)
             .add_systems(OnEnter(MetaState::Gameplay), init_player)
             .add_systems(Update, (
@@ -255,7 +256,7 @@ fn spawn_player_observer(
     mut commands: Commands,
     mut spawn_player_message_reader: MessageReader<SpawnPlayerMessage>,
     asset_server: Res<AssetServer>,
-    gun_assets: Res<DAGunAssets>,
+    //gun_assets: Res<DAGunAssets>,
     gltf_assets: Res<Assets<Gltf>>,
     player_spawner_query: Query<&GlobalTransform, With<PlayerSpawner>>,
     mut player_camera_query: Query<&mut RenderPlayer, With<PlayerCamera>>,
@@ -276,9 +277,9 @@ fn spawn_player_observer(
         // Gun
         debug!("Creating Gun");
         //let temp = gun_assets.uzi.clone_weak();
-        let uzi = gltf_assets.get(&gun_assets.uzi).unwrap().scenes[0].path().unwrap();
+        //let uzi = gltf_assets.get(&gun_assets.uzi).unwrap().scenes[0].path().unwrap();
         //let temp = uzi.scenes[0].path().unwrap();
-        let gun = commands
+        /*let gun = commands
             .spawn((
                 Transform::from_translation(vec3(0.1, -0.2, -0.5)),
                 //SceneRoot(asset_server.load("guns/uzi.glb#Scene0")),
@@ -291,7 +292,7 @@ fn spawn_player_observer(
                 Name::new("gun"),
                 ActiveWeapon,
             ))
-            .id();
+            .id();*/
 
 
         // Player

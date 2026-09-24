@@ -21,7 +21,7 @@ pub use stats_controller::*;
 
 use bevy::window::{CursorGrabMode, CursorOptions};
 
-use crate::{ActiveWeapon, ComputerNode, GameState, ItemDetails, MetaState, PlayerCamera, PlayerState, ShootEvent, level::DAGunAssets, shoot, widgets::floating_windows::FloatingWindow};
+use crate::{ActiveWeapon, ComputerNode, GameState, ItemDetails, MetaState, PlayerCamera, PlayerState, ShootEvent, /*level::DAGunAssets,*/ shoot, widgets::floating_windows::FloatingWindow};
 
 pub struct ControllerPlugin;
 impl Plugin for ControllerPlugin {
@@ -34,10 +34,10 @@ impl Plugin for ControllerPlugin {
             .add_plugins(EquipControllerPlugin)
             .add_plugins(StatsControllerPlugin)
             .add_plugins(QuestControllerPlugin)
-            .add_observer(weapon_1)
-            .add_observer(weapon_2)
-            .add_observer(weapon_3)
-            .add_observer(weapon_4)
+            //.add_observer(weapon_1)
+            //.add_observer(weapon_2)
+            //.add_observer(weapon_3)
+            //.add_observer(weapon_4)
             .register_type::<RayHit>()
             .add_systems(
                 Update,
@@ -97,6 +97,7 @@ fn manage_cursor(
     }
 }
 
+/*
 fn weapon_1(
     _trigger: On<Fire<Weapon1Action>>,
     mut commands: Commands,
@@ -224,3 +225,4 @@ fn weapon_4(
             .add_child(gun);
     }
 }
+*/
