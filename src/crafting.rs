@@ -62,6 +62,7 @@ fn craft_event_observer(
 #[reflect(Component)]
 #[require(
     crate::Interactable,
+    ActiveRecipe(None),
     Name::new("Crafting Station"),
 )]
 #[component(on_add = on_crafting_station_add)]
@@ -77,6 +78,9 @@ fn on_crafting_station_add(
         .observe(display_crafting_ui)
         .observe(craft_event_observer);
 }
+
+#[derive(Component)]
+pub struct ActiveRecipe(pub Option<String>);
 
 #[derive(Component, Reflect, Clone, PartialEq, Eq, Hash, Debug)]
 #[reflect(Component)]

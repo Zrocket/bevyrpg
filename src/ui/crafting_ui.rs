@@ -71,11 +71,6 @@ fn on_craft_result_icon_click(
         return;
     };
 
-    //if let Ok(timer_entity) = timer_query.single()
-    //&& let Ok(player) = player_query.single()
-    //&& let Ok(active_recipe) = active_recipe_query.single()
-    //&& let Some(active_recipe) = &active_recipe.0
-    //&& let Some(recipe) = recipe_book.0.get(active_recipe) {
     if let Some(output_item_def) = item_database.0.get(&recipe.output_tag) {
         let item = commands.spawn(
                 ItemDetails {
@@ -85,10 +80,8 @@ fn on_craft_result_icon_click(
                 }
         ).id();
         commands.entity(player).trigger(|entity| AddToInventoryEvent { entity, item });
-    } 
-    //let item = (recipe.output)(&mut commands);
+    }
     commands.entity(timer_entity).remove::<CraftTimer>();
-    //}
 }
 
 #[derive(Component, Reflect)]
@@ -185,10 +178,7 @@ fn update_ui_crafting_progress(
         return;
     };
 
-    //if let Ok(mut ui) = ui_query.single_mut()
-    //&& let Ok(timer) = craft_query.single() {
     ui.value = timer.0.fraction();
-    //}
 }
 
 #[derive(Component, Reflect)]
@@ -303,6 +293,7 @@ impl Plugin for CraftingUiPlugin {
        app
            .add_systems(Update, (
                    sync_active_recipe.run_if(in_state(GameState::Gameplay)),
+                   sync_craft_result.run_if(in_state(GameState::Gameplay)),
                    update_ui_crafting_progress.run_if(in_state(GameState::Gameplay)),
                ));
     }
@@ -318,8 +309,9 @@ pub fn display_crafting_ui(
     inventory: Query<&Inventory>,
     menu_state: Res<State<UiState>>,
     mut menu_state_setter: ResMut<NextState<UiState>>,
+    mut meta_acive_recipe_query: Query<&mut crate::ActiveRecipe>,
 ) {
-    let Ok(name) = name_query.get(trigger.entity) else {
+    let Ok(_name) = name_query.get(trigger.entity) else {
         return;
     };
 
@@ -336,9 +328,16 @@ pub fn display_crafting_ui(
 
     let mut recipes = vec![];
 
-    for (recipe_id, recipe) in recipe_book.0.iter() {
+    for (recipe_id, _recipe) in recipe_book.0.iter() {
         recipes.push(recipe_id.clone());
     }
+
+    let Ok(mut meta_active_recipe) = meta_acive_recipe_query.single_mut() else {
+        error!("display_crafting_ui: Failed to query ActiveRecipe");
+        return;
+    };
+
+    let tmp = meta_active_recipe.0.clone();
 
     commands.spawn(
         floating_window_root("Crafting".into(), (
@@ -364,7 +363,7 @@ pub fn display_crafting_ui(
                             })),
                     ));
                     parent.spawn((
-                            UiActiveRecipe(None),
+                            UiActiveRecipe(tmp),
                     ));
                 }))
         )
@@ -373,9 +372,9 @@ pub fn display_crafting_ui(
 
 fn on_recipe_click(
     trigger: On<Pointer<Click>>,
-    mut commands: Commands,
     recipe_query: Query<&UiRecipe>,
     mut acive_recipe_query: Query<&mut UiActiveRecipe>,
+    mut meta_acive_recipe_query: Query<&mut crate::ActiveRecipe>,
 ) {
     let Ok(recipe) = recipe_query.get(trigger.entity) else {
         error!("on_recipe_click: Failed to query UiRecipe for {}", trigger.entity);
@@ -385,11 +384,13 @@ fn on_recipe_click(
         error!("on_recipe_click: Failed to query UiActiveRecipe");
         return;
     };
+    let Ok(mut meta_active_recipe) = meta_acive_recipe_query.single_mut() else {
+        error!("on_recipe_click: Failed to query ActiveRecipe");
+        return;
+    };
 
-    //if let Ok(recipe) = recipe_query.get(trigger.entity)
-    //&& let Ok(mut active_recipe) = acive_recipe_query.single_mut() {
     active_recipe.0 = Some(recipe.0.clone());
-    //}
+    meta_active_recipe.0 = Some(recipe.0.clone());
 }
 
 fn sync_active_recipe(
@@ -409,8 +410,6 @@ fn sync_active_recipe(
         return;
     };
 
-    //if let Ok((active_entity, active_recipe)) = changed_active_recipe.single_mut()
-    //&& let Ok(inventory) = player_inventory_query.single() {
     commands.entity(active_entity).despawn_children();
 
     if active_recipe.0.is_some() {
@@ -485,7 +484,7 @@ fn sync_active_recipe(
 
         commands.entity(active_entity).add_children(&[icon, name, description, input_node, progress, craft_button]);
 
-        if let Ok(timer) = craft_timer_query.single()
+        /*if let Ok(timer) = craft_timer_query.single()
         && timer.0.is_finished() {
             let tmp = commands.spawn((
                     UiCraftResult,
@@ -496,9 +495,40 @@ fn sync_active_recipe(
                     })),
             )).id();
             commands.entity(active_entity).add_child(tmp);
-        }
+        }*/
     }
-    //}
+}
+
+fn sync_craft_result(
+    mut commands: Commands,
+    active_query: Query<(Entity, &UiActiveRecipe)>,
+    result_query: Query<Entity, With<UiCraftResult>>,
+    craft_timer_query: Query<&CraftTimer>,
+) {
+    let Ok((active_entity, active_recipe)) = active_query.single() else {
+        return;
+    };
+
+    let finished = active_recipe.0.is_some()
+        && craft_timer_query.single().is_ok_and(|t| t.0.is_finished());
+
+    match (finished, result_query.iter().next()) {
+        // Timer done, no icon yet -> spawn it
+        (true, None) => {
+            let result = commands.spawn((
+                    UiCraftResult,
+                    Children::spawn(SpawnWith(|parent: &mut ChildSpawner| {
+                        parent.spawn(UiCraftResultIcon);
+                    })),
+            )).id();
+            commands.entity(active_entity).add_child(result);
+        }
+        // Timer removed (icon was clicked) or recipe cleared -> remove it
+        (false, Some(result)) => {
+            commands.entity(result).despawn();
+        }
+        _ => {}
+    }
 }
 
 fn on_craft_click(
@@ -507,6 +537,7 @@ fn on_craft_click(
     crafting_station_query: Query<Entity, With<CraftingStation>>,
     crafting_button_query: Query<&UiCraftButton>,
     mut active_recipe: Query<&mut UiActiveRecipe>,
+    mut meta_active_recipe: Query<&mut crate::ActiveRecipe>,
 ) {
     let Ok(crafting_station) = crafting_station_query.single() else {
         error!("on_craft_click: Failed to query Entity for CraftingStation");
@@ -520,14 +551,15 @@ fn on_craft_click(
         error!("on_craft_click: Failed to query UiActiveRecipe");
         return;
     };
+    let Ok(mut meta_active) = meta_active_recipe.single_mut() else {
+        error!("on_craft_click: Failed to query UiActiveRecipe");
+        return;
+    };
 
-    //if let Ok(crafting_station) = crafting_station_query.single()
-    //&& let Ok(crafting_button) = crafting_button_query.get(trigger.entity)
-    //&& let Ok(mut active) = active_recipe.single_mut() {
-    //commands.entity(crafting_station).trigger(|entity| CraftEvent { entity, id: "colloidal_copper".into()});
     commands.entity(crafting_station).trigger(|entity| CraftEvent { entity, id: crafting_button.id.clone()});
     let tmp = active.0.clone();
     active.0 = None;
-    active.0 = tmp;
-    //}
+    active.0 = tmp.clone();
+    meta_active.0 = None;
+    meta_active.0 = tmp;
 }
