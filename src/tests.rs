@@ -21,15 +21,6 @@ impl Plugin for TestsPlugin {
     }
 }
 
-fn equipt_ui_test(
-    mut commands: Commands,
-    player_query: Query<Entity, With<Player>>,
-) {
-    if let Ok(entity) = player_query.single() {
-        commands.entity(entity).trigger(|entity| DisplayEquipEvent { entity });
-    }
-}
-
 fn _dynamic_asset_test(
     dynamic_assets: Res<DynamicAssetCollections<GameState>>,
     //level_asset: Res<DALevelAsset>,
@@ -47,6 +38,8 @@ fn health_test(
     if let Ok((player_entity, _player)) = player.single_mut()
     && key.just_pressed(KeyCode::KeyV) {
         commands.entity(player_entity).trigger(|entity| DamageEvent { entity, ammount: 5 });
+    } else {
+        error!("health_test: Failed to query player");
     }
 }
 
@@ -59,6 +52,8 @@ fn mana_test(
     if let Ok((player_entity, _player)) = player.single_mut()
     && key.just_pressed(KeyCode::KeyC) {
         commands.entity(player_entity).trigger(|entity| ManaEvent { entity, ammount: 5 });
+    } else {
+        error!("mana_test: Failed to query player");
     }
 }
 
@@ -91,6 +86,8 @@ fn inventory_add_test(
         )).id();
         println!("{:?}", item);
         commands.entity(player).trigger(|entity| AddToInventoryEvent { entity, item });
+    } else {
+        trace!("inventory_add_test: Failed to query player");
     }
 }
 

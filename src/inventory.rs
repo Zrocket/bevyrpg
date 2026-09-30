@@ -55,6 +55,8 @@ pub fn add_to_inventory_observer<T: Component>(
     if let Ok(entity) = query.get(trigger.entity) {
         println!("ADDING: {:?}", trigger.item);
         commands.entity(trigger.item).insert(InInventory(entity));
+    } else {
+        error!("add_to_inventory_observer: Failed to query entity {}", trigger.entity);
     }
 }
 
@@ -68,5 +70,7 @@ pub fn remove_from_inventory_observer<T: Component>(
     if query.get(trigger.entity).is_ok() {
         println!("REMOVING: {:?}", trigger.item);
         commands.entity(trigger.item).remove::<InInventory>();
+    } else {
+        error!("remove_from_inventory_observer: Failed to query entity {}", trigger.entity);
     }
 }

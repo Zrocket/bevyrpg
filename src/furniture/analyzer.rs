@@ -27,6 +27,7 @@ fn update_analyzer_timer(
     item_id_query: Query<&ItemId>,
     time: Res<Time>,
 ) {
+    trace!("SYSTEM: update_analyzer_timer");
     if let Ok((mut timer, active_sample)) = timer_query.single_mut() {
         if timer.0.is_finished()
         //&& let Ok(value) = name_query.get(active_sample.0)
@@ -35,6 +36,8 @@ fn update_analyzer_timer(
         } else {
             timer.0.tick(time.delta());
         }
+    } else {
+        trace!("update_analyzer_timer: Failed to query AnalyzerTimer and ActiveSample");
     }
 }
 

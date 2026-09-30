@@ -75,6 +75,8 @@ fn ammo_inspection_observer(
                     widgets::label(name.name.clone()),
                 ]
         ));
+    } else {
+        error!("ammo_inspection_observer: Failed to query ItemDetails for {}", trigger.entity);
     }
 }
 
@@ -87,5 +89,7 @@ fn ammo_use_observer(
     if let Ok(mut ammo_pouch) = ammo_query.get_mut(trigger.actor) {
         ammo_pouch.0 += 10;
         commands.entity(trigger.entity).despawn();
+    } else {
+        error!("ammo_use_observer: Failed to querry AmmoPouch for {}", trigger.actor);
     }
 }

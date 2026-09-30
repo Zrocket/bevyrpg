@@ -216,6 +216,8 @@ pub fn damage_observer(
         } else {
             health.0 -= trigger.event().ammount;
         }
+    } else {
+        error!("damage_observer: Could not query character {} health", trigger.entity);
     }
 }
 
@@ -229,6 +231,8 @@ pub fn mana_event_observer(
         } else {
             mana.0 -= trigger.event().ammount;
         }
+    } else {
+        error!("mana_event_observer: Could not query character {} mana", trigger.entity);
     }
 }
 
@@ -241,6 +245,8 @@ pub fn heal_observer(
         if health.0 >= max_health.0 {
             health.0 = max_health.0;
         }
+    } else {
+        error!("heal_observer: Could not query character {} health", trigger.entity);
     }
 }
 
@@ -263,6 +269,8 @@ pub fn experience_observer(
             experience.0 -= 100;
             commands.entity(trigger.entity).trigger(|entity| LevelUpEvent { entity });
         }
+    } else {
+        error!("experience_observer: Could not query character {} experience", trigger.entity);
     }
 }
 
@@ -273,6 +281,8 @@ pub fn level_up_observer(
     if let Ok(mut level) = level_query.get_mut(trigger.entity) {
         level.0 += 1;
         info!("Entity {:?} leveled up!", trigger.entity);
+    } else {
+        error!("level_up_observer: Could not query character {} level", trigger.entity);
     }
 }
 
@@ -282,6 +292,8 @@ pub fn eat_event_observer(
 ) {
     if let Ok(mut hunger) = hunger_query.get_mut(trigger.entity) {
         hunger.value += 5;
+    } else {
+        error!("eat_event_observer: Could not query character {} hunger", trigger.entity);
     }
 }
 
@@ -291,6 +303,8 @@ pub fn drink_event_observer(
 ) {
     if let Ok(mut thirst) = thirst_query.get_mut(trigger.entity) {
         thirst.value += 5;
+    } else {
+        error!("drink_event_observer: Could not query character {} thirst", trigger.entity);
     }
 }
 
@@ -299,8 +313,6 @@ fn sustinance_timer(
     time: Res<Time>
 ) {
     for (mut hunger, mut thirst) in query.iter_mut() {
-        //println!("HUNGER: {}", hunger.value);
-        //println!("THIRST: {}", thirst.value);
         hunger.timer.tick(time.delta());
         thirst.timer.tick(time.delta());
         if hunger.timer.is_finished() {

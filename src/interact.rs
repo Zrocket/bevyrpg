@@ -47,6 +47,8 @@ pub fn drop_event_observer<T: Component>(
     trace!("OBSERVER: drop_event_observer");
     if let Ok(entity) = query.get(trigger.entity) {
         commands.entity(entity);
+    } else {
+        error!("drop_event_observer: Failed to query entity {}", trigger.entity);
     }
 }
 

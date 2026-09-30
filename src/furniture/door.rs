@@ -111,19 +111,32 @@ fn close_door_observer(
     mut door: Query<&mut AnimationPlayer>,
 ) {
     trace!("OBSERVER: open_door_observer");
-    if let Ok(mut door_state) = door_state_query.get_mut(trigger.entity)
-    && let Ok(child_of) = child_of_query.get(trigger.entity)
-    && let parent_object = child_of.0
-    && let Ok(mut door_animation_player) = door.get_mut(parent_object) {
-        door_animation_player.stop_all();
-        let file = format!("audio/door/qubodup-DoorOpen0{}.ogg", random_range(0..8));
-        println!("{:?}", door_state);
-        door_animation_player.play(2.into());
-        commands.spawn(
-            SamplePlayer::new(asset_server.load(file))
-        );
-        *door_state = DoorState::Closed;
-    }
+    let Ok(mut door_state) = door_state_query.get_mut(trigger.entity) else {
+        error!("close_door_observer: Failed to query DoorState");
+        return;
+    };
+    let Ok(child_of) = child_of_query.get(trigger.entity) else {
+        error!("close_door_observer: Failed to query ChildOf for {}", trigger.entity);
+        return;
+    };
+    let parent_object = child_of.0;
+    let Ok(mut door_animation_player) = door.get_mut(parent_object) else {
+        error!("close_door_observer: Failed to query AnimationPlayer for {}", parent_object);
+        return;
+    };
+    //if let Ok(mut door_state) = door_state_query.get_mut(trigger.entity)
+    //&& let Ok(child_of) = child_of_query.get(trigger.entity)
+    //&& let parent_object = child_of.0
+    //&& let Ok(mut door_animation_player) = door.get_mut(parent_object) {
+    door_animation_player.stop_all();
+    let file = format!("audio/door/qubodup-DoorOpen0{}.ogg", random_range(0..8));
+    println!("{:?}", door_state);
+    door_animation_player.play(2.into());
+    commands.spawn(
+        SamplePlayer::new(asset_server.load(file))
+    );
+    *door_state = DoorState::Closed;
+    //}
 }
 
 fn open_door_observer(
@@ -135,19 +148,32 @@ fn open_door_observer(
     mut door: Query<&mut AnimationPlayer>,
 ) {
     trace!("OBSERVER: open_door_observer");
-    if let Ok(mut door_state) = door_state_query.get_mut(trigger.entity)
-    && let Ok(child_of) = child_of_query.get(trigger.entity)
-    && let parent_object = child_of.0
-    && let Ok(mut door_animation_player) = door.get_mut(parent_object) {
-        door_animation_player.stop_all();
-        let file = format!("audio/door/qubodup-DoorOpen0{}.ogg", random_range(0..8));
-        println!("{:?}", door_state);
-        door_animation_player.play(1.into());
-        commands.spawn(
-            SamplePlayer::new(asset_server.load(file))
-        );
-        *door_state = DoorState::Open;
-    }
+    let Ok(mut door_state) = door_state_query.get_mut(trigger.entity) else {
+        error!("open_door_observer: Failed to query DoorState for {}", trigger.entity);
+        return;
+    };
+    let Ok(child_of) = child_of_query.get(trigger.entity) else {
+        error!("open_door_observer: Failed to query ChildOf for {}", trigger.entity);
+        return;
+    };
+    let parent_object = child_of.0;
+    let Ok(mut door_animation_player) = door.get_mut(parent_object) else {
+        error!("open_door_observer: Failed to query AnimationPlayer for {}", parent_object);
+        return;
+    };
+    //if let Ok(mut door_state) = door_state_query.get_mut(trigger.entity)
+    //&& let Ok(child_of) = child_of_query.get(trigger.entity)
+    //&& let parent_object = child_of.0
+    //&& let Ok(mut door_animation_player) = door.get_mut(parent_object) {
+    door_animation_player.stop_all();
+    let file = format!("audio/door/qubodup-DoorOpen0{}.ogg", random_range(0..8));
+    println!("{:?}", door_state);
+    door_animation_player.play(1.into());
+    commands.spawn(
+        SamplePlayer::new(asset_server.load(file))
+    );
+    *door_state = DoorState::Open;
+    //}
 }
 
 fn on_door_add(
@@ -179,7 +205,9 @@ fn on_door_add(
             .observe(door_interaction_observer)
             .observe(open_door_observer)
             .observe(close_door_observer);
-    }
+        } else {
+            error!("on_door_add: Failed to query Gltf for {:?}", level_gltf.0);
+        }
 }
 
 fn door_interaction_observer(
@@ -202,5 +230,7 @@ fn door_interaction_observer(
             commands.entity(trigger.entity).trigger(|entity| CloseDoorEvent { entity });
             *door_state = DoorState::Closed;
         }
+    } else {
+        error!("door_interaction_observer: Failed to query DoorState and Option<&LockedState> for {}", trigger.entity);
     }
 }

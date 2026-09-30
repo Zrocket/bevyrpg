@@ -46,5 +46,7 @@ fn lever_interaction_observer(
 ) {
     trace!("OBSERVER: lever_event_observer");
     if let Ok(_lever_entity) = lever.single() {
+    } else {
+        error!("lever_interaction_observer: Failed to query lever Entity");
     }
 }

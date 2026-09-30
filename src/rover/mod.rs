@@ -180,6 +180,8 @@ fn switch_rover_attachment_observer(
                 commands.entity(rover_entity).insert(related!(RoverAttachments[(FoamGunAttachment)]));
             }
         }
+    } else {
+        error!("switch_rover_attachment_observer: Failed to query rover");
     }
 }
 
@@ -203,6 +205,7 @@ fn spawn_rover_observer(
         if let Ok(rover) = rover_query.single_mut() {
             commands.entity(rover).despawn();
         }
+
         let mut spawn_point = Transform::from_xyz(0.0, 50.0, 0.0);
 
         if let Ok(rover_spawner) = rover_spawner_query.single() {
@@ -249,8 +252,12 @@ fn test_rover_switch_attachment(
     mut commands: Commands,
     key: Res<ButtonInput<KeyCode>>,
 ) {
-    if let Ok(rover_entity) = rover_query.single()
-    && key.just_pressed(KeyCode::KeyP) {
+    let Ok(rover_entity) = rover_query.single() else {
+        error!("test_rover_switch_attachment: Failed to query Entity for Rover");
+        return;
+    };
+
+    if key.just_pressed(KeyCode::KeyP) {
         commands.entity(rover_entity).trigger(|entity| SwitchRoveerAttachmentEvent { entity, attachment: Attachment::FoamGun });
     }
 }
@@ -281,18 +288,27 @@ fn on_rover_interact_observer(
     trigger_query: Query<&GlobalTransform, With<RoverPickupZone>>,
     rover_query: Query<Entity, With<Rover>>,
 ) {
-    if let Ok(trigger_transform) = trigger_query.single()
-    && let Ok(rover_entity) = rover_query.single() {
-        let temp = spatial_query.shape_intersections(
-            &Collider::cuboid(1.0, 1.0, 2.0),
-            trigger_transform.translation(),
-            trigger_transform.rotation(),
-            &SpatialQueryFilter::from_mask(CollisionLayer::Prop)
-        );
-        if !temp.is_empty() {
-            commands.entity(temp[0]).trigger(|entity| InteractionEvent { entity, actor: rover_entity });
-        }
+    let Ok(trigger_transform) = trigger_query.single() else {
+        error!("on_rover_interact_observer: Failed to query GlobalTransform for RoverPickupZone");
+        return;
+    };
+    let Ok(rover_entity) = rover_query.single() else {
+        error!("on_rover_interact_observer: Faileid to query Entity for Rover");
+        return;
+    };
+
+    //if let Ok(trigger_transform) = trigger_query.single()
+    //&& let Ok(rover_entity) = rover_query.single() {
+    let temp = spatial_query.shape_intersections(
+        &Collider::cuboid(1.0, 1.0, 2.0),
+        trigger_transform.translation(),
+        trigger_transform.rotation(),
+        &SpatialQueryFilter::from_mask(CollisionLayer::Prop)
+    );
+    if !temp.is_empty() {
+        commands.entity(temp[0]).trigger(|entity| InteractionEvent { entity, actor: rover_entity });
     }
+    //}
 }
 
 fn on_rover_drop_observer(
@@ -303,9 +319,14 @@ fn on_rover_drop_observer(
     rover_query: Query<Entity, With<Rover>>,
 ) {
     trace!("OBSERVER: on_rover_drop_observer");
-    if let Ok(trigger_transform) = trigger_query.single()
-    && let Ok(rover_entity) = rover_query.single() {
-    }
+    let Ok(trigger_transform) = trigger_query.single() else {
+        error!("on_rover_drop_observer: Failed to query GlobalTransform for RoverPickupZone");
+        return;
+    };
+    let Ok(rover_entity) = rover_query.single() else {
+        error!("on_rover_drop_observer: Failed to query Entity for Rover");
+        return;
+    };
 }
 
 fn on_rover_recall_observer(

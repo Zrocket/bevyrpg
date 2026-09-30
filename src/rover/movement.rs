@@ -54,6 +54,8 @@ pub(crate) fn apply_rover_movement(
         };
 
         transform.rotate(input.rotation);
+    } else {
+        error!("apply_rover_movement: Failed to query TnuaController<PlayerControlScheme>, RoverMovementInput, Transform for Rover");
     }
 }
 
@@ -76,6 +78,8 @@ pub(crate) fn on_rover_forward_observer(
             *toggle = false;
         }
 
+    } else {
+        error!("on_rover_forward_observer: Failed to query GlobalTransform, RoverMovementInput for Rover");
     }
 }
 
@@ -97,6 +101,8 @@ pub(crate) fn on_rover_backward_observer(
             input.movement = Vec3::ZERO;
             *toggle = false;
         }
+    } else {
+        error!("on_rover_backward_observer: Failed to query GlobalTransform, RoverMovementInput for Rover");
     }
 }
 
@@ -113,6 +119,8 @@ pub(crate) fn on_rover_right_observer(
             input.rotation = Quat::from_rotation_y(0.);
             *toggle = false;
         }
+    } else {
+        error!("on_rover_right_observer: Failed to query RoverMovementInput for Rover");
     }
 }
 
@@ -129,6 +137,8 @@ pub(crate) fn on_rover_left_observer(
             input.rotation = Quat::from_rotation_y(0.);
             *toggle = false;
         }
+    } else {
+        error!("on_rover_left_observer: Failed to query RoverMovementInput for Rover");
     }
 }
 
@@ -144,6 +154,8 @@ pub(crate) fn on_rover_camera_up_observer(
         } else {
             *toggle = false;
         }
+    } else {
+        error!("on_rover_camera_down_observer: Failed to query Transform for RoverCamera");
     }
 }
 
@@ -159,5 +171,7 @@ pub(crate) fn on_rover_camera_down_observer(
         } else {
             *toggle = false;
         }
+    } else {
+        error!("on_rover_camera_down_observer: Failed to query Transform for RoverCamera");
     }
 }

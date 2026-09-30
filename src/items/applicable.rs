@@ -4,6 +4,10 @@ use crate::ApplicatorEvent;
 
 #[derive(Component, Reflect)]
 #[reflect(Component)]
+pub struct ApplicatorSubstance;
+
+#[derive(Component, Reflect)]
+#[reflect(Component)]
 #[component(on_add = on_applicable_add)]
 pub struct Applicable;
 

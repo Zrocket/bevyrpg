@@ -1,5 +1,6 @@
-use bevy::prelude::*;
+use bevy::{diagnostic::{DiagnosticsStore, FrameTimeDiagnosticsPlugin}, prelude::*};
 use bevy_asset_loader::loading_state::{LoadingState, LoadingStateAppExt};
+use iyes_progress::{ProgressPlugin, ProgressTracker};
 
 pub struct StatesPlugin;
 
@@ -17,6 +18,10 @@ impl Plugin for StatesPlugin {
             .init_state::<UiState>()
             .add_sub_state::<GameState>()
             .add_sub_state::<MetaState>()
+            .add_plugins((
+                ProgressPlugin::<BootStrap>::new(),
+                FrameTimeDiagnosticsPlugin::default(),
+            ))
             .add_loading_state(
                 LoadingState::new(BootStrap::Preload)
                     .continue_to_state(BootStrap::Loading)
@@ -34,6 +39,7 @@ impl Plugin for StatesPlugin {
             );
     }
 }
+
 
 /// The initial bootstrap state
 ///

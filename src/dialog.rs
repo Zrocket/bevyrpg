@@ -51,9 +51,18 @@ fn dialog_message_observer(
     trace!("OBSERVER: dialog_event_observer");
     let event = trigger.event();
 
-    if let Ok((_caller, caller_node)) = dialog_caller_query.get(event.actor)
-        && let Ok(mut dialog_runner) = dialog_runner.single_mut() {
-            dialog_runner.stop();
-            dialog_runner.start_node(&caller_node.0);
-    }
+    let Ok((_caller, caller_node)) = dialog_caller_query.get(event.actor) else {
+        error!("dialog_message_observer: Failed to query YarnNode");
+        return;
+    };
+    let Ok(mut dialog_runner) = dialog_runner.single_mut() else {
+        error!("dialog_message_observer: Failed to query DialogueRunner");
+        return;
+    };
+
+    //if let Ok((_caller, caller_node)) = dialog_caller_query.get(event.actor)
+    //    && let Ok(mut dialog_runner) = dialog_runner.single_mut() {
+    dialog_runner.stop();
+    dialog_runner.start_node(&caller_node.0);
+    //}
 }

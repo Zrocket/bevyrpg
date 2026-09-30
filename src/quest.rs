@@ -107,6 +107,8 @@ pub fn check_fetch_quest(
             } else {
                 *quest.2 = QuestState::Incomplete;
             }
+        } else {
+            trace!("check_fetch_quest: Failed to query player Inventory");
         }
     }
 }

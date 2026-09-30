@@ -28,10 +28,22 @@ fn bed_interaction_observer(
     time: Res<Time>,
 ) {
     trace!("OBSERVER: bed_interaction_observer");
-    if let Ok(bed_global_transform) = bed_query.get(trigger.entity)
-    && let Ok((player_entity, mut player_transform, mut player_state, mut player_sleep)) = player_query.single_mut()
-    && let Ok((camera_entity, camera_transform)) = camera_query.single()
-    && player_sleep.value <= 70 {
+    let Ok(bed_global_transform) = bed_query.get(trigger.entity) else {
+        error!("bed_interaction_observer: Failed to query bed GlobalTransform");
+        return;
+    };
+    let Ok((player_entity, mut player_transform, mut player_state, mut player_sleep)) = player_query.single_mut() else {
+        error!("bed_interaction_observer: Failed to query player Entity, Transform, PlayerState, Sleep");
+        return;
+    };
+    let Ok((camera_entity, camera_transform)) = camera_query.single() else {
+        error!("bed_interaction_observer: Failed to query playercamera Entity and Transform");
+        return;
+    };
+    //if let Ok(bed_global_transform) = bed_query.get(trigger.entity)
+    //&& let Ok((player_entity, mut player_transform, mut player_state, mut player_sleep)) = player_query.single_mut()
+    //&& let Ok((camera_entity, camera_transform)) = camera_query.single()
+    if player_sleep.value <= 70 {
         *player_transform = Transform {
             translation: Vec3 {
                 x: bed_global_transform.translation().x,

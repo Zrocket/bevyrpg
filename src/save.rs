@@ -114,6 +114,8 @@ fn initialize_save_files(
             }
             commands.insert_resource(SaveStorage(save_files.clone()));
         }
+    } else {
+        error!("initialize_save_files: Failed to read dir {:?}", path);
     }
 }
 
@@ -204,27 +206,40 @@ fn check_pending_load(
     if pending.is_none() { return; }
     let pending = pending.unwrap();
 
-    if let Some(level_gltf) = level_gltf
-    && let Ok(save) = save_file_query.get(pending.0)
-    && let LoadState::Loaded = asset_server.load_state(&level_gltf.0) {
-        for entity in player_query.iter() {
-            commands.entity(entity).despawn();
-        }
-        for entity in rover_query.iter() {
-            commands.entity(entity).despawn();
-        }
-        for entity in scene_root_query.iter() {
-            commands.entity(entity).despawn();
-        }
+    let Some(level_gltf) = level_gltf else {
+        error!("check_pending_load: Failed to get LevelGltf");
+        return;
+    };
+    let Ok(save) = save_file_query.get(pending.0) else {
+        error!("check_pending_load: Failed to query SaveFile {}", pending.0);
+        return;
+    };
+    let LoadState::Loaded = asset_server.load_state(&level_gltf.0) else {
+        error!("check_pending_load: Failed to get level asset {:?}", level_gltf.0);
+        return;
+    };
 
-        let file = save.0.clone();
-        let file = format!("saves/{file}");
-
-        let scene = asset_server.load(file);
-
-        commands.spawn(DynamicWorldRoot(scene));
-        commands.remove_resource::<PendingSaveLoad>();
+    //if let Some(level_gltf) = level_gltf
+    //&& let Ok(save) = save_file_query.get(pending.0)
+    //&& let LoadState::Loaded = asset_server.load_state(&level_gltf.0) {
+    for entity in player_query.iter() {
+        commands.entity(entity).despawn();
     }
+    for entity in rover_query.iter() {
+        commands.entity(entity).despawn();
+    }
+    for entity in scene_root_query.iter() {
+        commands.entity(entity).despawn();
+    }
+
+    let file = save.0.clone();
+    let file = format!("saves/{file}");
+
+    let scene = asset_server.load(file);
+
+    commands.spawn(DynamicWorldRoot(scene));
+    commands.remove_resource::<PendingSaveLoad>();
+    //}
 }
 
 #[allow(clippy::too_many_arguments)]
@@ -238,11 +253,20 @@ fn check_pending_save(
     if pending.is_none() { return; }
     let pending = pending.unwrap();
 
-    if let Some(level_gltf) = level_gltf
-    && let Ok(save) = save_file_query.get(pending.0) {
-        let file = save.0.clone();
-        let file = format!("saves/{file}");
+    let Some(level_gltf) = level_gltf else {
+        error!("check_pending_save: Failed to get LevelGltf");
+        return;
+    };
+    let Ok(save) = save_file_query.get(pending.0) else {
+        error!("check_pending_save: Failed to query SaveFile {}", pending.0);
+        return;
+    };
 
-        commands.remove_resource::<PendingSave>();
-    }
+    //if let Some(level_gltf) = level_gltf
+    //&& let Ok(save) = save_file_query.get(pending.0) {
+    let file = save.0.clone();
+    let file = format!("saves/{file}");
+
+    commands.remove_resource::<PendingSave>();
+    //}
 }

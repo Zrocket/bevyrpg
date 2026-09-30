@@ -1,4 +1,4 @@
-use bevy::{color::palettes::css::DARK_GREEN, ecs::{component::Component, entity::Entity, event::EntityEvent, hierarchy::{ChildSpawner, Children}, name::Name, observer::On, query::With, relationship::RelationshipTarget, spawn::{SpawnRelated, SpawnWith}, system::{Commands, Query, Res, ResMut}}, prelude::{Node, Plugin, Text}, state::{state::{NextState, State}, state_scoped::DespawnOnExit}, ui::{BackgroundColor, Overflow}, utils::default};
+use bevy::{prelude::*, color::palettes::css::DARK_GREEN, ecs::{component::Component, entity::Entity, event::EntityEvent, hierarchy::{ChildSpawner, Children}, name::Name, observer::On, query::With, relationship::RelationshipTarget, spawn::{SpawnRelated, SpawnWith}, system::{Commands, Query, Res, ResMut}}, prelude::{Node, Plugin, Text}, state::{state::{NextState, State}, state_scoped::DespawnOnExit}, ui::{BackgroundColor, Overflow}, utils::default};
 
 use crate::{Equiptment, Player, UiState, widgets::floating_windows::floating_window_root};
 
@@ -31,7 +31,9 @@ pub fn spawn_equip_ui(
 ) {
     if let Ok(entity) = entity.single() {
         commands.entity(entity).trigger(|entity| DisplayEquipEvent { entity });
-    }
+    } else {
+        error!("spawn_equip_ui: Failed to query Entity for Player");
+    };
 }
 
 pub fn display_equip_event_observer(

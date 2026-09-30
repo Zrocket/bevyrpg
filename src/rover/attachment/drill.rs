@@ -26,20 +26,29 @@ fn use_sample_drill_observer(
     transform_query: Query<&GlobalTransform, With<RoverCamera>>,
     ray_caster: SpatialQuery,
 ) {
-    if let Ok(rover_entity) = rover_query.single()
-    && let Ok(camera_transform) = transform_query.single() {
-        let camera_position = camera_transform.translation();
-        let direction = camera_transform.forward().normalize();
-        if let Some(ray_data) = ray_caster.cast_ray(
-            camera_position,
-            Dir3::new_unchecked(direction),
-            5.0,
-            true,
-            &SpatialQueryFilter::default().with_excluded_entities([rover_entity])
-            ) {
-            commands.entity(ray_data.entity).trigger(|entity| DrillEvent { entity });
-        }
+    let Ok(rover_entity) = rover_query.single() else {
+        error!("use_sample_drill_observer: Failed to query Entity for Rover");
+        return;
+    };
+    let Ok(camera_transform) = transform_query.single() else {
+        error!("use_sample_drill_observer: Failed to query GlobalTransform for RoverCamera");
+        return;
+    };
+
+    //if let Ok(rover_entity) = rover_query.single()
+    //&& let Ok(camera_transform) = transform_query.single() {
+    let camera_position = camera_transform.translation();
+    let direction = camera_transform.forward().normalize();
+    if let Some(ray_data) = ray_caster.cast_ray(
+        camera_position,
+        Dir3::new_unchecked(direction),
+        5.0,
+        true,
+        &SpatialQueryFilter::default().with_excluded_entities([rover_entity])
+        ) {
+        commands.entity(ray_data.entity).trigger(|entity| DrillEvent { entity });
     }
+    //}
 }
 
 pub struct DrillAttachmentPlugin;

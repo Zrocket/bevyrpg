@@ -1,5 +1,7 @@
 use bevy::{color::palettes::css::GREEN, ecs::{lifecycle::HookContext, world::DeferredWorld}, prelude::*, render::render_resource::AsBindGroup};
 
+use crate::palette::DARK_GARNET;
+
 use super::*;
 
 const HEALTH_SHADER_ASSET_PATH: &str = "shaders/health_ui_material.wgsl";
@@ -88,7 +90,7 @@ impl UiMaterial for ManaUiMaterial {
         justify_self: JustifySelf::Start,
         ..default()
     },
-    BackgroundColor(GREEN.into()),
+    BackgroundColor(Srgba::hex(DARK_GARNET).unwrap().into()),
     Visibility::Visible,
 )]
 #[component(on_add = on_ui_status_add)]
@@ -259,36 +261,46 @@ pub fn draw_status_ui(
     if let Ok(_status_bar) = status_node_query.single() {
         return;
     }
-    if let Ok((_mana, _max_mana)) = mana_query.single()
-    && let Ok((_health, _max_health)) = health_query.single() {
-            let status_bar_node = commands
-                .spawn((
-                    UiStatus,
-                ))
-                .id();
 
-            let player_health_node = commands
-                .spawn((
-                    HealthUiNode,
-                ))
-                .id();
+    let Ok((_mana, _max_mana)) = mana_query.single() else {
+        error!("draw_status_ui: Failed to query Mana and MaxMana");
+        return;
+    };
+    let Ok((_health, _max_health)) = health_query.single() else {
+        error!("draw_status_ui: Failed to query Health and MaxHealth");
+        return;
+    };
 
-            let player_mana_node = commands
-                .spawn((
-                    ManaUiNode,
-                ))
-                .id();
+    //if let Ok((_mana, _max_mana)) = mana_query.single()
+    //&& let Ok((_health, _max_health)) = health_query.single() {
+    let status_bar_node = commands
+        .spawn((
+            UiStatus,
+        ))
+        .id();
 
-            let player_sleep_node = commands
-                .spawn((
-                    SleepUiNode,
-                ))
-                .id();
+    let player_health_node = commands
+        .spawn((
+            HealthUiNode,
+        ))
+        .id();
 
-            commands.entity(status_bar_node).add_child(player_health_node);
-            commands.entity(status_bar_node).add_child(player_mana_node);
-            commands.entity(status_bar_node).add_child(player_sleep_node);
-    }
+    let player_mana_node = commands
+        .spawn((
+            ManaUiNode,
+        ))
+        .id();
+
+    let player_sleep_node = commands
+        .spawn((
+            SleepUiNode,
+        ))
+        .id();
+
+    commands.entity(status_bar_node).add_child(player_health_node);
+    commands.entity(status_bar_node).add_child(player_mana_node);
+    commands.entity(status_bar_node).add_child(player_sleep_node);
+    //}
 }
 
 fn animate_sleep_material(
@@ -299,18 +311,27 @@ fn animate_sleep_material(
 ) {
     //let duration = 2.0;
     for handle in &query {
-        if let Some(mut material) = materials.get_mut(handle)
-        && let Ok(sleep) = sleep_query.single() {
-            let value = sleep.value as f32 / 100.0;
-            // rainbow color effect
-            let new_color = Color::hsl((time.elapsed_secs() * 60.0) % 360.0, 1., 0.5);
-            let border_color = Color::hsl((time.elapsed_secs() * 60.0) % 360.0, 0.75, 0.75);
-            material.color = new_color.to_linear().to_vec4();
-            material.slider.x =
-                //((time.elapsed_secs() % (duration * 2.0)) - duration).abs() / duration;
-                value;
-            material.border_color = border_color.to_linear().to_vec4();
-        }
+        let Some(mut material) = materials.get_mut(handle) else {
+            error!("animate_sleep_material: Failed to get SleepUiMaterial");
+            return;
+        };
+        let Ok(sleep) = sleep_query.single() else {
+            error!("animate_sleep_material: Failed to query Sleep");
+            return;
+        };
+
+        //if let Some(mut material) = materials.get_mut(handle)
+        //&& let Ok(sleep) = sleep_query.single() {
+        let value = sleep.value as f32 / 100.0;
+        // rainbow color effect
+        let new_color = Color::hsl((time.elapsed_secs() * 60.0) % 360.0, 1., 0.5);
+        let border_color = Color::hsl((time.elapsed_secs() * 60.0) % 360.0, 0.75, 0.75);
+        material.color = new_color.to_linear().to_vec4();
+        material.slider.x =
+            //((time.elapsed_secs() % (duration * 2.0)) - duration).abs() / duration;
+            value;
+        material.border_color = border_color.to_linear().to_vec4();
+        //}
     }
 }
 
@@ -322,18 +343,27 @@ fn animate_health_material(
 ) {
     //let duration = 2.0;
     for handle in &query {
-        if let Some(mut material) = materials.get_mut(handle)
-        && let Ok((health, max_health)) = health_query.single() {
-            let value = health.0 as f32 / max_health.0 as f32;
-            // rainbow color effect
-            let new_color = Color::hsl((time.elapsed_secs() * 60.0) % 360.0, 1., 0.5);
-            let border_color = Color::hsl((time.elapsed_secs() * 60.0) % 360.0, 0.75, 0.75);
-            material.color = new_color.to_linear().to_vec4();
-            material.slider.x =
-                //((time.elapsed_secs() % (duration * 2.0)) - duration).abs() / duration;
-                value;
-            material.border_color = border_color.to_linear().to_vec4();
-        }
+        let Some(mut material) = materials.get_mut(handle) else {
+            error!("animate_health_material: Failed to get HealthUiMaterial");
+            return;
+        };
+        let Ok((health, max_health)) = health_query.single() else {
+            error!("animate_health_material: Failed to query MaxHealth");
+            return;
+        };
+
+        //if let Some(mut material) = materials.get_mut(handle)
+        //&& let Ok((health, max_health)) = health_query.single() {
+        let value = health.0 as f32 / max_health.0 as f32;
+        // rainbow color effect
+        let new_color = Color::hsl((time.elapsed_secs() * 60.0) % 360.0, 1., 0.5);
+        let border_color = Color::hsl((time.elapsed_secs() * 60.0) % 360.0, 0.75, 0.75);
+        material.color = new_color.to_linear().to_vec4();
+        material.slider.x =
+            //((time.elapsed_secs() % (duration * 2.0)) - duration).abs() / duration;
+            value;
+        material.border_color = border_color.to_linear().to_vec4();
+        //}
     }
 }
 
@@ -345,18 +375,27 @@ fn animate_mana_material(
 ) {
     //let duration = 2.0;
     for handle in &query {
-        if let Some(mut material) = materials.get_mut(handle)
-        && let Ok((mana, max_mana)) = mana_query.single() {
-            let value = mana.0 as f32 / max_mana.0 as f32;
-            //println!("{:?}", value);
-            // rainbow color effect
-            let new_color = Color::hsl((time.elapsed_secs() * 60.0) % 360.0, 1., 0.5);
-            let border_color = Color::hsl((time.elapsed_secs() * 60.0) % 360.0, 0.75, 0.75);
-            material.color = new_color.to_linear().to_vec4();
-            material.slider.x =
-                //((time.elapsed_secs() % (duration * 2.0)) - duration).abs() / duration;
-                value;
-            material.border_color = border_color.to_linear().to_vec4();
-        }
+        let Some(mut material) = materials.get_mut(handle) else {
+            error!("animate_mana_material: Failed to get ManaUiMaterial");
+            return;
+        };
+        let Ok((mana, max_mana)) = mana_query.single() else {
+            error!("animate_mana_material: Failed to queury MaxMana");
+            return;
+        };
+
+        //if let Some(mut material) = materials.get_mut(handle)
+        //&& let Ok((mana, max_mana)) = mana_query.single() {
+        let value = mana.0 as f32 / max_mana.0 as f32;
+        //println!("{:?}", value);
+        // rainbow color effect
+        let new_color = Color::hsl((time.elapsed_secs() * 60.0) % 360.0, 1., 0.5);
+        let border_color = Color::hsl((time.elapsed_secs() * 60.0) % 360.0, 0.75, 0.75);
+        material.color = new_color.to_linear().to_vec4();
+        material.slider.x =
+            //((time.elapsed_secs() % (duration * 2.0)) - duration).abs() / duration;
+            value;
+        material.border_color = border_color.to_linear().to_vec4();
+        //}
     }
 }

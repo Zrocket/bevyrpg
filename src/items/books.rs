@@ -79,6 +79,8 @@ fn book_inspection_observer(
                     widgets::label(name.name.clone()),
                 ]
         ));
+    } else {
+        error!("book_inspection_observer: Failed to query ItemDetails for {}", trigger.entity);
     }
 }
 

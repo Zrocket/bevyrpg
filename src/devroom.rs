@@ -227,6 +227,8 @@ fn spawn_sprites(
                 TnuaNpcController,
                 AgentTarget3d::Point(Vec3::new(15.0, 1.75, 15.0)),
         ));
+    } else {
+        error!("spawn_sprites: Failed to query Archipelago3d");
     }
 
     let atlas = TextureAtlas {

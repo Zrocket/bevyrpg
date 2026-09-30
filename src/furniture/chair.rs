@@ -40,23 +40,35 @@ fn chair_interaction_observer(
     time: Res<Time>,
 ) {
     trace!("OBSERVER: chair_interaction_observer");
-    if let Ok((mut player_transform, mut player_state, player_entity)) = player_query.single_mut()
-        && let Ok(chair_transform) = transform_query.get(trigger.entity)
-        && let Ok((camera_entity, camera_transform)) = camera_query.single() {
-            *player_transform = Transform {
-                translation: Vec3 { x: chair_transform.translation().x, y: chair_transform.translation().y + 1.0, z: chair_transform.translation().z },
-                rotation: chair_transform.rotation(),
-                ..default()
-            };
-            *player_state = PlayerState::Sitting;
-            //commands.entity(player_entity).insert(RigidBodyDisabled);
-            commands.entity(camera_entity)
-                .insert(CameraInterpolation2 {
-                    duration: time.elapsed() + Duration::new(1, 0),
-                    start_time: time.elapsed(),
-                    start_pos: *camera_transform,
-                    desired_pos: *player_transform,
-                });
-    }
+    let Ok((mut player_transform, mut player_state, player_entity)) = player_query.single_mut() else {
+        error!("chair_interaction_observer: Failed to query player Entity and PlayerState");
+        return;
+    };
+    let Ok(chair_transform) = transform_query.get(trigger.entity) else {
+        error!("chair_interaction_observer: Failed to query GlobalTransform for {}", trigger.entity);
+        return;
+    };
+    let Ok((camera_entity, camera_transform)) = camera_query.single() else {
+        error!("chair_interaction_observer: Failed to query playercamera Entity and Transform");
+        return;
+    };
+    //if let Ok((mut player_transform, mut player_state, player_entity)) = player_query.single_mut()
+    //    && let Ok(chair_transform) = transform_query.get(trigger.entity)
+    //    && let Ok((camera_entity, camera_transform)) = camera_query.single() {
+    *player_transform = Transform {
+        translation: Vec3 { x: chair_transform.translation().x, y: chair_transform.translation().y + 1.0, z: chair_transform.translation().z },
+        rotation: chair_transform.rotation(),
+        ..default()
+    };
+    *player_state = PlayerState::Sitting;
+    //commands.entity(player_entity).insert(RigidBodyDisabled);
+    commands.entity(camera_entity)
+        .insert(CameraInterpolation2 {
+            duration: time.elapsed() + Duration::new(1, 0),
+            start_time: time.elapsed(),
+            start_pos: *camera_transform,
+            desired_pos: *player_transform,
+        });
+    //}
 }
 

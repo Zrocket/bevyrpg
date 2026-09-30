@@ -43,17 +43,30 @@ fn mana_item_interaction_observer(
 ) {
     trace!("OBSERVER: misc_interaction_observer");
     let actor = trigger.event().actor;
-    if let Ok(parent) = parent_query.get(trigger.event().entity)
-    && let Ok(parent_transform) = transform_query.get(parent.0)
-    && let Ok(item_transform) = transform_query.get(trigger.event().entity) {
-        commands.entity(parent.0).insert(Shelf(Box::new(parent_transform.clone())));
-        commands.entity(trigger.event().entity).insert(Shelf(Box::new(item_transform.clone())));
-        commands.entity(parent.0).remove::<GlobalTransform>();
-        commands.entity(parent.0).remove::<Transform>();
-        commands.entity(trigger.event().entity).remove::<GlobalTransform>();
-        commands.entity(trigger.event().entity).remove::<Transform>();
-        commands.entity(actor).trigger(|entity| AddToInventoryEvent { entity, item: trigger.event().entity });
-    }
+    let Ok(parent) = parent_query.get(trigger.event().entity) else {
+        error!("mana_item_interaction_observer: Failed to query ChildOf for {}", trigger.entity);
+        return;
+    };
+    let Ok(parent_transform) = transform_query.get(parent.0) else {
+        error!("mana_item_interaction_observer: Failed to query Transform for {}", parent.0);
+        return;
+    };
+    let Ok(item_transform) = transform_query.get(trigger.event().entity) else {
+        error!("mana_item_interaction_observer: Failed to query Transform for {}", trigger.entity);
+        return;
+    };
+
+    //if let Ok(parent) = parent_query.get(trigger.event().entity)
+    //&& let Ok(parent_transform) = transform_query.get(parent.0)
+    //&& let Ok(item_transform) = transform_query.get(trigger.event().entity) {
+    commands.entity(parent.0).insert(Shelf(Box::new(parent_transform.clone())));
+    commands.entity(trigger.event().entity).insert(Shelf(Box::new(item_transform.clone())));
+    commands.entity(parent.0).remove::<GlobalTransform>();
+    commands.entity(parent.0).remove::<Transform>();
+    commands.entity(trigger.event().entity).remove::<GlobalTransform>();
+    commands.entity(trigger.event().entity).remove::<Transform>();
+    commands.entity(actor).trigger(|entity| AddToInventoryEvent { entity, item: trigger.event().entity });
+    //}
 }
 
 fn mana_item_pickup_observer(
@@ -70,11 +83,11 @@ fn mana_item_pickup_observer(
 
 fn mana_item_inspection_observer(
     trigger: On<InspectEvent>,
-    name_query: Query<&ItemDetails>,
+    item_details_query: Query<&ItemDetails>,
     mut commands: Commands,
 ) {
     trace!("OBSERVER: misc_inspection_observer");
-    if let Ok(name) = name_query.get(trigger.entity) {
+    if let Ok(item_details) = item_details_query.get(trigger.entity) {
         commands.spawn((
                 Node {
                     position_type: PositionType::Absolute,
@@ -90,9 +103,11 @@ fn mana_item_inspection_observer(
                 BackgroundColor(CRIMSON.into()),
                 UiInspect,
                 children![
-                    widgets::label(name.name.clone()),
+                    widgets::label(item_details.name.clone()),
                 ]
         ));
+    } else {
+        error!("mana_item_inspection_observer: Failed to query ItemDetails for {}", trigger.entity);
     }
 }
 

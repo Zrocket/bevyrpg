@@ -22,28 +22,40 @@ fn craft_event_observer(
     crafting_station_query: Query<Entity, With<CraftingStation>>,
 ) {
     println!("{}", trigger.id);
-    if let Ok((entity, inventory)) = inventory_query.single()
-    && let Some(recipe) = recipe_book.0.get(&trigger.id)
-    && let Ok(crafting_station) = crafting_station_query.single() {
-        let tags = tally_tags(inventory, &tag_query);
-        if recipe_is_craftable(recipe, &tags) {
-            for (id, num) in &recipe.inputs {
-                let mut current = 0;
-                for item in inventory.iter() {
-                    if let Ok(tag) = tag_query.get(item)
-                    && tag.0 == *id {
-                        current += 1;
-                        commands.entity(entity).trigger(|entity| RemoveFromInventoryEvent { entity, item});
-                    }
-                    if current == *num {
-                        break;
-                    }
+    let Ok((entity, inventory)) = inventory_query.single() else {
+        error!("craft_event_observer: Failed to query Player Inventory");
+        return;
+    };
+    let Some(recipe) = recipe_book.0.get(&trigger.id) else {
+        error!("craft_event_observer: Failed to query RecipeBook");
+        return;
+    };
+    let Ok(crafting_station) = crafting_station_query.single() else {
+        error!("craft_event_observer: Failed to query CraftingStation");
+        return;
+    };
+    //if let Ok((entity, inventory)) = inventory_query.single()
+    //&& let Some(recipe) = recipe_book.0.get(&trigger.id)
+    //&& let Ok(crafting_station) = crafting_station_query.single() {
+    let tags = tally_tags(inventory, &tag_query);
+    if recipe_is_craftable(recipe, &tags) {
+        for (id, num) in &recipe.inputs {
+            let mut current = 0;
+            for item in inventory.iter() {
+                if let Ok(tag) = tag_query.get(item)
+                && tag.0 == *id {
+                    current += 1;
+                    commands.entity(entity).trigger(|entity| RemoveFromInventoryEvent { entity, item});
+                }
+                if current == *num {
+                    break;
                 }
             }
-                commands.entity(crafting_station).insert(CraftTimer(Timer::from_seconds(recipe.craft_time, TimerMode::Once)));
-                println!("NEW TIMER");
         }
+            commands.entity(crafting_station).insert(CraftTimer(Timer::from_seconds(recipe.craft_time, TimerMode::Once)));
+            println!("NEW TIMER");
     }
+    //}
 }
 
 #[derive(Component, Reflect, Clone, PartialEq, Eq, Hash, Debug)]

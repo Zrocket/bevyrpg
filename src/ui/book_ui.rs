@@ -27,6 +27,8 @@ pub fn spawn_book_ui(
 
     if let Ok(entity) = book.single() {
         commands.entity(entity).trigger(|entity| OpenBookEvent { entity });
+    } else {
+        error!("spawn_book_ui: Failed to query Entity for Book");
     }
 }
 
@@ -57,6 +59,8 @@ pub fn display_book_ui(
                     ),
                     ),
         ));
+    } else {
+        error!("display_book_ui: Failed to query Book for {}", trigger.entity);
     }
 }
 

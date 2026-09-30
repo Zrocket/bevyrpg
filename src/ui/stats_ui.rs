@@ -1,4 +1,4 @@
-use bevy::{ecs::{entity::Entity, event::EntityEvent, observer::On, query::With, system::{Commands, Query, Res, ResMut}}, prelude::{Node, Plugin}, state::{state::{NextState, State}, state_scoped::DespawnOnExit}, ui::{Overflow, widget::Text}, utils::default};
+use bevy::{prelude::*, ecs::{entity::Entity, event::EntityEvent, observer::On, query::With, system::{Commands, Query, Res, ResMut}}, prelude::{Node, Plugin}, state::{state::{NextState, State}, state_scoped::DespawnOnExit}, ui::{Overflow, widget::Text}, utils::default};
 
 use crate::{Experience, Level, Player, UiState, widgets::floating_windows::floating_window_root};
 
@@ -20,6 +20,8 @@ pub fn spawn_stats_ui(
 ) {
     if let Ok(entity) = entity.single() {
         commands.entity(entity).trigger(|entity| DisplayStatsEvent { entity });
+    } else {
+        error!("spawn_stats_ui: Failed to query Entity for Player");
     }
 }
 
@@ -66,5 +68,7 @@ pub fn display_stats_event_observer(
         ))
         .add_child(level_node)
         .add_child(experience_node);
+    } else {
+        error!("display_stats_event_observer: Failed to query Level and Experience for Player");
     }
 }

@@ -38,5 +38,7 @@ fn respawn(
     if let Ok(_player) = player_query.single() {
         game_state.set(GameState::Gameplay);
         spawn_player_message_writer.write(SpawnPlayerMessage);
-    }
+    } else {
+        error!("respawn: Failed to query Entity for Player");
+    };
 }

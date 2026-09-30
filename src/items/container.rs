@@ -66,5 +66,7 @@ fn container_inspection_observer(
                     widgets::label(name),
                 ]
         ));
+    } else {
+        error!("container_inspection_observer: Failed to query Name for {}", trigger.entity);
     }
 }

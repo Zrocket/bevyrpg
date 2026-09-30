@@ -101,6 +101,8 @@ pub fn player_controller_render(
                 logical_transform.translation + collider_offset + camera_offset;
             render_transform.rotation =
                 Quat::from_euler(EulerRot::YXZ, controller.yaw, controller.pitch, 0.0);
+        } else {
+            error!("player_controller_render: Failed to query renderplayer Transform, Collider, PlayerController and CameraConfig");
         }
     }
 }
@@ -159,6 +161,8 @@ fn interpolate_camera(
                 camera_state.set(CameraState::Player);
                 return;
             }
+        } else {
+            error!("interpolate_camera: Failed to query Transform, Collider, PlayerController, CameraConfig for {}", render_player.logical_entity);
         }
     }
 }
@@ -179,28 +183,36 @@ fn interpolate_camera_2(
         mut camera_transform,
         render_player,
     ) in camera_query.iter_mut() {
-        if let Ok((logical_collider, logical_camera_config)) = logical_query.get(render_player.logical_entity)
-        && let Ok(player_entity) = player_query.single() {
+        let Ok((logical_collider, logical_camera_config)) = logical_query.get(render_player.logical_entity) else {
+            error!("interpolate_camera_2: Failed to query Collider, CameraConfig for {}", render_player.logical_entity);
+            return;
+        };
+        let Ok(player_entity) = player_query.single() else {
+            error!("interpolate_camera_2: Failed to query Player Entity");
+            return;
+        };
 
-            if camera_interp.duration <= time.elapsed() {
-                commands.entity(camera_entity).remove::<CameraInterpolation2>();
-                return;
-            }
-
-            let collider_offset = collider_y_offset(logical_collider);
-            let camera_offset = Vec3::Y * logical_camera_config.height_offset;
-            let desired_transform = camera_interp.desired_pos.translation + collider_offset + camera_offset;
-            let desired_rotation = camera_interp.desired_pos.rotation;
-            let normalized_time = (time.elapsed() - camera_interp.start_time).div_duration_f32(camera_interp.duration - time.elapsed());
-            let ease_function = EaseFunction::SmoothStep;
-
-            if let Some(ease_normal) = ease_function.sample(normalized_time) {
-                camera_transform.translation = camera_transform.translation.slerp(desired_transform, ease_normal);
-                camera_transform.rotation = camera_transform.rotation.slerp(desired_rotation, ease_normal);
-            } else {
-                commands.entity(camera_entity).remove::<CameraInterpolation2>();
-                return;
-            }
+        //if let Ok((logical_collider, logical_camera_config)) = logical_query.get(render_player.logical_entity)
+        //&& let Ok(player_entity) = player_query.single() {
+        if camera_interp.duration <= time.elapsed() {
+            commands.entity(camera_entity).remove::<CameraInterpolation2>();
+            return;
         }
+
+        let collider_offset = collider_y_offset(logical_collider);
+        let camera_offset = Vec3::Y * logical_camera_config.height_offset;
+        let desired_transform = camera_interp.desired_pos.translation + collider_offset + camera_offset;
+        let desired_rotation = camera_interp.desired_pos.rotation;
+        let normalized_time = (time.elapsed() - camera_interp.start_time).div_duration_f32(camera_interp.duration - time.elapsed());
+        let ease_function = EaseFunction::SmoothStep;
+
+        if let Some(ease_normal) = ease_function.sample(normalized_time) {
+            camera_transform.translation = camera_transform.translation.slerp(desired_transform, ease_normal);
+            camera_transform.rotation = camera_transform.rotation.slerp(desired_rotation, ease_normal);
+        } else {
+            commands.entity(camera_entity).remove::<CameraInterpolation2>();
+            return;
+        }
+        //}
     }
 }

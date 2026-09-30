@@ -17,6 +17,8 @@ fn open_inventory(
 ) {
     if let Ok(entity) = player_query.single() {
         commands.entity(entity).trigger(|entity| DisplayInventoryEvent { entity });
+    } else {
+        error!("open_inventory: Failed to query player Entity");
     }
 }
 

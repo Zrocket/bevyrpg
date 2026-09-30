@@ -17,6 +17,8 @@ fn open_stats(
 ) {
     if let Ok(entity) = player_query.single() {
         commands.entity(entity).trigger(|entity| DisplayStatsEvent { entity });
+    } else {
+        error!("open_stats: Failed to query Player Entity");
     }
 
 }

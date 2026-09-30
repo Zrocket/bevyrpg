@@ -44,24 +44,37 @@ fn drill_event_observer(
     drillable_query: Query<&Drillable>,
     rover_query: Query<Entity, With<Rover>>,
 ) {
-    if let Ok(drillable) = drillable_query.get(trigger.entity)
-    && let Some(item_details) = item_database.0.get(&drillable.0)
-    && let Ok(rover) = rover_query.single() {
-        let item = commands.spawn((
-                SampleItem {
-                    analyzed: false,
-                    botched: false,
-                },
-                ItemDetails {
-                    name: item_details.name.clone(),
-                    description: super::Description("SAMPLE".to_string()),
-                    weight: super::Weight(5),
-                },
-                ItemId(item_details.id.clone()),
-            )).id();
-        //let item = spawn_sample(&mut commands);
-        commands.entity(rover).trigger(|entity| AddToInventoryEvent { entity, item });
-    }
+    let Ok(drillable) = drillable_query.get(trigger.entity) else {
+        error!("drill_event_observer: Failed to query Drillable for {}", trigger.entity);
+        return;
+    };
+    let Some(item_details) = item_database.0.get(&drillable.0) else {
+        error!("drill_event_observer: Failed to get ItemDefinition for {}", drillable.0);
+        return;
+    };
+    let Ok(rover) = rover_query.single() else {
+        error!("drill_event_observer: Failed to query Rover Entity");
+        return;
+    };
+
+    //if let Ok(drillable) = drillable_query.get(trigger.entity)
+    //&& let Some(item_details) = item_database.0.get(&drillable.0)
+    //&& let Ok(rover) = rover_query.single() {
+    let item = commands.spawn((
+            SampleItem {
+                analyzed: false,
+                botched: false,
+            },
+            ItemDetails {
+                name: item_details.name.clone(),
+                description: super::Description("SAMPLE".to_string()),
+                weight: super::Weight(5),
+            },
+            ItemId(item_details.id.clone()),
+        )).id();
+    //let item = spawn_sample(&mut commands);
+    commands.entity(rover).trigger(|entity| AddToInventoryEvent { entity, item });
+    //}
 }
 
 pub fn spawn_sample(commands: &mut Commands) -> Entity {

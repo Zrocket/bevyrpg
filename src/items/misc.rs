@@ -44,19 +44,36 @@ fn misc_interaction_observer(
 ) {
     trace!("OBSERVER: misc_interaction_observer");
     let actor = trigger.event().actor;
-    if let Ok(parent) = parent_query.get(trigger.event().entity)
-    && let Ok(parent_transform) = transform_query.get(parent.0)
-    && let Ok(mut parent_visibility) = visibility_query.get_mut(parent.0)
-    && let Ok(item_transform) = transform_query.get(trigger.event().entity) {
-        *parent_visibility = Visibility::Hidden;
-        commands.entity(parent.0).insert(Shelf(Box::new(parent_transform.clone())));
-        commands.entity(trigger.event().entity).insert(Shelf(Box::new(item_transform.clone())));
-        commands.entity(parent.0).remove::<GlobalTransform>();
-        commands.entity(parent.0).remove::<Transform>();
-        commands.entity(trigger.event().entity).remove::<GlobalTransform>();
-        commands.entity(trigger.event().entity).remove::<Transform>();
-        commands.entity(actor).trigger(|entity| AddToInventoryEvent { entity, item: trigger.event().entity });
-    }
+    let Ok(parent) = parent_query.get(trigger.event().entity) else {
+        error!("misc_interaction_observer: Failed to query ChildOf for {}", trigger.entity);
+        return;
+    };
+    let Ok(parent_transform) = transform_query.get(parent.0) else {
+        error!("misc_interaction_observer: Failed to query Transform for {}", parent.0);
+        return;
+    };
+    let Ok(mut parent_visibility) = visibility_query.get_mut(parent.0) else {
+        error!("misc_interaction_observer: Failed to query Visibility for {}", parent.0);
+        return;
+    };
+    let Ok(item_transform) = transform_query.get(trigger.event().entity) else {
+        error!("misc_interaction_observer: Failed to query Transform for {}", trigger.entity);
+        return;
+    };
+
+    //if let Ok(parent) = parent_query.get(trigger.event().entity)
+    //&& let Ok(parent_transform) = transform_query.get(parent.0)
+    //&& let Ok(mut parent_visibility) = visibility_query.get_mut(parent.0)
+    //&& let Ok(item_transform) = transform_query.get(trigger.event().entity) {
+    *parent_visibility = Visibility::Hidden;
+    commands.entity(parent.0).insert(Shelf(Box::new(parent_transform.clone())));
+    commands.entity(trigger.event().entity).insert(Shelf(Box::new(item_transform.clone())));
+    commands.entity(parent.0).remove::<GlobalTransform>();
+    commands.entity(parent.0).remove::<Transform>();
+    commands.entity(trigger.event().entity).remove::<GlobalTransform>();
+    commands.entity(trigger.event().entity).remove::<Transform>();
+    commands.entity(actor).trigger(|entity| AddToInventoryEvent { entity, item: trigger.event().entity });
+    //}
 }
 
 pub(crate) fn misc_pickup_observer(
@@ -96,5 +113,7 @@ pub(crate) fn misc_inspection_observer(
                     widgets::label(name.name.clone()),
                 ]
         ));
+    } else {
+        error!("misc_inspection_observer: Failed to query ItemDetails for {}", trigger.entity);
     }
 }

@@ -319,6 +319,8 @@ fn display_time(
 ) {
     if let Ok(mut clock_text) = clock_text_query.single_mut() {
         clock_text.0 = clock.format_datetime(None).to_string();
+    } else {
+        error!("display_time: Failed to query Text for ComputerClock");
     }
 }
 
@@ -335,27 +337,44 @@ fn computer_interaction_observer(
     time: Res<Time>,
 ) {
     trace!("OBSERVER: computer_interaction_observer");
-    if let Ok(mut player_state) = player_query.single_mut()
-    && let Ok(parent) = parent_query.get(trigger.entity)
-    && let Ok(computer_children) = children_query.get(parent.0)
-    && let Ok((camera_entity, camera_transform)) = camera_query.single() {
-        for child in computer_children.iter() {
-            if let Ok(target_entity) = camera_target_query.get(child)
-            && let Ok(target_transform) = transform_query.get(target_entity) {
-                *player_state = PlayerState::Computer;
-                //commands.entity(player_entity).insert(RigidBodyDisabled);
-                commands.entity(camera_entity)
-                    .insert(CameraInterpolation2 {
-                        duration: time.elapsed() + Duration::new(1, 0),
-                        start_time: time.elapsed(),
-                        start_pos: *camera_transform,
-                        desired_pos: Transform {
-                            translation: target_transform.translation(),
-                            rotation: target_transform.rotation(),
-                            scale: camera_transform.scale
-                        },
-                });
-            }
+    let Ok(mut player_state) = player_query.single_mut() else {
+        error!("computer_interaction_observer: Failed to query PlayerState for Player");
+        return;
+    };
+    let Ok(parent) = parent_query.get(trigger.entity) else {
+        error!("computer_interaction_observer: Failed to query ChildOf for {}", trigger.entity);
+        return;
+    };
+    let Ok(computer_children) = children_query.get(parent.0) else {
+        error!("computer_interaction_observer: Failed to query Children for {}", parent.0);
+        return;
+    };
+    let Ok((camera_entity, camera_transform)) = camera_query.single() else {
+        error!("computer_interaction_observer: Failed to query Entity and Transform for PlayerCamera");
+        return;
+    };
+
+    //if let Ok(mut player_state) = player_query.single_mut()
+    //&& let Ok(parent) = parent_query.get(trigger.entity)
+    //&& let Ok(computer_children) = children_query.get(parent.0)
+    //&& let Ok((camera_entity, camera_transform)) = camera_query.single() {
+    for child in computer_children.iter() {
+        if let Ok(target_entity) = camera_target_query.get(child)
+        && let Ok(target_transform) = transform_query.get(target_entity) {
+            *player_state = PlayerState::Computer;
+            //commands.entity(player_entity).insert(RigidBodyDisabled);
+            commands.entity(camera_entity)
+                .insert(CameraInterpolation2 {
+                    duration: time.elapsed() + Duration::new(1, 0),
+                    start_time: time.elapsed(),
+                    start_pos: *camera_transform,
+                    desired_pos: Transform {
+                        translation: target_transform.translation(),
+                        rotation: target_transform.rotation(),
+                        scale: camera_transform.scale
+                    },
+            });
         }
     }
+    //}
 }

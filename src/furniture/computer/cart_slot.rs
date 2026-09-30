@@ -69,31 +69,40 @@ pub(crate) fn cart_icon_double_click_observer(
     mut commands: Commands,
     computer_ui_query: Query<Entity, With<ComputerUiNode>>,
 ) {
-    if let Ok(mut timer) = timer_query.get_mut(trigger.entity)
-    && let Ok(computer_ui) = computer_ui_query.single() {
-        if timer.0.is_finished() {
-            timer.0.reset();
-        } else {
-            let window = commands.spawn((
-                    crate::ComputerNode,
-                    floating_computer_rover_window_root("CART".to_string(), (
-                        Node {
-                            width: Val::Auto,
-                            height: px(300),
-                            border: UiRect::all(px(5)),
-                            overflow: Overflow { x: OverflowAxis::Hidden, y: OverflowAxis::Hidden },
-                            flex_direction: FlexDirection::ColumnReverse,
-                            ..default()
-                        },
-                        BorderColor::all(Color::WHITE),
-                        Children::spawn(SpawnWith(|root_parent: &mut ChildSpawner| {
-                        })),
-                    )),
-            )).id();
+    let Ok(mut timer) = timer_query.get_mut(trigger.entity) else {
+        error!("cart_icon_double_click_observer: Failed to query IconClickTimer for {}", trigger.entity);
+        return;
+    };
+    let Ok(computer_ui) = computer_ui_query.single() else {
+        error!("cart_icon_double_click_observer: Failed to query Entity for ComputerUiNode");
+        return;
+    };
 
-            commands.entity(computer_ui).add_child(window);
-        }
+    //if let Ok(mut timer) = timer_query.get_mut(trigger.entity)
+    //&& let Ok(computer_ui) = computer_ui_query.single() {
+    if timer.0.is_finished() {
+        timer.0.reset();
+    } else {
+        let window = commands.spawn((
+                crate::ComputerNode,
+                floating_computer_rover_window_root("CART".to_string(), (
+                    Node {
+                        width: Val::Auto,
+                        height: px(300),
+                        border: UiRect::all(px(5)),
+                        overflow: Overflow { x: OverflowAxis::Hidden, y: OverflowAxis::Hidden },
+                        flex_direction: FlexDirection::ColumnReverse,
+                        ..default()
+                    },
+                    BorderColor::all(Color::WHITE),
+                    Children::spawn(SpawnWith(|root_parent: &mut ChildSpawner| {
+                    })),
+                )),
+        )).id();
+
+        commands.entity(computer_ui).add_child(window);
     }
+    //}
 }
 
 #[derive(Component, Reflect)]
@@ -127,6 +136,8 @@ fn on_inserted_cart_remove(
         world.commands()
             .entity(computer_ui_entity)
             .remove::<ComputerCartIcon>();
+    } else {
+        error!("on_inserted_cart_remove: Failed to query Entity for ComputerUiNode");
     }
 }
 

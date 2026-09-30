@@ -63,38 +63,46 @@ fn manage_cursor(
     active_windoow: Query<Entity, (With<FloatingWindow>, Without<ComputerNode>)>,
     player_state_query: Query<&PlayerState>,
 ) {
-    if let Ok(mut window) = windows.single_mut()
-    && let Ok(player_state) = player_state_query.single() {
-        if *player_state == PlayerState::Computer {
-            window.grab_mode = CursorGrabMode::None;
-            window.visible = true;
-            return;
-        }
-        if window.grab_mode != CursorGrabMode::Locked {
-                if shoot_action.contains(ActionEvents::FIRE) {
-                if !active_windoow.is_empty() {
-                    return;
-                }
-                window.grab_mode = CursorGrabMode::Locked;
-                window.visible = false;
-                for mut controller in &mut controllers {
-                    controller.enable_input = true;
-                }
+    let Ok(mut window) = windows.single_mut() else {
+        error!("manage_cursor: Failed to query CursorOptions");
+        return;
+    };
+    let Ok(player_state) = player_state_query.single() else {
+        error!("manage_cursor: Failed to query PlayerState");
+        return;
+    };
+    //if let Ok(mut window) = windows.single_mut()
+    //&& let Ok(player_state) = player_state_query.single() {
+    if *player_state == PlayerState::Computer {
+        window.grab_mode = CursorGrabMode::None;
+        window.visible = true;
+        return;
+    }
+    if window.grab_mode != CursorGrabMode::Locked {
+            if shoot_action.contains(ActionEvents::FIRE) {
+            if !active_windoow.is_empty() {
+                return;
             }
-        } else if shoot_action.contains(ActionEvents::START) {
-            avian_pickup_input_writer.write(AvianPickupInput { action: AvianPickupAction::Throw, actor: *avian_pickup_actor });
-            shoot_event_writer.write(shoot::ShootEvent);
-            commands.trigger(ShootEvent);
-        }
-
-        if key.just_pressed(KeyCode::Escape) {
-            //window.grab_mode = CursorGrabMode::None;
-            window.visible = true;
+            window.grab_mode = CursorGrabMode::Locked;
+            window.visible = false;
             for mut controller in &mut controllers {
-                controller.enable_input = false;
+                controller.enable_input = true;
             }
+        }
+    } else if shoot_action.contains(ActionEvents::START) {
+        avian_pickup_input_writer.write(AvianPickupInput { action: AvianPickupAction::Throw, actor: *avian_pickup_actor });
+        shoot_event_writer.write(shoot::ShootEvent);
+        commands.trigger(ShootEvent);
+    }
+
+    if key.just_pressed(KeyCode::Escape) {
+        //window.grab_mode = CursorGrabMode::None;
+        window.visible = true;
+        for mut controller in &mut controllers {
+            controller.enable_input = false;
         }
     }
+    //}
 }
 
 /*

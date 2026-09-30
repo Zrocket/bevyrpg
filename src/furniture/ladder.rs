@@ -40,7 +40,13 @@ pub fn ladder_collision_observer(
     mut player_query: Query<&mut PlayerState, With<Player>>,
 ) {
     trace!("OBSERVER: ladder_collision_observer");
-    if player_query.contains(trigger.event().collider2) && let Ok(mut player) = player_query.single_mut() {
+    //let Ok(mut player) = player_query.single_mut() else {
+    //    error!("ladder_collision_observer: Failed to query PlayerState");
+    //    return;
+    //};
+
+    if player_query.contains(trigger.event().collider2)
+    && let Ok(mut player) = player_query.single_mut() {
         *player = PlayerState::Ladder(trigger.event().body1.unwrap());
     }
 }
@@ -50,7 +56,13 @@ pub fn ladder_decollision_observer(
     mut player_query: Query<&mut PlayerState, With<Player>>,
 ) {
     trace!("OBSERVER: ladder_decollision_observer");
-    if player_query.contains(trigger.event().collider2) && let Ok(mut player) = player_query.single_mut() {
+    //let Ok(mut player) = player_query.single_mut() else {
+    //    error!("ladder_decollision_observer: Failed to query PlayerState");
+    //    return;
+    //};
+
+    if player_query.contains(trigger.event().collider2)
+    && let Ok(mut player) = player_query.single_mut() {
         *player = PlayerState::Grounded;
     }
 }

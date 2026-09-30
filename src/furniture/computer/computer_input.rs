@@ -1,4 +1,6 @@
 use bevy::{camera::RenderTarget, color::palettes::css::{BLUE, GREEN, RED}, ecs::{lifecycle::HookContext, world::DeferredWorld}, input::ButtonState, picking::{backend::ray::RayMap, pointer::{Location, PointerAction, PointerInput}}, prelude::*, window::{PrimaryWindow, WindowEvent}};
+use bevy_seedling::error;
+use clap::Error;
 
 use crate::{CctvCam, CctvDownEvent, CctvLeftEvent, CctvParent, CctvRightEvent, CctvUpEvent, ComputerNode, ComputerUiNode, Desktop, IconClickTimer, Rover, RoverAttachments, RoverBackwardEvent, RoverCamera, RoverCameraDownEvent, RoverCameraUpEvent, RoverForwardEvent, RoverInteractEvent, RoverLeftEvent, RoverRecallEvent, RoverRightEvent, RoverSpawnedMessage, UseRoverAttachmentEvent, furniture::computer::{CUBE_POINTER_ID, ComputerScreenCube}, widgets::floating_windows::floating_computer_rover_window_root};
 
@@ -442,9 +444,14 @@ pub(crate) fn pickup_pressed(
     mut commands: Commands,
     rover_query: Query<Entity, With<Rover>>,
 ) {
-    if let Ok(rover_entity) = rover_query.single() {
-        commands.entity(rover_entity).trigger(|entity| RoverInteractEvent { entity });
-    }
+    let Ok(rover_entity) = rover_query.single() else {
+        error!("pickup_pressed: Failed to query Entity for Rover");
+        return;
+    };
+
+    //if let Ok(rover_entity) = rover_query.single() {
+    commands.entity(rover_entity).trigger(|entity| RoverInteractEvent { entity });
+    //}
 }
 
 pub(crate) fn rover_forward_pressed(
@@ -452,9 +459,14 @@ pub(crate) fn rover_forward_pressed(
     mut commands: Commands,
     rover_query: Query<Entity, With<Rover>>,
 ) {
-    if let Ok(rover_entity) = rover_query.single() {
-        commands.entity(rover_entity).trigger(|entity| RoverForwardEvent { entity });
-    }
+    let Ok(rover_entity) = rover_query.single() else {
+        error!("rover_forward_pressed: Failed to query Entity for Rover");
+        return;
+    };
+
+    //if let Ok(rover_entity) = rover_query.single() {
+    commands.entity(rover_entity).trigger(|entity| RoverForwardEvent { entity });
+    //}
 }
 
 pub(crate) fn rover_forward_released(
@@ -462,9 +474,14 @@ pub(crate) fn rover_forward_released(
     mut commands: Commands,
     rover_query: Query<Entity, With<Rover>>,
 ) {
-    if let Ok(rover_entity) = rover_query.single() {
-        commands.entity(rover_entity).trigger(|entity| RoverForwardEvent { entity });
-    }
+    let Ok(rover_entity) = rover_query.single() else {
+        error!("rover_forward_released: Failed to query Entity for Rover");
+        return;
+    };
+
+    //if let Ok(rover_entity) = rover_query.single() {
+    commands.entity(rover_entity).trigger(|entity| RoverForwardEvent { entity });
+    //}
 }
 
 pub(crate) fn rover_backward_pressed(
@@ -472,9 +489,14 @@ pub(crate) fn rover_backward_pressed(
     mut commands: Commands,
     rover_query: Query<Entity, With<Rover>>,
 ) {
-    if let Ok(rover_entity) = rover_query.single() {
-        commands.entity(rover_entity).trigger(|entity| RoverBackwardEvent { entity });
-    }
+    let Ok(rover_entity) = rover_query.single() else {
+        error!("rover_backward_pressed: Failed to query Entity for Rover");
+        return;
+    };
+
+    //if let Ok(rover_entity) = rover_query.single() {
+    commands.entity(rover_entity).trigger(|entity| RoverBackwardEvent { entity });
+    //}
 }
 
 pub(crate) fn rover_backward_released(
@@ -482,9 +504,14 @@ pub(crate) fn rover_backward_released(
     mut commands: Commands,
     rover_query: Query<Entity, With<Rover>>,
 ) {
-    if let Ok(rover_entity) = rover_query.single() {
-        commands.entity(rover_entity).trigger(|entity| RoverBackwardEvent { entity });
-    }
+    let Ok(rover_entity) = rover_query.single() else {
+        error!("rover_backward_released: Failed to query Entity for Rover");
+        return;
+    };
+
+    //if let Ok(rover_entity) = rover_query.single() {
+    commands.entity(rover_entity).trigger(|entity| RoverBackwardEvent { entity });
+    //}
 }
 
 pub(crate) fn left_pressed(
@@ -492,9 +519,14 @@ pub(crate) fn left_pressed(
     mut commands: Commands,
     rover_query: Query<Entity, With<Rover>>,
 ) {
-    if let Ok(rover_entity) = rover_query.single() {
-        commands.entity(rover_entity).trigger(|entity| RoverLeftEvent { entity });
-    }
+    let Ok(rover_entity) = rover_query.single() else {
+        error!("left_pressed: Failed to query Entity for Rover");
+        return;
+    };
+
+    //if let Ok(rover_entity) = rover_query.single() {
+    commands.entity(rover_entity).trigger(|entity| RoverLeftEvent { entity });
+    //}
 }
 
 pub(crate) fn cctv_left_pressed(
@@ -512,9 +544,14 @@ pub(crate) fn left_released(
     mut commands: Commands,
     rover_query: Query<Entity, With<Rover>>,
 ) {
-    if let Ok(rover_entity) = rover_query.single() {
-        commands.entity(rover_entity).trigger(|entity| RoverLeftEvent { entity });
-    }
+    let Ok(rover_entity) = rover_query.single() else {
+        error!("left_released: Failed to query Entity for Rover");
+        return;
+    };
+
+    //if let Ok(rover_entity) = rover_query.single() {
+    commands.entity(rover_entity).trigger(|entity| RoverLeftEvent { entity });
+    //}
 }
 
 pub(crate) fn cctv_left_released(
@@ -522,10 +559,15 @@ pub(crate) fn cctv_left_released(
     mut commands: Commands,
     cctv_query: Query<Entity, With<CctvParent>>,
 ) {
-    if let Ok(entity) = cctv_query.single() {
+    let Ok(entity) = cctv_query.single() else {
+        error!("cctv_left_released: Failed to query Entity for CctvParent");
+        return;
+    };
+
+    //if let Ok(entity) = cctv_query.single() {
     //for entity in cctv_query.iter() {
-        commands.entity(entity).trigger(|entity| CctvLeftEvent { entity });
-    }
+    commands.entity(entity).trigger(|entity| CctvLeftEvent { entity });
+    //}
 }
 
 pub(crate) fn right_pressed(
@@ -533,9 +575,14 @@ pub(crate) fn right_pressed(
     mut commands: Commands,
     rover_query: Query<Entity, With<Rover>>,
 ) {
-    if let Ok(rover_entity) = rover_query.single() {
-        commands.entity(rover_entity).trigger(|entity| RoverRightEvent { entity });
-    }
+    let Ok(rover_entity) = rover_query.single() else {
+        error!("right_pressed: Failed to query Entity for Rover");
+        return;
+    };
+
+    //if let Ok(rover_entity) = rover_query.single() {
+    commands.entity(rover_entity).trigger(|entity| RoverRightEvent { entity });
+    //}
 }
 
 pub(crate) fn cctv_right_pressed(
@@ -543,10 +590,15 @@ pub(crate) fn cctv_right_pressed(
     mut commands: Commands,
     cctv_query: Query<Entity, With<CctvParent>>,
 ) {
-    if let Ok(entity) = cctv_query.single() {
+    let Ok(entity) = cctv_query.single() else {
+        error!("cctv_right_pressed: Failed to query Entity for CctvParent");
+        return;
+    };
+
+    //if let Ok(entity) = cctv_query.single() {
     //for entity in cctv_query.iter() {
-        commands.entity(entity).trigger(|entity| CctvRightEvent { entity });
-    }
+    commands.entity(entity).trigger(|entity| CctvRightEvent { entity });
+    //}
 }
 
 pub(crate) fn right_released(
@@ -554,9 +606,14 @@ pub(crate) fn right_released(
     mut commands: Commands,
     rover_query: Query<Entity, With<Rover>>,
 ) {
-    if let Ok(rover_entity) = rover_query.single() {
-        commands.entity(rover_entity).trigger(|entity| RoverRightEvent { entity });
-    }
+    let Ok(rover_entity) = rover_query.single() else {
+        error!("right_released: Failed to query Entity for Rover");
+        return;
+    };
+
+    //if let Ok(rover_entity) = rover_query.single() {
+    commands.entity(rover_entity).trigger(|entity| RoverRightEvent { entity });
+    //}
 }
 
 pub(crate) fn cctv_right_released(
@@ -564,10 +621,15 @@ pub(crate) fn cctv_right_released(
     mut commands: Commands,
     cctv_query: Query<Entity, With<CctvParent>>,
 ) {
-    if let Ok(entity) = cctv_query.single() {
+    let Ok(entity) = cctv_query.single() else {
+        error!("cctv_right_released: Failed to query Entity for CctvParent");
+        return;
+    };
+
+    //if let Ok(entity) = cctv_query.single() {
     //for entity in cctv_query.iter() {
-        commands.entity(entity).trigger(|entity| CctvRightEvent { entity });
-    }
+    commands.entity(entity).trigger(|entity| CctvRightEvent { entity });
+    //}
 }
 
 pub(crate) fn recall_pressed(
@@ -575,9 +637,14 @@ pub(crate) fn recall_pressed(
     mut commands: Commands,
     rover_query: Query<Entity, With<Rover>>,
 ) {
-    if let Ok(rover_entity) = rover_query.single() {
-        commands.entity(rover_entity).trigger(|entity| RoverRecallEvent { entity });
-    }
+    let Ok(rover_entity) = rover_query.single() else {
+        error!("recall_pressed: Failed to query Entity forr Rover");
+        return;
+    };
+
+    //if let Ok(rover_entity) = rover_query.single() {
+    commands.entity(rover_entity).trigger(|entity| RoverRecallEvent { entity });
+    //}
 }
 
 pub(crate) fn attachment_pressed(
@@ -585,11 +652,16 @@ pub(crate) fn attachment_pressed(
     mut commands: Commands,
     rover_query: Query<(Entity, &RoverAttachments), With<Rover>>,
 ) {
-    if let Ok((rover_entity, attachment)) = rover_query.single() {
-        for entity in  attachment.iter() {
-            commands.entity(entity).trigger(|entity| UseRoverAttachmentEvent { entity });
-        }
+    let Ok((rover_entity, attachment)) = rover_query.single() else {
+        error!("attachment_pressed: Failed to query Entity and RoverAttachments for Rover");
+        return;
+    };
+
+    //if let Ok((rover_entity, attachment)) = rover_query.single() {
+    for entity in  attachment.iter() {
+        commands.entity(entity).trigger(|entity| UseRoverAttachmentEvent { entity });
     }
+    //}
 }
 
 pub(crate) fn camera_up_pressed(
@@ -597,9 +669,14 @@ pub(crate) fn camera_up_pressed(
     mut commands: Commands,
     rover_query: Query<Entity, With<Rover>>,
 ) {
-    if let Ok(rover_entity) = rover_query.single() {
-        commands.entity(rover_entity).trigger(|entity| RoverCameraUpEvent { entity });
-    }
+    let Ok(rover_entity) = rover_query.single() else {
+        error!("camera_up_pressed: Failed to query Entity for Rover");
+        return;
+    };
+
+    //if let Ok(rover_entity) = rover_query.single() {
+    commands.entity(rover_entity).trigger(|entity| RoverCameraUpEvent { entity });
+    //}
 }
 
 pub(crate) fn cctv_camera_up_pressed(
@@ -607,10 +684,15 @@ pub(crate) fn cctv_camera_up_pressed(
     mut commands: Commands,
     cctv_query: Query<Entity, With<CctvParent>>,
 ) {
-    if let Ok(entity) = cctv_query.single() {
+    let Ok(entity) = cctv_query.single() else {
+        error!("cctv_camera_up_pressed: Failed to query Entity for CctvParent");
+        return;
+    };
+
+    //if let Ok(entity) = cctv_query.single() {
     //for rover_entity in cctv_query.iter() {
-        commands.entity(entity).trigger(|entity| CctvUpEvent { entity });
-    }
+    commands.entity(entity).trigger(|entity| CctvUpEvent { entity });
+    //}
 }
 
 pub(crate) fn camera_up_released(
@@ -618,9 +700,14 @@ pub(crate) fn camera_up_released(
     mut commands: Commands,
     rover_query: Query<Entity, With<Rover>>,
 ) {
-    if let Ok(rover_entity) = rover_query.single() {
-        commands.entity(rover_entity).trigger(|entity| RoverCameraUpEvent { entity });
-    }
+    let Ok(rover_entity) = rover_query.single() else {
+        error!("camera_up_released: Failed to query Entity for Rover");
+        return;
+    };
+
+    //if let Ok(rover_entity) = rover_query.single() {
+    commands.entity(rover_entity).trigger(|entity| RoverCameraUpEvent { entity });
+    //}
 }
 
 pub(crate) fn cctv_camera_up_released(
@@ -628,10 +715,15 @@ pub(crate) fn cctv_camera_up_released(
     mut commands: Commands,
     cctv_query: Query<Entity, With<CctvParent>>,
 ) {
-    if let Ok(entity) = cctv_query.single() {
+    let Ok(entity) = cctv_query.single() else {
+        error!("cctv_camera_up_released: Failed to query Entity for CctvParent");
+        return;
+    };
+
+    //if let Ok(entity) = cctv_query.single() {
     //for entity in cctv_query.iter() {
-        commands.entity(entity).trigger(|entity| CctvUpEvent { entity });
-    }
+    commands.entity(entity).trigger(|entity| CctvUpEvent { entity });
+    //}
 }
 
 pub(crate) fn camera_down_pressed(
@@ -639,9 +731,14 @@ pub(crate) fn camera_down_pressed(
     mut commands: Commands,
     rover_query: Query<Entity, With<Rover>>,
 ) {
-    if let Ok(rover_entity) = rover_query.single() {
-        commands.entity(rover_entity).trigger(|entity| RoverCameraDownEvent { entity });
-    }
+    let Ok(rover_entity) = rover_query.single() else {
+        error!("camera_down_pressed: Failed to query Entity for Rover");
+        return;
+    };
+
+    //if let Ok(rover_entity) = rover_query.single() {
+    commands.entity(rover_entity).trigger(|entity| RoverCameraDownEvent { entity });
+    //}
 }
 
 pub(crate) fn cctv_camera_down_pressed(
@@ -649,10 +746,15 @@ pub(crate) fn cctv_camera_down_pressed(
     mut commands: Commands,
     cctv_query: Query<Entity, With<CctvParent>>,
 ) {
-    if let Ok(entity) = cctv_query.single() {
+    let Ok(entity) = cctv_query.single() else {
+        error!("cctv_camera_down_pressed: Failed to query Entity for CctvParent");
+        return;
+    };
+ 
+    //if let Ok(entity) = cctv_query.single() {
     //for entity in cctv_query.iter() {
-        commands.entity(entity).trigger(|entity| CctvDownEvent { entity });
-    }
+    commands.entity(entity).trigger(|entity| CctvDownEvent { entity });
+    //}
 }
 
 pub(crate) fn camera_down_released(
@@ -660,9 +762,14 @@ pub(crate) fn camera_down_released(
     mut commands: Commands,
     rover_query: Query<Entity, With<Rover>>,
 ) {
-    if let Ok(rover_entity) = rover_query.single() {
-        commands.entity(rover_entity).trigger(|entity| RoverCameraDownEvent { entity });
-    }
+    let Ok(rover_entity) = rover_query.single() else {
+        error!("camera_down_released: Failed to query Entity forr Rover");
+        return;
+    };
+
+    //if let Ok(rover_entity) = rover_query.single() {
+    commands.entity(rover_entity).trigger(|entity| RoverCameraDownEvent { entity });
+    //}
 }
 
 pub(crate) fn cctv_camera_down_released(
@@ -670,28 +777,43 @@ pub(crate) fn cctv_camera_down_released(
     mut commands: Commands,
     cctv_query: Query<Entity, With<CctvParent>>,
 ) {
-    if let Ok(entity) = cctv_query.single() {
+    let Ok(entity) = cctv_query.single() else {
+        error!("cctv_camera_down_released: Failed to query Entity for CctvParent");
+        return;
+    };
+
+    //if let Ok(entity) = cctv_query.single() {
     //for entity in cctv_query.iter() {
-        commands.entity(entity).trigger(|entity| CctvDownEvent { entity });
-    }
+    commands.entity(entity).trigger(|entity| CctvDownEvent { entity });
+    //}
 }
 
 pub(crate) fn icon_over(
     over: On<Pointer<Over>>,
     mut colors: Query<&mut BackgroundColor>,
 ) {
-    if let Ok(mut colors) = colors.get_mut(over.entity) {
-        colors.0 = RED.into();
-    }
+    let Ok(mut colors) = colors.get_mut(over.entity) else {
+        error!("ivon_over: Failed to query BackgroundColor for {}", over.entity);
+        return;
+    };
+
+    //if let Ok(mut colors) = colors.get_mut(over.entity) {
+    colors.0 = RED.into();
+    //}
 }
 
 pub(crate) fn icon_out(
     out: On<Pointer<Out>>,
     mut colors: Query<&mut BackgroundColor>,
 ) {
-    if let Ok(mut colors) = colors.get_mut(out.entity) {
-        colors.0 = BLUE.into();
-    }
+    let Ok(mut colors) = colors.get_mut(out.entity) else {
+        error!("icon_out: Failed to query BackgroundColor for {}", out.entity);
+        return;
+    };
+
+    //if let Ok(mut colors) = colors.get_mut(out.entity) {
+    colors.0 = BLUE.into();
+    //}
 }
 
 pub(crate) fn update_click_timer(
@@ -710,36 +832,49 @@ pub(crate) fn rover_icon_double_click_observer(
     computer_ui_query: Query<Entity, With<ComputerUiNode>>,
     rover_camera_query: Query<Entity, With<RoverCamera>>,
 ) {
-    if let Ok(mut timer) = timer_query.get_mut(trigger.entity)
-    && let Ok(computer_ui) = computer_ui_query.single()
-    && let Ok(rover_camrea) = rover_camera_query.single() {
-        if timer.0.is_finished() {
-            timer.0.reset();
-        } else {
-            let window = commands.spawn((
-                    ComputerNode,
-                    floating_computer_rover_window_root("ROVER".to_string(), (
-                        Node {
-                            width: Val::Auto,
-                            height: px(300),
-                            border: UiRect::all(px(5)),
-                            overflow: Overflow { x: OverflowAxis::Hidden, y: OverflowAxis::Hidden },
-                            flex_direction: FlexDirection::ColumnReverse,
-                            ..default()
-                        },
-                        ViewportNode::new(rover_camrea),
-                        BorderColor::all(Color::WHITE),
-                        Children::spawn(SpawnWith(|root_parent: &mut ChildSpawner| {
-                            root_parent.spawn(RecallButton);
-                            root_parent.spawn(AttachmentButton);
-                            root_parent.spawn(RoverButtonsNode);
-                        })),
-                    )),
-            )).id();
+    let Ok(mut timer) = timer_query.get_mut(trigger.entity) else {
+        error!("rover_icon_double_click_observer: Failed to query IconClickTimer for {}", trigger.entity);
+        return;
+    };
+    let Ok(computer_ui) = computer_ui_query.single() else {
+        error!("rover_icon_double_click_observer: Failed to queury Entity for ComputerUiNode");
+        return;
+    };
+    let Ok(rover_camrea) = rover_camera_query.single() else {
+        error!("rover_icon_double_click_observer: Failed to query Entity for RoverCamera");
+        return;
+    };
 
-            commands.entity(computer_ui).add_child(window);
-        }
+    //if let Ok(mut timer) = timer_query.get_mut(trigger.entity)
+    //&& let Ok(computer_ui) = computer_ui_query.single()
+    //&& let Ok(rover_camrea) = rover_camera_query.single() {
+    if timer.0.is_finished() {
+        timer.0.reset();
+    } else {
+        let window = commands.spawn((
+                ComputerNode,
+                floating_computer_rover_window_root("ROVER".to_string(), (
+                    Node {
+                        width: Val::Auto,
+                        height: px(300),
+                        border: UiRect::all(px(5)),
+                        overflow: Overflow { x: OverflowAxis::Hidden, y: OverflowAxis::Hidden },
+                        flex_direction: FlexDirection::ColumnReverse,
+                        ..default()
+                    },
+                    ViewportNode::new(rover_camrea),
+                    BorderColor::all(Color::WHITE),
+                    Children::spawn(SpawnWith(|root_parent: &mut ChildSpawner| {
+                        root_parent.spawn(RecallButton);
+                        root_parent.spawn(AttachmentButton);
+                        root_parent.spawn(RoverButtonsNode);
+                    })),
+                )),
+        )).id();
+
+        commands.entity(computer_ui).add_child(window);
     }
+    //}
 }
 
 pub(crate) fn cctv_icon_double_click_observer(
@@ -749,34 +884,47 @@ pub(crate) fn cctv_icon_double_click_observer(
     computer_ui_query: Query<Entity, With<ComputerUiNode>>,
     cctv_camera_query: Query<Entity, With<CctvCam>>,
 ) {
-    if let Ok(mut timer) = timer_query.get_mut(trigger.entity)
-    && let Ok(computer_ui) = computer_ui_query.single()
-    && let Ok(cctv_camrea) = cctv_camera_query.single() {
-        if timer.0.is_finished() {
-            timer.0.reset();
-        } else {
-            let window = commands.spawn((
-                    ComputerNode,
-                    floating_computer_rover_window_root("CCTV".to_string(), (
-                        Node {
-                            width: Val::Auto,
-                            height: px(300),
-                            border: UiRect::all(px(5)),
-                            overflow: Overflow { x: OverflowAxis::Hidden, y: OverflowAxis::Hidden },
-                            flex_direction: FlexDirection::ColumnReverse,
-                            ..default()
-                        },
-                        ViewportNode::new(cctv_camrea),
-                        BorderColor::all(Color::WHITE),
-                        Children::spawn(SpawnWith(|root_parent: &mut ChildSpawner| {
-                            root_parent.spawn(CctvButtonsNode);
-                        })),
-                    )),
-            )).id();
+    let Ok(mut timer) = timer_query.get_mut(trigger.entity) else {
+        error!("cctv_icon_double_click_observer: Failed to query IconClickTimer for {}", trigger.entity);
+        return;
+    };
+    let Ok(computer_ui) = computer_ui_query.single() else {
+        error!("cctv_icon_double_click_observer: Failed to query Entity for ComputerUiNode");
+        return;
+    };
+    let Ok(cctv_camrea) = cctv_camera_query.single() else {
+        error!("cctv_icon_double_click_observer: Failed to query Entity for CctvCam");
+        return;
+    };
 
-            commands.entity(computer_ui).add_child(window);
-        }
+    //if let Ok(mut timer) = timer_query.get_mut(trigger.entity)
+    //&& let Ok(computer_ui) = computer_ui_query.single()
+    //&& let Ok(cctv_camrea) = cctv_camera_query.single() {
+    if timer.0.is_finished() {
+        timer.0.reset();
+    } else {
+        let window = commands.spawn((
+                ComputerNode,
+                floating_computer_rover_window_root("CCTV".to_string(), (
+                    Node {
+                        width: Val::Auto,
+                        height: px(300),
+                        border: UiRect::all(px(5)),
+                        overflow: Overflow { x: OverflowAxis::Hidden, y: OverflowAxis::Hidden },
+                        flex_direction: FlexDirection::ColumnReverse,
+                        ..default()
+                    },
+                    ViewportNode::new(cctv_camrea),
+                    BorderColor::all(Color::WHITE),
+                    Children::spawn(SpawnWith(|root_parent: &mut ChildSpawner| {
+                        root_parent.spawn(CctvButtonsNode);
+                    })),
+                )),
+        )).id();
+
+        commands.entity(computer_ui).add_child(window);
     }
+    //}
 }
 
 pub(crate) fn refresh_rover_window(
@@ -786,12 +934,21 @@ pub(crate) fn refresh_rover_window(
     window_query: Query<Entity, With<ComputerNode>>
 ) {
     for _message in rover_spawned_message_readeer.read() {
-        if let Ok(rover_camrea) = rover_camera_query.single()
-        && let Ok(window_entity) = window_query.single() {
-            commands.entity(window_entity)
-                .remove::<ViewportNode>()
-                .insert(ViewportNode::new(rover_camrea));
-        }
+        let Ok(rover_camrea) = rover_camera_query.single() else {
+            error!("refresh_rover_window: Failed to query Entity for RoverCamera");
+            return;
+        };
+        let Ok(window_entity) = window_query.single() else {
+            error!("refresh_rover_window: Failed to query Entity for ComputerNode");
+            return;
+        };
+
+        //if let Ok(rover_camrea) = rover_camera_query.single()
+        //&& let Ok(window_entity) = window_query.single() {
+        commands.entity(window_entity)
+            .remove::<ViewportNode>()
+            .insert(ViewportNode::new(rover_camrea));
+        //}
     }
 }
 
@@ -802,6 +959,8 @@ pub(crate) fn icon_drag_observer(
     if let Ok((mut node, computed)) = nodes.get_mut(drag.entity) {
         node.left = Val::Px(drag.pointer_location.position.x - computed.size.x / 2.0);
         node.top = Val::Px(drag.pointer_location.position.y - 50.0);
+    } else {
+        error!("icon_drag_observer: Failed to query Node and ComputedNode for {}", drag.entity);
     }
 }
 

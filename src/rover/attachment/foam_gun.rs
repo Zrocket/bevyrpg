@@ -61,22 +61,31 @@ fn use_foam_gun_observer(
     rover_query: Query<Entity, With<Rover>>,
     transform_query: Query<&GlobalTransform, With<RoverCamera>>,
 ) {
-    if let Ok(rover_entity) = rover_query.single()
-    && let Ok(camera_transform) = transform_query.single() {
-        let camera_position = camera_transform.translation();
-        let dart_position = camera_position + (camera_transform.forward() * 1.);
-        let direction = camera_transform.forward().normalize();
-        let linear_velocity = direction * 23.;
-        commands.spawn((
-                //Grenade(Timer::from_seconds(3., TimerMode::Once)),
-                FoamDart(Timer::from_seconds(3., TimerMode::Once)),
-                Transform {
-                    translation: dart_position,
-                    ..default()
-                },
-                LinearVelocity(linear_velocity),
-        ));
-    }
+    let Ok(rover_entity) = rover_query.single() else {
+        error!("use_foam_gun_observer: Failed to query Entity for Rover");
+        return;
+    };
+    let Ok(camera_transform) = transform_query.single() else {
+        error!("use_foam_gun_observer: Failed to query GlobalTransform for RoverCamera");
+        return;
+    };
+
+    //if let Ok(rover_entity) = rover_query.single()
+    //&& let Ok(camera_transform) = transform_query.single() {
+    let camera_position = camera_transform.translation();
+    let dart_position = camera_position + (camera_transform.forward() * 1.);
+    let direction = camera_transform.forward().normalize();
+    let linear_velocity = direction * 23.;
+    commands.spawn((
+            //Grenade(Timer::from_seconds(3., TimerMode::Once)),
+            FoamDart(Timer::from_seconds(3., TimerMode::Once)),
+            Transform {
+                translation: dart_position,
+                ..default()
+            },
+            LinearVelocity(linear_velocity),
+    ));
+    //}
 }
 
 pub(crate) fn dart_timer(

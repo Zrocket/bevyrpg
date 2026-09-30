@@ -1,7 +1,7 @@
 use bevy::prelude::*;
 use bevy_egui::PrimaryEguiContext;
 
-use crate::{MenuState, MetaState, widgets};
+use crate::{BootStrap, MenuState, MetaState, widgets};
 
 #[derive(Component)]
 #[require(
@@ -21,7 +21,7 @@ impl Plugin for StartMenuUiPlugin {
     fn build(&self, app: &mut App) {
        app
            .register_type::<UiStartMenu>()
-           .add_systems(OnEnter(MetaState::MainMenu), spawn_start_menu_camera)
+           .add_systems(OnEnter(BootStrap::Preload), spawn_start_menu_camera)
            .add_systems(OnEnter(MenuState::MainMenu), spawn_start_menu);
     }
 }

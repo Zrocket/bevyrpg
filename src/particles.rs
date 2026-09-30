@@ -276,7 +276,6 @@ fn fire_collision_observer(
         commands.entity(flamable_entity)
             .insert(ParticleTester);
         } else if let Ok(character_entity) = character_query.get(trigger.event().collider2) {
-            println!("AAAAAAAAAAAAA");
             commands.entity(character_entity).trigger(|entity| DamageEvent { entity, ammount: 10 });
         }
 }

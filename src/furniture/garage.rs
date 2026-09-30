@@ -34,6 +34,8 @@ fn garage_button_interaction_observer(
             commands.entity(door).trigger(|entity| CloseDoorEvent { entity });
             *state = DoorState::Closed;
         }
+    } else {
+        error!("garage_button_interaction_observer: Failed to query GarageDoor's Entity and DoorState");
     }
 }
 
@@ -46,15 +48,29 @@ fn open_garage_observer(
     mut door: Query<&mut AnimationPlayer>,
 ) {
     trace!("OBSERVER: open_door_observer");
-    if let Ok(mut door_state) = door_state_query.get_mut(trigger.entity)
-    && let Ok(child_of) = child_of_query.get(trigger.entity)
-    && let parent_object = child_of.0
-    && let Ok(mut door_animation_player) = door.get_mut(parent_object) {
-        door_animation_player.stop_all();
-        println!("{:?}", door_state);
-        door_animation_player.play(1.into());
-        *door_state = DoorState::Open;
-    }
+    let Ok(mut door_state) = door_state_query.get_mut(trigger.entity) else {
+        error!("open_garage_observer: Failed to query DoorState for {}", trigger.entity);
+        return;
+    };
+    let Ok(child_of) = child_of_query.get(trigger.entity) else {
+        error!("open_garage_observer: Failed to query ChildOf for {}", trigger.entity);
+        return;
+    };
+    let parent_object = child_of.0;
+    let Ok(mut door_animation_player) = door.get_mut(parent_object) else {
+        error!("open_garage_observer: Failed to query AnimationPlayer for {}", parent_object);
+        return;
+    };
+
+    //if let Ok(mut door_state) = door_state_query.get_mut(trigger.entity)
+    //&& let Ok(child_of) = child_of_query.get(trigger.entity)
+    //&& let parent_object = child_of.0
+    //&& let Ok(mut door_animation_player) = door.get_mut(parent_object) {
+    door_animation_player.stop_all();
+    println!("{:?}", door_state);
+    door_animation_player.play(1.into());
+    *door_state = DoorState::Open;
+    //}
 }
 
 fn close_garage_observer(
@@ -66,15 +82,29 @@ fn close_garage_observer(
     mut door: Query<&mut AnimationPlayer>,
 ) {
     trace!("OBSERVER: open_door_observer");
-    if let Ok(mut door_state) = door_state_query.get_mut(trigger.entity)
-    && let Ok(child_of) = child_of_query.get(trigger.entity)
-    && let parent_object = child_of.0
-    && let Ok(mut door_animation_player) = door.get_mut(parent_object) {
-        door_animation_player.stop_all();
-        println!("{:?}", door_state);
-        door_animation_player.play(2.into());
-        *door_state = DoorState::Closed;
-    }
+    let Ok(mut door_state) = door_state_query.get_mut(trigger.entity) else {
+        error!("close_garage_observer: Failed to query DoorState for {}", trigger.entity);
+        return;
+    };
+    let Ok(child_of) = child_of_query.get(trigger.entity) else {
+        error!("close_garage_observer: Failed to query ChildOf for {}", trigger.entity);
+        return;
+    };
+    let parent_object = child_of.0;
+    let Ok(mut door_animation_player) = door.get_mut(parent_object) else {
+        error!("close_door_observer: Failed to query AnimationPlayer for {}", parent_object);
+        return;
+    };
+
+    //if let Ok(mut door_state) = door_state_query.get_mut(trigger.entity)
+    //&& let Ok(child_of) = child_of_query.get(trigger.entity)
+    //&& let parent_object = child_of.0
+    //&& let Ok(mut door_animation_player) = door.get_mut(parent_object) {
+    door_animation_player.stop_all();
+    println!("{:?}", door_state);
+    door_animation_player.play(2.into());
+    *door_state = DoorState::Closed;
+    //}
 }
 
 #[derive(Component, Reflect)]
@@ -108,6 +138,8 @@ fn on_garage_door_add(
         if let Some(parent_entity) = parent {
             world.commands().entity(parent_entity).insert(graph);
         }
+    } else {
+        error!("on_garage_door_add: Failed to query GLTF {:?}", level_gltf.0);
     }
 
     world.commands()

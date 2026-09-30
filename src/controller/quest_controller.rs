@@ -18,5 +18,7 @@ fn open_quest(
 ) {
     if let Ok(entity) = player_query.single() {
         commands.entity(entity).trigger(|entity| DisplayQuestEvent { entity });
+    } else {
+        error!("open_quest: Failed to query player Entity");
     }
 }

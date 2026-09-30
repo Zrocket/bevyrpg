@@ -46,14 +46,27 @@ fn socket_test(
     mount_query: Query<(&Position, &Rotation), (With<MountPoint>, Without<PlugItem>)>,
     socket_query: Query<Entity, With<SocketItem>>,
 ) {
-    if let Ok((plug_entity, mut plug_position, mut plug_rotation)) = plug_query.get_mut(trigger.event().collider2)
-    && let Ok((mount_position, mount_rotation)) = mount_query.single()
-    && let Ok(socket_entity) = socket_query.single() {
-        //*plug_position = mount_position.clone();
-        *plug_position = *mount_position;
-        //*plug_rotation = mount_rotation.clone();
-        *plug_rotation = *mount_rotation;
-        commands.entity(plug_entity).insert(RigidBodyDisabled);
-        commands.entity(socket_entity).trigger(|entity| { PlugSocketEvent { entity, plug: plug_entity } });
-    }
+    let Ok((plug_entity, mut plug_position, mut plug_rotation)) = plug_query.get_mut(trigger.event().collider2) else {
+        error!("socket_test: Failed to query Entity and Position for {}", trigger.collider2);
+        return;
+    };
+    let Ok((mount_position, mount_rotation)) = mount_query.single() else {
+        error!("socket_test: Failed to query Position and Rotation for MountPoint");
+        return;
+    };
+    let Ok(socket_entity) = socket_query.single() else {
+        error!("socket_test: Failed to query Entity for SocketItem");
+        return;
+    };
+
+    //if let Ok((plug_entity, mut plug_position, mut plug_rotation)) = plug_query.get_mut(trigger.event().collider2)
+    //&& let Ok((mount_position, mount_rotation)) = mount_query.single()
+    //&& let Ok(socket_entity) = socket_query.single() {
+    //*plug_position = mount_position.clone();
+    *plug_position = *mount_position;
+    //*plug_rotation = mount_rotation.clone();
+    *plug_rotation = *mount_rotation;
+    commands.entity(plug_entity).insert(RigidBodyDisabled);
+    commands.entity(socket_entity).trigger(|entity| { PlugSocketEvent { entity, plug: plug_entity } });
+    //}
 }

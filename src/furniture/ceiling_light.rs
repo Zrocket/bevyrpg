@@ -34,5 +34,7 @@ fn toggle_light(
         } else {
             commands.entity(light_entity).insert(PointLight::default());
         }
+    } else {
+        error!("toggle_light: Failed to query lightflicker Entity and PointLight");
     }
 }

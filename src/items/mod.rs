@@ -53,6 +53,7 @@ pub enum ItemKind {
     Weapon { weapon_type: WeaponType },
     HealthPack,
     ManaPack,
+    ApplicableSubstance,
 }
 
 #[derive(Asset, TypePath, Deserialize, Clone, Debug)]
@@ -143,6 +144,7 @@ fn spawn_item_from_definition(commands: &mut Commands, def: &ItemDefinition) -> 
         ItemKind::Weapon { weapon_type }            => { entity.insert(Weapon { weapon_type: weapon_type.clone() }); }
         ItemKind::HealthPack                                    => { entity.insert(HealthItem); }
         ItemKind::ManaPack                                      => { entity.insert(ManaItem); }
+        ItemKind::ApplicableSubstance                           => { entity.insert(ApplicatorSubstance); }
     }
 
     entity.id()

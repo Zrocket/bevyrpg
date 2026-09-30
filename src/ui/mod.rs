@@ -4,16 +4,17 @@ use super::*;
 
 pub mod analyzer_ui;
 pub mod book_ui;
+pub mod bootstrap_ui;
 pub mod crafting_ui;
 pub mod crosshair;
 pub mod database_ui;
 pub mod equip_ui;
 pub mod inventory_ui;
+pub mod palette;
 pub mod status_bar;
 //mod dialog_ui;
 pub mod widgets;
 pub mod menu;
-pub mod palette;
 pub mod quest_ui;
 pub mod rover_ui;
 pub mod inspect;
@@ -34,6 +35,7 @@ pub use inspect::*;
 pub use start_menu::*;
 pub use game_over::*;
 pub use stats_ui::*;
+use bootstrap_ui::*;
 
 
 #[derive(AssetCollection, Resource, Reflect, Debug)]
@@ -88,6 +90,7 @@ impl Plugin for UiPlugin {
             ))
             .add_plugins((
                     RoverUiPlugin,
+                    BootstrapUiPlugin,
             ))
             .add_loading_state(
                 LoadingState::new(BootStrap::Preload)

@@ -58,5 +58,7 @@ fn spawn_enemy_agent(
         ))
         .insert(Name::new("Enemy Cube"))
         .insert(Enemy);
+        } else {
+            error!("spawn_enemy_agent: Failed to query Archipelago3d");
     }
 }

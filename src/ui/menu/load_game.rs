@@ -117,5 +117,7 @@ fn load_game(
     if let Ok(save_ref) = save_ref_queury.get(trigger.entity) {
         change_level_message_writer.write(crate::ChangeLevelMessage("levels/World.glb".into()));
         commands.insert_resource(crate::PendingSaveLoad(save_ref.0));
+    } else {
+        error!("load_game: Failed to query SaveRef for {}", trigger.entity);
     }
 }

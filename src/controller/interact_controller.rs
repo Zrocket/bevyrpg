@@ -36,27 +36,40 @@ pub fn player_raycast(
     mut flashlight_query: Query<Entity, With<PlayerFlashlight>>,
 ) {
     trace!("SYSTEM: player_raycast");
-    if let Ok((player, mut ray_hit)) = player_query.single_mut()
-    && let Ok(flashlight) = flashlight_query.single_mut()
-    && let Ok(window) = window_query.single() {
-        for (camera, global_transform) in camera_query.iter() {
-            let center_window = camera.viewport_to_world(global_transform, Vec2 { y: (window.resolution.height() / 2.), x: (window.resolution.width() / 2.)}).unwrap();
-            let camera_position = global_transform.translation();
-            let camera_direction = global_transform.forward();
-            if let Some(ray_data) = ray_caster.cast_ray(
-                center_window.origin,
-                center_window.direction,
-                5.0,
-                true,
-                &SpatialQueryFilter::default().with_excluded_entities([player, flashlight]),
-            ) {
-                let _ray_hit_point = camera_position + camera_direction * ray_data.distance;
-                ray_hit.0 = Some(ray_data.entity);
-            } else {
-                ray_hit.0 = None;
-            }
+    let Ok((player, mut ray_hit)) = player_query.single_mut() else {
+        error!("player_raycast: Failed to query player Entity and RayHit");
+        return;
+    };
+    let Ok(flashlight) = flashlight_query.single_mut() else {
+        error!("player_raycast: Failed to query playerflashlight Entity");
+        return;
+    };
+    let Ok(window) = window_query.single() else {
+        error!("player_raycast: Failed to query Window");
+        return;
+    };
+
+    //if let Ok((player, mut ray_hit)) = player_query.single_mut()
+    //&& let Ok(flashlight) = flashlight_query.single_mut()
+    //&& let Ok(window) = window_query.single() {
+    for (camera, global_transform) in camera_query.iter() {
+        let center_window = camera.viewport_to_world(global_transform, Vec2 { y: (window.resolution.height() / 2.), x: (window.resolution.width() / 2.)}).unwrap();
+        let camera_position = global_transform.translation();
+        let camera_direction = global_transform.forward();
+        if let Some(ray_data) = ray_caster.cast_ray(
+            center_window.origin,
+            center_window.direction,
+            5.0,
+            true,
+            &SpatialQueryFilter::default().with_excluded_entities([player, flashlight]),
+        ) {
+            let _ray_hit_point = camera_position + camera_direction * ray_data.distance;
+            ray_hit.0 = Some(ray_data.entity);
+        } else {
+            ray_hit.0 = None;
         }
     }
+    //}
 }
 
 fn manage_interact(
@@ -77,6 +90,8 @@ fn manage_interact(
         if let Some(entity) = ray_hit.0 {
             commands.entity(entity).trigger(|entity| InteractionEvent { entity, actor: player });
         }
+    } else {
+        trace!("manage_interact: Failed to query player Entity and RayHit");
     }
 }
 
@@ -98,6 +113,8 @@ fn manage_interact2(
         if let Some(entity) = ray_hit.0 {
             commands.entity(entity).trigger(|entity| PickupEvent { entity, actor: player });
         }
+    } else {
+        trace!("manage_interact2: Failed to query player Entity and RayHit");
     }
 }
 
@@ -114,5 +131,7 @@ pub fn manage_inspect(
     }
     if let Ok((player, ray_hit)) = player.single() && let Some(entity) = ray_hit.0 {
         commands.entity(entity).trigger(|entity| InspectEvent { entity, actor: player });
+    } else {
+        trace!("manage_inspect: Failed to query player Entity and RayHit");
     }
 }

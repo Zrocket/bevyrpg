@@ -41,7 +41,7 @@ impl Plugin for CrosshairPlugin {
         app
             .add_systems(OnEnter(GameState::Gameplay), draw_crosshair)
             .add_systems(Update, cooldown_tick)
-            .add_systems(Update, on_window_resize)
+            .add_systems(Update, on_window_resize.run_if(in_state(GameState::Gameplay)))
             .add_observer(cooldown_observer);
     }
 }
@@ -61,6 +61,8 @@ pub fn cooldown_observer(
 ) {
     if let Ok(mut cooldown) = cooldown_query.single_mut() {
         cooldown.0.reset();
+    } else {
+        error!("cooldown_observer: Failed to query Cooldown");
     }
 }
 
@@ -70,6 +72,8 @@ pub fn cooldown_tick(
 ) {
     if let Ok(mut cooldown) = cooldown_query.single_mut() {
         cooldown.0.tick(time.delta());
+    } else {
+        trace!("cooldown_tick: Failed to query Cooldown");
     }
 }
 
@@ -78,8 +82,13 @@ fn on_window_resize(
     crosshair_query: Query<Entity, With<UiCrosshair>>,
     resize_reader: MessageReader<WindowResized>,
 ) {
-    if let Ok(crosshair_entity) = crosshair_query.single()
-    && !resize_reader.is_empty() {
+    let Ok(crosshair_entity) = crosshair_query.single() else {
+        error!("on_window_resize: Failed to query Entity for UiCrossHair");
+        return;
+    };
+
+    //if let Ok(crosshair_entity) = crosshair_query.single()
+    if !resize_reader.is_empty() {
         commands.entity(crosshair_entity).despawn();
         commands.spawn(UiCrosshair);
     }

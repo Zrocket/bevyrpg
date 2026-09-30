@@ -30,6 +30,6 @@
         name: "Colloidal Copper",
         description: "A potent fungicide",
         weight: 1,
-        kind: Misc,
+        kind: ApplicableSubstance,
     ),
 ]

@@ -110,18 +110,39 @@ fn start_sample_analysis(
     if trigger.event().button == PointerButton::Secondary {
         return;
     }
-    if let Ok(invref) = invref_query.get(trigger.entity)
-    && let Ok(item) = owner_query.get(trigger.dropped)
-    && let Ok(childof) = childof_query.get(trigger.dropped)
-    && let Ok(analyzer) = analyzer_query.single()
-    && let Ok(sample) = sample_query.get(item.item_owner) {
-        for active in active_sample_query.iter() {
-            commands.entity(active).remove::<ActiveSample>();
-        }
-        println!("ANALYZER ENTITY: {:?}", analyzer);
-        commands.entity(analyzer).trigger(|entity| AnalyzeSampleEvent{ entity, sample});
-        //commands.entity(trigger.entity).trigger(|entity| RefreshAnalyzerUi { entity });
+    let Ok(invref) = invref_query.get(trigger.entity) else {
+        error!("start_sample_analysis: Failed to query InvRef for {}", trigger.entity);
+        return;
+    };
+    let Ok(item) = owner_query.get(trigger.dropped) else {
+        error!("start_sample_analysis: Failed to query Owner for {}", trigger.dropped);
+        return;
+    };
+    let Ok(childof) = childof_query.get(trigger.dropped) else {
+        error!("start_sample_analysis: Failed to query ChildOf for {}", trigger.dropped);
+        return;
+    };
+    let Ok(analyzer) = analyzer_query.single() else {
+        error!("start_sample_analysis: Failed to queury Entity for Analyzer");
+        return;
+    };
+    let Ok(sample) = sample_query.get(item.item_owner) else {
+        error!("start_sample_analysis: Failed to queury Entity for {}", item.item_owner);
+        return;
+    };
+
+    //if let Ok(invref) = invref_query.get(trigger.entity)
+    //&& let Ok(item) = owner_query.get(trigger.dropped)
+    //&& let Ok(childof) = childof_query.get(trigger.dropped)
+    //&& let Ok(analyzer) = analyzer_query.single()
+    //&& let Ok(sample) = sample_query.get(item.item_owner) {
+    for active in active_sample_query.iter() {
+        commands.entity(active).remove::<ActiveSample>();
     }
+    println!("ANALYZER ENTITY: {:?}", analyzer);
+    commands.entity(analyzer).trigger(|entity| AnalyzeSampleEvent{ entity, sample});
+    //commands.entity(trigger.entity).trigger(|entity| RefreshAnalyzerUi { entity });
+    //}
 }
 
 #[derive(Component, Reflect)]
@@ -178,6 +199,8 @@ fn on_analysis_cancel_observer(
 ) {
     if let Ok(active_sample) = active_sample_query.single() {
         commands.entity(active_sample).remove::<ActiveSample>();
+    } else {
+        error!("on_analysis_cancel_observer: Failed to quey Entity for, ActiveSample");
     }
 }
 
@@ -214,22 +237,31 @@ fn on_analysis_pause_observer(
     active_sample_query: Query<Entity, With<ActiveSample>>,
     sample_query: Query<Entity, With<SampleItem>>,
 ) {
-    if let Ok(analyzer) = analyzer_query.single()
-    && let Ok(analyzer_inventory) = inventory.get(analyzer) {
-        println!("INV: {:?}", analyzer_inventory);
-        for item in analyzer_inventory.iter() {
-            println!("ITEM: {:?}", item);
-            if let Ok(sample) = sample_query.get(item) {
-                for active in active_sample_query.iter() {
-                    commands.entity(active).remove::<ActiveSample>();
-                }
-                println!("SAMPLE: {:?}", sample);
-                println!("ENTITY: {:?}", analyzer);
-                commands.entity(analyzer).trigger(|entity| AnalyzeSampleEvent{ entity, sample});
-                break;
+    let Ok(analyzer) = analyzer_query.single() else {
+        error!("on_analysis_pause_observer: Failed to query Entity for Analyzer");
+        return;
+    };
+    let Ok(analyzer_inventory) = inventory.get(analyzer) else {
+        error!("on_analysis_pause_observer: Failed to query Inventory for {}", analyzer);
+        return;
+    };
+
+    //if let Ok(analyzer) = analyzer_query.single()
+    //&& let Ok(analyzer_inventory) = inventory.get(analyzer) {
+    println!("INV: {:?}", analyzer_inventory);
+    for item in analyzer_inventory.iter() {
+        println!("ITEM: {:?}", item);
+        if let Ok(sample) = sample_query.get(item) {
+            for active in active_sample_query.iter() {
+                commands.entity(active).remove::<ActiveSample>();
             }
+            println!("SAMPLE: {:?}", sample);
+            println!("ENTITY: {:?}", analyzer);
+            commands.entity(analyzer).trigger(|entity| AnalyzeSampleEvent{ entity, sample});
+            break;
         }
     }
+    //}
 }
 
 #[derive(Component, Reflect)]
@@ -257,18 +289,27 @@ fn update_ui_analyzer_progress(
     active_sample_query: Query<(Entity, &ActiveSample)>,
     item_id_query: Query<&ItemId>,
 ) {
-    if let Ok(mut ui) = ui_query.single_mut()
-    && let Ok(timer) = timer_query.single() {
-        if timer.0.is_finished() {
-            if let Ok((entity, active_sample)) = active_sample_query.single()
-            && let Ok(item_id) = item_id_query.get(entity) {
-                discovered_items.0.replace(item_id.0.clone());
-                commands.entity(active_sample.0).despawn();
-            }
-        } else {
-            ui.value = timer.0.fraction();
+    let Ok(mut ui) = ui_query.single_mut() else {
+        trace!("update_ui_analyzer_progress: Failed to query ProgressBar for UiAnalyzerProgressBar");
+        return;
+    };
+    let Ok(timer) = timer_query.single() else {
+        trace!("update_ui_analyzer_progress: Failed to query AnalyzerTimer");
+        return;
+    };
+
+    //if let Ok(mut ui) = ui_query.single_mut()
+    //&& let Ok(timer) = timer_query.single() {
+    if timer.0.is_finished() {
+        if let Ok((entity, active_sample)) = active_sample_query.single()
+        && let Ok(item_id) = item_id_query.get(entity) {
+            discovered_items.0.replace(item_id.0.clone());
+            commands.entity(active_sample.0).despawn();
         }
+    } else {
+        ui.value = timer.0.fraction();
     }
+    //}
 }
 
 pub struct AnalyzerUiPlugin;
@@ -289,6 +330,8 @@ pub fn update_progress_bar(
     if let Ok((mut progress_bar, mut progress_timer)) = progress_bar_query.single_mut() { //println!("{:?}", progress_bar.value);
         progress_timer.0.tick(time.delta());
         progress_bar.value = progress_timer.0.fraction();
+    } else {
+        error!("update_progress_bar: Failed to query ProgressBar and ProgressTimer");
     }
 }
 

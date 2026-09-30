@@ -17,5 +17,7 @@ fn open_equip(
 ) {
     if let Ok(entity) = player_query.single() {
         commands.entity(entity).trigger(|entity| DisplayEquipEvent { entity });
+    } else {
+        error!("open_equip: Failed to query Player Entity");
     }
 }

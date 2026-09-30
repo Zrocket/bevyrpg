@@ -42,6 +42,13 @@ fn on_cctv_parent_add(
 ) {
     let render_image = world.resource::<CctvCamreaRenderImage>().0.clone();
 
+    println!("AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAa");
+    println!("AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAa");
+    println!("AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAa");
+    println!("AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAa");
+    println!("AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAa");
+    println!("CctvParent: {}", context.entity);
+
     world.commands()
         .entity(context.entity)
         .insert(RenderTarget::Image(render_image.into()))
@@ -76,6 +83,13 @@ fn on_cctv_cam_add(
     context: HookContext,
 ) {
     let render_image = world.resource::<CctvCamreaRenderImage>().0.clone();
+
+    println!("BBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBb");
+    println!("BBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBb");
+    println!("BBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBb");
+    println!("BBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBb");
+    println!("BBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBb");
+    println!("CctvCam: {}", context.entity);
 
     world.commands()
         .entity(context.entity)
@@ -136,6 +150,8 @@ fn on_cctv_right_observer(
             input.rotation = Quat::from_rotation_y(0.);
             *toggle = false;
         }
+    } else {
+        error!("on_cctv_right_observer: Failed to query CctvCamMovementInput");
     }
 }
 
@@ -152,11 +168,14 @@ fn on_cctv_left_observer(
             input.rotation = Quat::from_rotation_y(0.);
             *toggle = false;
         }
+    } else {
+        error!("on_cctv_left_observer: Failed to query CctvCamMovementInput");
     }
 }
 
 pub(crate) fn apply_cctv_movement(
     mut query: Query<(&mut TnuaController<PlayerControlScheme>, &CctvCamMovementInput, &mut Transform), With<CctvParent>>,
+    tmp: Query<Entity, With<CctvParent>>,
 ) {
     if let Ok((mut tnua_controller, input, mut transform)) = query.single_mut() {
         tnua_controller.initiate_action_feeding();
@@ -167,5 +186,9 @@ pub(crate) fn apply_cctv_movement(
         };
 
         transform.rotate(input.rotation);
+    } else {
+        for tmp in tmp.iter() {
+            error!("apply_cctv_movement: Failed to query PlayerControlScheme, CctvCamMovementInput and Transform for CctvParent {}", tmp);
+        }
     }
 }

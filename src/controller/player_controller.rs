@@ -206,6 +206,8 @@ fn toggle_flashlight(
         } else {
             flashlight.intensity = 0.;
         }
+    } else {
+        error!("toggle_flashlight: Failed to query PlayerFlashlight SpotLight");
     }
 }
 

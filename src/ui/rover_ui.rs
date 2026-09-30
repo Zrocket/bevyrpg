@@ -1,6 +1,6 @@
 use bevy::{app::Propagate, color::palettes::css::{BLUE, DARK_KHAKI, DARK_RED, DARK_SLATE_GRAY, DARK_TURQUOISE, DARK_VIOLET, LIGHT_PINK, PURPLE, SADDLE_BROWN}, ecs::{lifecycle::HookContext, world::DeferredWorld}, prelude::*};
 
-use crate::{AttachedToRover, widgets::floating_windows::floating_window_root};
+use crate::{AttachedToRover, palette::{BRONZE, RUST_BROWN, VANILLA_CUSTARD}, widgets::floating_windows::floating_window_root};
 
 #[derive(Component, Reflect)]
 #[require(
@@ -10,7 +10,7 @@ use crate::{AttachedToRover, widgets::floating_windows::floating_window_root};
         overflow: Overflow { x: OverflowAxis::Hidden, y: OverflowAxis::Hidden },
         ..default()
     },
-    BackgroundColor::from(DARK_VIOLET),
+    BackgroundColor::from(Srgba::hex(BRONZE).unwrap()),
 )]
 #[component(on_add = on_ui_rover_root_add)]
 pub struct UiRoverRoot;
@@ -31,7 +31,7 @@ fn on_ui_rover_root_add(
         overflow: Overflow { x: OverflowAxis::Hidden, y: OverflowAxis::Hidden },
         ..default()
     },
-    BackgroundColor::from(DARK_SLATE_GRAY),
+    BackgroundColor::from(Srgba::hex(RUST_BROWN).unwrap()),
 )]
 #[component(on_add = on_ui_rover_add)]
 pub struct UiRover;
@@ -51,7 +51,7 @@ fn on_ui_rover_add(
         overflow: Overflow { x: OverflowAxis::Hidden, y: OverflowAxis::Hidden },
         ..default()
     },
-    BackgroundColor::from(BLUE),
+    BackgroundColor::from(Srgba::hex(VANILLA_CUSTARD).unwrap()),
 )]
 #[component(on_add = on_ui_attachment_add)]
 pub struct UiAttachment;

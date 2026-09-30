@@ -166,6 +166,8 @@ fn on_item_sprite_add(
                 texture_atlas: Some(atlas),
                 ..default()
             });
+    } else {
+        error!("on_item_sprite_add: Failed to query ItemSprite {}", context.entity);
     }
 }
 
@@ -315,5 +317,7 @@ fn face_camera(
             delta += transform.translation;
             transform.look_at(delta, Vec3::Y);
         }
+    } else {
+        trace!("face_camera: Failed to query Transform");
     }
 }

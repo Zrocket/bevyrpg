@@ -181,7 +181,7 @@ impl Plugin for GamePlayerPlugin {
             //.add_systems(OnEnter(BootStrap::Postload), init_player)
             .add_systems(OnEnter(MetaState::Gameplay), init_player)
             .add_systems(Update, (
-                    player_forward.run_if(/*in_state(GameState::Gameplay)*/ in_state(CameraState::Player)),
+                    player_forward.run_if(/*in_state(GameState::Gameplay)*/ in_state(CameraState::Player).and_then(in_state(GameState::Gameplay))),
                     check_player_triggers.run_if(in_state(GameState::Gameplay)),
                 )
             );
@@ -275,7 +275,7 @@ fn spawn_player_observer(
         }
 
         // Gun
-        debug!("Creating Gun");
+        //debug!("Creating Gun");
         //let temp = gun_assets.uzi.clone_weak();
         //let uzi = gltf_assets.get(&gun_assets.uzi).unwrap().scenes[0].path().unwrap();
         //let temp = uzi.scenes[0].path().unwrap();
@@ -342,18 +342,26 @@ fn toggle_player_noclip(
     mut player_query: Query<(Entity, &mut PlayerState), With<Player>>,
     mut player_camera_query: Query<Entity, With<PlayerCamera>>,
 ) {
-    if let Ok((player_entity, mut player_state)) = player_query.single_mut()
-    && let Ok(player_camera) = player_camera_query.single_mut() {
-        if *player_state == PlayerState::NoClip {
-            commands.entity(player_camera).remove::<FlyCam>();
-            commands.entity(player_entity).insert(Collider::capsule(0.1, 0.5));
-            *player_state = PlayerState::Grounded;
-        } else {
-            commands.entity(player_entity).remove::<Collider>();
-            commands.entity(player_camera).insert(FlyCam);
-            *player_state = PlayerState::NoClip;
-        }
+    let Ok((player_entity, mut player_state)) = player_query.single_mut() else {
+        error!("toggle_player_noclip: Failed to query Player Entity and PlayerState");
+        return;
+    };
+    let Ok(player_camera) = player_camera_query.single_mut() else {
+        error!("toggle_player_noclip: Failed to query PlayeyrCamera Entity");
+        return;
+    };
+    //if let Ok((player_entity, mut player_state)) = player_query.single_mut()
+    //&& let Ok(player_camera) = player_camera_query.single_mut() {
+    if *player_state == PlayerState::NoClip {
+        commands.entity(player_camera).remove::<FlyCam>();
+        commands.entity(player_entity).insert(Collider::capsule(0.1, 0.5));
+        *player_state = PlayerState::Grounded;
+    } else {
+        commands.entity(player_entity).remove::<Collider>();
+        commands.entity(player_camera).insert(FlyCam);
+        *player_state = PlayerState::NoClip;
     }
+    //}
 }
 
 fn player_forward(
@@ -361,11 +369,20 @@ fn player_forward(
     mut player_transform: Query<&mut Transform, With<Player>>,
 ) {
     trace!("SYSTEM: player_forward");
-    if let Ok(cam_transform) = cam_transform.single() &&
-        let Ok(mut player_transform) = player_transform.single_mut() {
-            let forward = cam_transform.forward();
-            player_transform.look_to(*forward, Vec3::Y);
-    }
+    let Ok(cam_transform) = cam_transform.single() else {
+        error!("player_forward: Failed to query PlayerCamera");
+        return;
+    };
+    let Ok(mut player_transform) = player_transform.single_mut() else {
+        error!("player_forward: Failed to query Player Transform");
+        return;
+    };
+
+    //if let Ok(cam_transform) = cam_transform.single() &&
+    //    let Ok(mut player_transform) = player_transform.single_mut() {
+    let forward = cam_transform.forward();
+    player_transform.look_to(*forward, Vec3::Y);
+    //}
 }
 
 fn check_player_triggers(

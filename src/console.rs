@@ -52,6 +52,8 @@ fn suicide_command(
     if let Ok((player_entity, mut health)) = player_query.single_mut() {
         health.0 = 0;
         commands.entity(player_entity).trigger(|entity| DeathEvent { entity });
+    } else {
+        return "failed to query Entity and Health for Player".to_string()
     }
     "ok".to_string()
 }
@@ -62,18 +64,25 @@ fn noclip_command(
     mut player_query: Query<(Entity, &mut PlayerState), With<Player>>,
     player_camera_query: Query<Entity, With<PlayerCamera>>,
 ) -> String {
-    if let Ok((player_entity, mut player_state)) = player_query.single_mut()
-    && let Ok(player_camera) = player_camera_query.single() {
-        if *player_state == PlayerState::NoClip {
-            commands.entity(player_camera).remove::<FlyCam>();
-            commands.entity(player_entity).insert(Collider::capsule(0.1, 0.5));
-            *player_state = PlayerState::Grounded;
-        } else {
-            commands.entity(player_entity).remove::<Collider>();
-            commands.entity(player_camera).insert(FlyCam);
-            *player_state = PlayerState::NoClip;
-        }
+    let Ok((player_entity, mut player_state)) = player_query.single_mut() else {
+        return "failed to query Entity and PlayerState for Player".to_string()
+    };
+    let Ok(player_camera) = player_camera_query.single() else {
+        return "failed to query Entity for PlayerCamera".to_string()
+    };
+
+    //if let Ok((player_entity, mut player_state)) = player_query.single_mut()
+    //&& let Ok(player_camera) = player_camera_query.single() {
+    if *player_state == PlayerState::NoClip {
+        commands.entity(player_camera).remove::<FlyCam>();
+        commands.entity(player_entity).insert(Collider::capsule(0.1, 0.5));
+        *player_state = PlayerState::Grounded;
+    } else {
+        commands.entity(player_entity).remove::<Collider>();
+        commands.entity(player_camera).insert(FlyCam);
+        *player_state = PlayerState::NoClip;
     }
+    //}
     "ok".to_string()
 }
 
@@ -88,6 +97,8 @@ fn god_command(
         } else {
             commands.entity(player_entity).insert(GodMode);
         }
+    } else {
+        return "failed to query Entity and Option<&GodMode> for Player".to_string();
     }
     "ok".to_string()
 }
@@ -119,6 +130,8 @@ fn damage_command(
 ) -> String {
     if let Ok(player_entity) = player_query.single() {
         commands.entity(player_entity).trigger(|entity| DamageEvent { entity, ammount: 5 });
+    } else {
+        return "failed to query Entity for Player".to_string();
     }
     "ok".to_string()
 }
@@ -143,6 +156,8 @@ fn inventory_command(
         )).id();
         println!("{:?}", item);
         commands.entity(player_entity).trigger(|entity| AddToInventoryEvent { entity, item });
+    } else {
+        return "failed tot query Entity for Player".to_string();
     }
     "ok".to_string()
 }
@@ -154,6 +169,8 @@ fn mana_command(
 ) -> String {
     if let Ok(player_entity) = player_query.single() {
         commands.entity(player_entity).trigger(|entity| crate::ManaEvent { entity, ammount: 5 });
+    } else {
+        return "failed to query Entity for Player".to_string();
     }
     "ok".to_string()
 }

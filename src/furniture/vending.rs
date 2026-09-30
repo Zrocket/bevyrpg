@@ -47,39 +47,52 @@ fn vending_machine_interaction_observer(
     parent_query: Query<&ChildOf>,
 ) {
     trace!("OBSERVER: vending_machine_interaction_observer");
-    if let Ok(parent) = parent_query.get(trigger.entity)
-    && let Ok(vending_machine) = vending_machine_query.get(trigger.entity)
-    && let Ok(vending_children) = children_query.get(parent.0) {
-        for child in vending_children.iter() {
-            if let Ok(vending_transform) = vend_target_query.get(child) {
-                let mesh = meshes.add(Capsule3d::new(0.1, 0.1));
-                let material = materials.add(Color::WHITE);
+    let Ok(parent) = parent_query.get(trigger.entity) else {
+        error!("vending_machine_interaction_observer: Failed to query ChildOf for {}", trigger.entity);
+        return;
+    };
+    let Ok(vending_machine) = vending_machine_query.get(trigger.entity) else {
+        error!("vending_machine_interaction_observer: Failed to query VendingMachine for {}", trigger.entity);
+        return;
+    };
+    let Ok(vending_children) = children_query.get(parent.0) else {
+        error!("vending_machine_interaction_observer: Failed to query Children for {}", parent.0);
+        return;
+    };
 
-                println!("{:?}", vending_machine);
+    //if let Ok(parent) = parent_query.get(trigger.entity)
+    //&& let Ok(vending_machine) = vending_machine_query.get(trigger.entity)
+    //&& let Ok(vending_children) = children_query.get(parent.0) {
+    for child in vending_children.iter() {
+        if let Ok(vending_transform) = vend_target_query.get(child) {
+            let mesh = meshes.add(Capsule3d::new(0.1, 0.1));
+            let material = materials.add(Color::WHITE);
 
-                match vending_machine {
-                    VendingMachine::Food => {
-                        commands.spawn((
-                                Food,
-                                RigidBody::Dynamic,
-                                Collider::capsule(0.1, 0.1),
-                                Transform::from_translation(vending_transform.translation()),
-                                Mesh3d(mesh),
-                                MeshMaterial3d(material),
-                        ));
-                    },
-                    VendingMachine::Drink => {
-                        commands.spawn((
-                                Drink,
-                                RigidBody::Dynamic,
-                                Collider::capsule(0.1, 0.1),
-                                Transform::from_translation(vending_transform.translation()),
-                                Mesh3d(mesh),
-                                MeshMaterial3d(material),
-                        ));
-                    }
+            println!("{:?}", vending_machine);
+
+            match vending_machine {
+                VendingMachine::Food => {
+                    commands.spawn((
+                            Food,
+                            RigidBody::Dynamic,
+                            Collider::capsule(0.1, 0.1),
+                            Transform::from_translation(vending_transform.translation()),
+                            Mesh3d(mesh),
+                            MeshMaterial3d(material),
+                    ));
+                },
+                VendingMachine::Drink => {
+                    commands.spawn((
+                            Drink,
+                            RigidBody::Dynamic,
+                            Collider::capsule(0.1, 0.1),
+                            Transform::from_translation(vending_transform.translation()),
+                            Mesh3d(mesh),
+                            MeshMaterial3d(material),
+                    ));
                 }
             }
         }
     }
+    //}
 }

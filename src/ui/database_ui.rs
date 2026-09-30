@@ -75,6 +75,8 @@ fn on_ui_database_entry_click(
 ) {
     if let Ok(entry) = query.get(trigger.entity) {
         commands.insert_resource(DatabaseActiveEntry(entry.0.clone()));
+    } else {
+        error!("on_ui_database_entry_click: Failed to query UiDatabaseEntry");
     }
 }
 
@@ -118,25 +120,35 @@ fn update_ui_database_active_entry(
     let active_entry = active_entry.unwrap();
     if *previous_active == active_entry.0 { return; }
     *previous_active = active_entry.0.clone();
-    if let Some(item_details) = item_database.0.get(&active_entry.0)
-    && let Ok(active_entry_node) = active_entry_node_query.single() {
-        commands.entity(active_entry_node).despawn_children();
-        let icon = commands.spawn((
-                UiDatabaseActiveEntryIcon,
-            )).id();
-        let title = commands.spawn((
-                UiDatabaseActiveEntryTitle,
-                Text(item_details.name.clone()),
-            )).id();
-        let desc = commands.spawn((
-                UiDatabaseActiveEntryDesc,
-                Text(item_details.description.clone())
-            )).id();
 
-        commands.entity(active_entry_node).add_child(icon);
-        commands.entity(active_entry_node).add_child(title);
-        commands.entity(active_entry_node).add_child(desc);
-    }
+    let Some(item_details) = item_database.0.get(&active_entry.0) else {
+        error!("update_ui_database_active_entry: Failed to get ItemDefinition for {}", active_entry.0);
+        return;
+    };
+    let Ok(active_entry_node) = active_entry_node_query.single() else {
+        error!("update_ui_database_active_entry: Failed to query Entity for UiDatabaseActiveEntry");
+        return;
+    };
+
+    //if let Some(item_details) = item_database.0.get(&active_entry.0)
+    //&& let Ok(active_entry_node) = active_entry_node_query.single() {
+    commands.entity(active_entry_node).despawn_children();
+    let icon = commands.spawn((
+            UiDatabaseActiveEntryIcon,
+        )).id();
+    let title = commands.spawn((
+            UiDatabaseActiveEntryTitle,
+            Text(item_details.name.clone()),
+        )).id();
+    let desc = commands.spawn((
+            UiDatabaseActiveEntryDesc,
+            Text(item_details.description.clone())
+        )).id();
+
+    commands.entity(active_entry_node).add_child(icon);
+    commands.entity(active_entry_node).add_child(title);
+    commands.entity(active_entry_node).add_child(desc);
+    //}
 }
 
 #[derive(Component)]

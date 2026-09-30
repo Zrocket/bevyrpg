@@ -43,6 +43,8 @@ fn spawn_agent(
         ))
         .insert(TnuaNpcController)
         .insert(Name::new("Walking Cube"));
+    } else {
+        error!("spawn_agent: Failed to query Archipelago3d");
     }
 }
 
