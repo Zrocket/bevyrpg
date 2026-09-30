@@ -192,8 +192,6 @@ fn interpolate_camera_2(
             return;
         };
 
-        //if let Ok((logical_collider, logical_camera_config)) = logical_query.get(render_player.logical_entity)
-        //&& let Ok(player_entity) = player_query.single() {
         if camera_interp.duration <= time.elapsed() {
             commands.entity(camera_entity).remove::<CameraInterpolation2>();
             return;
@@ -213,6 +211,5 @@ fn interpolate_camera_2(
             commands.entity(camera_entity).remove::<CameraInterpolation2>();
             return;
         }
-        //}
     }
 }
