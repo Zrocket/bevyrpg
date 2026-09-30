@@ -1,3 +1,5 @@
+use std::time::Duration;
+
 use bevy::{ecs::{lifecycle::HookContext, world::DeferredWorld}, math::Affine3A, mesh::VertexAttributeValues, prelude::*};
 
 #[derive(Component, Reflect)]
@@ -11,6 +13,14 @@ pub struct ElevatorCurve;
 )]
 #[component(on_add = on_elevator_down_button_add)]
 pub struct ElevatorUpButton;
+
+#[derive(Component)]
+pub struct ElevatorInterpolation {
+    pub duration: Duration,
+    pub start_time: Duration,
+    pub start_pos: Transform,
+    pub desired_pos: Transform,
+}
 
 fn on_elevator_down_button_add(
     mut world: DeferredWorld,
@@ -71,15 +81,17 @@ impl Plugin for ElevatorPlugin {
        app
            .register_type::<Elevator>()
            .register_type::<ElevatorButton>()
-           .register_type::<ElevatorCurve>();
+           .register_type::<ElevatorCurve>()
+           .add_systems(Update, drive_elevator_interpolation);
     }
 }
 
 fn elevator_button_interaction_observer(
     _trigger: On<crate::InteractionEvent>,
+    mut commands: Commands,
     time: Res<Time>,
     meshes: Res<Assets<Mesh>>,
-    mut elevator_query: Query<(Entity, &mut Elevator, &mut Transform, &GlobalTransform), Without<ElevatorCurve>>,
+    mut elevator_query: Query<(Entity, &mut Elevator, &mut Transform, &GlobalTransform), (Without<ElevatorCurve>, Without<ElevatorInterpolation>)>,
     curve_mesh_query: Query<(&Mesh3d, &GlobalTransform), With<ElevatorCurve>>,
 ) {
     let Ok((entity, mut elevator, mut elevator_transform, elevator_global_transform)) = elevator_query.single_mut() else {
@@ -98,38 +110,84 @@ fn elevator_button_interaction_observer(
         error!("elevator_button_interaction_observer: Failed to get mesh attribute");
         return;
     };
-    //if let Ok((entity, mut elevator, mut elevator_transform, elevator_global_transform)) = elevator_query.single_mut()
-    //&& let Ok((curve_mesh3d, curve_global_transform)) = curve_mesh_query.single()
-    //&& let Some(mesh) = meshes.get(&curve_mesh3d.0)
-    //&& let Some(VertexAttributeValues::Float32x3(positions)) = mesh.attribute(Mesh::ATTRIBUTE_POSITION) {
-    let ease_function = EaseFunction::SmoothStep;
+
     let scale = elevator_transform.scale;
     let rotation = elevator_transform.rotation;
+
     if let Some(_current_point) = positions.get(elevator.current) {
         elevator.current += 1;
+
         if let Some(next_point) = positions.get(elevator.current) {
             let point_vec = vec3(next_point[0], next_point[1], next_point[2]);
 
-            *elevator_transform = Transform {
-                translation:  point_vec,
-                rotation,
-                scale,
-            };
+            commands.entity(entity)
+                .insert(ElevatorInterpolation {
+                    duration: time.elapsed() + Duration::new(1, 0),
+                    start_time: time.elapsed(),
+                    start_pos: *elevator_transform,
+                    desired_pos: Transform { translation: point_vec, rotation, scale },
+            });
+
+            //*elevator_transform = Transform {
+            //    translation:  point_vec,
+            //    rotation,
+            //    scale,
+            //};
         } else {
             elevator.current = 0;
             if let Some(next_point) = positions.get(elevator.current) {
                 let point_vec = vec3(next_point[0], next_point[1], next_point[2]);
-                *elevator_transform = elevator_global_transform.reparented_to(curve_global_transform);
+                //*elevator_transform = elevator_global_transform.reparented_to(curve_global_transform);
 
-                *elevator_transform = Transform {
-                    translation:  point_vec,
-                    rotation,
-                    scale,
-                };
+                commands.entity(entity)
+                    .insert(ElevatorInterpolation {
+                        duration: time.elapsed() + Duration::new(1, 0),
+                        start_time: time.elapsed(),
+                        start_pos: *elevator_transform,
+                        desired_pos: Transform { translation: point_vec, rotation, scale },
+                });
+
+                //*elevator_transform = Transform {
+                //    translation:  point_vec,
+                //    rotation,
+                //    scale,
+                //};
             }
         }
     }
-    //}
+}
+
+fn drive_elevator_interpolation(
+    mut commands: Commands,
+    time: Res<Time>,
+    mut elevator_query: Query<(Entity, &mut Transform, &ElevatorInterpolation), Without<ElevatorCurve>>,
+) {
+    for (
+        elevator_entity,
+        mut elevator_transform,
+        elevator_interpolation
+    ) in elevator_query.iter_mut() {
+        if elevator_interpolation.duration <= time.elapsed() {
+            commands.entity(elevator_entity).remove::<ElevatorInterpolation>();
+            return;
+        }
+
+        //let collider_offset = collider_y_offset(logical_collider);
+        //let elevator_offset = Vec3::Y * logical_camera_config.height_offset;
+        let desired_transform = elevator_interpolation.desired_pos.translation;// + collider_offset + camera_offset;
+        let desired_rotation = elevator_interpolation.desired_pos.rotation;
+        let ease_function = EaseFunction::SmoothStep;
+        let normalized_time = (time.elapsed() - elevator_interpolation.start_time).div_duration_f32(elevator_interpolation.duration - time.elapsed());
+
+        if let Some(ease_normal) = ease_function.sample(normalized_time) {
+            //elevator_transform.translation = elevator_transform.translation.slerp(desired_transform, ease_normal);
+            elevator_transform.translation = elevator_transform.translation.lerp(desired_transform, ease_normal);
+            //elevator_transform.rotation = elevator_transform.rotation.slerp(desired_rotation, ease_normal);
+        } else {
+            commands.entity(elevator_entity).remove::<ElevatorInterpolation>();
+            return;
+        }
+    }
 }
 
 fn elevator_up_button_interaction_observer(
