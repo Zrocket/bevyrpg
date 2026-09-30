@@ -127,17 +127,10 @@ fn elevator_button_interaction_observer(
                     start_pos: *elevator_transform,
                     desired_pos: Transform { translation: point_vec, rotation, scale },
             });
-
-            //*elevator_transform = Transform {
-            //    translation:  point_vec,
-            //    rotation,
-            //    scale,
-            //};
         } else {
             elevator.current = 0;
             if let Some(next_point) = positions.get(elevator.current) {
                 let point_vec = vec3(next_point[0], next_point[1], next_point[2]);
-                //*elevator_transform = elevator_global_transform.reparented_to(curve_global_transform);
 
                 commands.entity(entity)
                     .insert(ElevatorInterpolation {
@@ -146,12 +139,6 @@ fn elevator_button_interaction_observer(
                         start_pos: *elevator_transform,
                         desired_pos: Transform { translation: point_vec, rotation, scale },
                 });
-
-                //*elevator_transform = Transform {
-                //    translation:  point_vec,
-                //    rotation,
-                //    scale,
-                //};
             }
         }
     }
@@ -172,17 +159,13 @@ fn drive_elevator_interpolation(
             return;
         }
 
-        //let collider_offset = collider_y_offset(logical_collider);
-        //let elevator_offset = Vec3::Y * logical_camera_config.height_offset;
-        let desired_transform = elevator_interpolation.desired_pos.translation;// + collider_offset + camera_offset;
+        let desired_transform = elevator_interpolation.desired_pos.translation;
         let desired_rotation = elevator_interpolation.desired_pos.rotation;
         let ease_function = EaseFunction::SmoothStep;
         let normalized_time = (time.elapsed() - elevator_interpolation.start_time).div_duration_f32(elevator_interpolation.duration - time.elapsed());
 
         if let Some(ease_normal) = ease_function.sample(normalized_time) {
-            //elevator_transform.translation = elevator_transform.translation.slerp(desired_transform, ease_normal);
             elevator_transform.translation = elevator_transform.translation.lerp(desired_transform, ease_normal);
-            //elevator_transform.rotation = elevator_transform.rotation.slerp(desired_rotation, ease_normal);
         } else {
             commands.entity(elevator_entity).remove::<ElevatorInterpolation>();
             return;
