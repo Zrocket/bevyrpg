@@ -40,14 +40,14 @@ impl Plugin for MySavePlugin {
            .add_message::<SaveGameMessage>()
            .add_systems(Update, quick_save.run_if(input_just_pressed(KeyCode::F5)))
            .add_systems(Update, quick_load.run_if(input_just_pressed(KeyCode::F9)))
-           //.add_systems(Update, initialize_save_files.run_if(input_just_pressed(KeyCode::F1)))
            .add_systems(Startup, initialize_save_files)
            .add_systems(PostUpdate, (
                    save_observer,
                    load_scene.run_if(in_state(MetaState::Gameplay)),
                    spawn_scene_when_reloaded.run_if(in_state(MetaState::Gameplay)),
                    check_pending_load.run_if(in_state(MetaState::Gameplay))
-           ));
+           ))
+           .add_systems(Update, finish_save_load);
     }
 }
 
@@ -160,7 +160,9 @@ fn save_scene(world: &mut World) {
         .allow_component::<Transform>()
         .allow_component::<crate::Player>()
         .allow_component::<crate::Health>()
+        .allow_component::<crate::MaxHealth>()
         .allow_component::<crate::Mana>()
+        .allow_component::<crate::MaxMana>()
         .allow_component::<crate::Sleep>()
         .allow_component::<crate::Hunger>()
         .allow_component::<crate::Thirst>()
@@ -219,10 +221,14 @@ fn check_pending_load(
         return;
     };
 
-    //if let Some(level_gltf) = level_gltf
-    //&& let Ok(save) = save_file_query.get(pending.0)
-    //&& let LoadState::Loaded = asset_server.load_state(&level_gltf.0) {
     for entity in player_query.iter() {
+        println!("VVVVVVVVVVVVVVVVVVVVVVVVVV");
+        println!("VVVVVVVVVVVVVVVVVVVVVVVVVV");
+        println!("VVVVVVVVVVVVVVVVVVVVVVVVVV");
+        println!("VVVVVVVVVVVVVVVVVVVVVVVVVV");
+        println!("VVVVVVVVVVVVVVVVVVVVVVVVVV");
+        println!("VVVVVVVVVVVVVVVVVVVVVVVVVV");
+        println!("{}", entity);
         commands.entity(entity).despawn();
     }
     for entity in rover_query.iter() {
@@ -239,7 +245,6 @@ fn check_pending_load(
 
     commands.spawn(DynamicWorldRoot(scene));
     commands.remove_resource::<PendingSaveLoad>();
-    //}
 }
 
 #[allow(clippy::too_many_arguments)]
@@ -262,11 +267,22 @@ fn check_pending_save(
         return;
     };
 
-    //if let Some(level_gltf) = level_gltf
-    //&& let Ok(save) = save_file_query.get(pending.0) {
     let file = save.0.clone();
     let file = format!("saves/{file}");
 
     commands.remove_resource::<PendingSave>();
-    //}
+}
+
+#[derive(Resource)]
+pub struct SaveLoadInProgress;
+
+fn finish_save_load(
+    mut commands: Commands,
+    in_progress: Option<Res<SaveLoadInProgress>>,
+    pending: Option<Res<PendingSaveLoad>>,
+    players: Query<(), With<crate::Player>>,
+) {
+    if in_progress.is_some() && pending.is_none() && !players.is_empty() {
+        commands.remove_resource::<SaveLoadInProgress>();
+    }
 }

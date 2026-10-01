@@ -243,6 +243,8 @@ fn on_player_camera_add(
 fn init_player(
     mut spawn_player_message_writer: MessageWriter<SpawnPlayerMessage>,
     player_query: Query<Entity, With<Player>>,
+    //pending_load: Option<Res<crate::PendingSaveLoad>>,
+    //world_roots: Query<(), With<DynamicWorldRoot>>,
 ) {
     trace!("SYSTEM: init_player");
     for _player in player_query.iter() {
@@ -261,10 +263,24 @@ fn spawn_player_observer(
     player_spawner_query: Query<&GlobalTransform, With<PlayerSpawner>>,
     mut player_camera_query: Query<&mut RenderPlayer, With<PlayerCamera>>,
     mut player_query: Query<Entity, With<Player>>,
+    save_loading: Option<Res<crate::SaveLoadInProgress>>,
 ) {
     trace!("SYSTEM: spawn_player");
 
     for _message in spawn_player_message_reader.read() {
+        if save_loading.is_some() {
+            // The save scene supplies the player; only make sure a camera exists.
+            // on_player_add repoints RenderPlayer at the loaded player.
+            if player_camera_query.is_empty() {
+                let flashlight = commands.spawn(PlayerFlashlight).id();
+                commands
+                    .spawn((RenderPlayer { logical_entity: Entity::PLACEHOLDER }, PlayerCamera))
+                    .add_child(flashlight);
+            }
+            continue;
+        }
+
+
         if let Ok(player) = player_query.single_mut() {
             commands.entity(player).despawn();
         }

@@ -1,12 +1,23 @@
 (
   resources: {},
   entities: {
-    8589934158: (
+    8589929641: (
+      components: {
+        "bevy_ecs::name::Name": "Rover",
+        "bevy_transform::components::transform::Transform": (
+          translation: (-20.301025, 0.7499991, -54.784157),
+          rotation: (0.0, 0.70710665, 0.0, 0.7071069),
+          scale: (1.0, 1.0, 1.0),
+        ),
+        "bevyrpg::rover::Rover": (),
+      },
+    ),
+    8589929642: (
       components: {
         "bevy_ecs::name::Name": "Player",
         "bevy_transform::components::transform::Transform": (
-          translation: (6.1218543, 1.8500539, -8.501581),
-          rotation: (-0.09763427, -0.24856396, -0.025191559, 0.9633529),
+          translation: (14.659873, 1.8501318, -13.786207),
+          rotation: (-0.06535912, 0.07037058, 0.0046207686, 0.9953667),
           scale: (1.0, 1.0, 1.0),
         ),
         "bevyrpg::character::Health": (100),
@@ -15,8 +26,8 @@
           timer: (
             stopwatch: (
               elapsed: (
-                secs: 2,
-                nanos: 166299737,
+                secs: 3,
+                nanos: 284547579,
               ),
               is_paused: false,
             ),
@@ -31,12 +42,12 @@
         ),
         "bevyrpg::character::Mana": (100),
         "bevyrpg::character::Sleep": (
-          value: 90,
+          value: 80,
           timer: (
             stopwatch: (
               elapsed: (
-                secs: 2,
-                nanos: 166299737,
+                secs: 0,
+                nanos: 637186190,
               ),
               is_paused: false,
             ),
@@ -54,8 +65,8 @@
           timer: (
             stopwatch: (
               elapsed: (
-                secs: 2,
-                nanos: 166299737,
+                secs: 3,
+                nanos: 284547579,
               ),
               is_paused: false,
             ),
@@ -69,17 +80,6 @@
           ),
         ),
         "bevyrpg::player::Player": (),
-      },
-    ),
-    8589934165: (
-      components: {
-        "bevy_ecs::name::Name": "Rover",
-        "bevy_transform::components::transform::Transform": (
-          translation: (-20.301025, 0.7500005, -54.784157),
-          rotation: (0.0, 0.7071067, 0.0, 0.70710677),
-          scale: (1.0, 1.0, 1.0),
-        ),
-        "bevyrpg::rover::Rover": (),
       },
     ),
   },

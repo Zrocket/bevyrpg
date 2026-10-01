@@ -391,7 +391,7 @@ pub fn tnua_player_input(
                     .unwrap()
                 {
                     Ordering::Less => {
-                        if tnua_controller.is_airborne().unwrap() {
+                        if tnua_controller.is_airborne().unwrap_or(false) {
                             let extent = blip
                                 .probe_extent_from_closest_point(-Dir3::Y, LOOK_ABOVE_OR_BELOW);
                             if extent < 0.9 * LOOK_ABOVE_OR_BELOW {

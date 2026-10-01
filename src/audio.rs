@@ -115,7 +115,7 @@ fn walk_audio<T: InputAction>(
     if pool_query.single().is_ok() {
         return;
     } else if let Ok(tnua_controller) = tnua_query.single()
-    && tnua_controller.is_airborne().unwrap() {
+    && tnua_controller.is_airborne().unwrap_or(true) {
         return;
     }
 

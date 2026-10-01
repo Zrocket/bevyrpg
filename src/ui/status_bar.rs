@@ -352,8 +352,6 @@ fn animate_health_material(
             return;
         };
 
-        //if let Some(mut material) = materials.get_mut(handle)
-        //&& let Ok((health, max_health)) = health_query.single() {
         let value = health.0 as f32 / max_health.0 as f32;
         // rainbow color effect
         let new_color = Color::hsl((time.elapsed_secs() * 60.0) % 360.0, 1., 0.5);
@@ -363,7 +361,6 @@ fn animate_health_material(
             //((time.elapsed_secs() % (duration * 2.0)) - duration).abs() / duration;
             value;
         material.border_color = border_color.to_linear().to_vec4();
-        //}
     }
 }
 

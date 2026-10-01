@@ -1,4 +1,4 @@
-use bevy::{ecs::{lifecycle::HookContext, world::DeferredWorld}, input::common_conditions::input_just_pressed, prelude::*};
+use bevy::{ecs::{lifecycle::HookContext, world::DeferredWorld}, input::common_conditions::input_just_pressed, light::light_consts::lumens::VERY_LARGE_CINEMA_LIGHT, prelude::*};
 
 #[derive(Component, Reflect)]
 #[reflect(Component)]
@@ -26,15 +26,19 @@ impl Plugin for CeilingLightPlugin {
 
 fn toggle_light(
     mut commands: Commands,
-    light_query: Query<(Entity, Option<&PointLight>), With<LightFlicker>>,
+    mut light_query: Query<(Entity, Option<&mut PointLight>), With<LightFlicker>>,
+    key: Res<ButtonInput<KeyCode>>,
 ) {
-    if let Ok((light_entity, point_light)) = light_query.single() {
-        if point_light.is_some() {
-            commands.entity(light_entity).remove::<PointLight>();
+    if let Ok((light_entity, Some(mut point_light))) = light_query.single_mut() {
+    //&& key.just_pressed(KeyCode::KeyB) {
+        if point_light.intensity == 0. {
+        println!("VVVVVVVVVVV");
+            point_light.intensity = VERY_LARGE_CINEMA_LIGHT;
         } else {
-            commands.entity(light_entity).insert(PointLight::default());
+        println!("XXXXXXXXXX");
+            point_light.intensity = 0.
         }
     } else {
-        error!("toggle_light: Failed to query lightflicker Entity and PointLight");
+        error!("toggle_light: Failed to query Entity and PointLight for LightFlicker");
     }
 }

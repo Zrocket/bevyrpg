@@ -2,7 +2,7 @@ use bevy_asset_loader::{asset_collection::AssetCollection, loading_state::{confi
 use bevy_sun_move::{SkyCenter, TimedSkyConfig, random_stars::StarSpawner};
 
 use crate::{BootStrap, MiscItem, Obstacle};
-use avian3d::{prelude::{ColliderConstructor, CollisionLayers, LayerMask, PhysicsLayer, RigidBody}};
+use avian3d::{prelude::{ColliderConstructor, CollisionLayers, LayerMask, PhysicsLayer, RigidBody, Physics, PhysicsTime}};
 use bevy::{gltf::Gltf, prelude::*};
 
 #[derive(Debug, PhysicsLayer, Default, Component, Reflect)]
@@ -135,6 +135,8 @@ fn change_level_message_handler(
     current_level_query: Query<Entity, With<CurrentLevel>>,
     mut game_state: ResMut<NextState<crate::MetaState>>,
     mut menu_state: ResMut<NextState<crate::MenuState>>,
+    mut gameplay_state: ResMut<NextState<crate::GameState>>,
+    mut physics_time: ResMut<Time<Physics>>,
 ) {
     trace!("SYSTEM: change_level_message_handler");
     for message in change_level_messages.read() {
@@ -154,5 +156,7 @@ fn change_level_message_handler(
         ));
         game_state.set(crate::MetaState::Gameplay);
         menu_state.set(crate::MenuState::Off);
+        gameplay_state.set(crate::GameState::Gameplay);
+        physics_time.unpause();
     }
 }
