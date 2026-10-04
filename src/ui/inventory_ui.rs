@@ -261,14 +261,10 @@ fn transfer_item_observer(
         return;
     };
 
-    //if let Ok(invref) = invref_query.get(trigger.entity)
-    //&& let Ok(item) = owner_query.get(trigger.dropped)
-    //&& let Ok(_childof) = childof_query.get(trigger.dropped) {
     trace!("Removing item: {:?}, from inventory: {:?}", item.item_owner, item.inv_owner);
     commands.entity(item.inv_owner).trigger(|entity| RemoveFromInventoryEvent { entity, item: item.item_owner });
     trace!("Adding item: {:?}, to inventory: {:?}", item.item_owner, invref.0);
     commands.entity(invref.0).trigger(|entity| AddToInventoryEvent { entity, item: item.item_owner });
-    //}
 }
 
 fn inventory_tooltip_observer(
@@ -430,15 +426,6 @@ fn drop_item_button_observer(
         return;
     };
 
-    //if let Ok(parent) = parent_query.get(trigger.entity)
-    //&& let Ok(owner) = owner_query.get(parent.0)
-    //&& let Ok(actor) = inv_query.get(owner.inv_owner)
-    //&& let Ok(actor_transform) = transform_query.get(owner.inv_owner)
-    //&& let Ok(_childmenu) = childmenu_query.get(parent.0)
-    //&& let Ok(item_parent) = parent_query.get(owner.item_owner)
-    //&& let Ok(parent_shelf) = shelf_query.get(item_parent.0)
-    //&& let Ok(mut parent_visibility) = visibility_query.get_mut(item_parent.0)
-    //&& let Ok(item_shelf) = shelf_query.get(owner.item_owner) {
     *parent_visibility = Visibility::Visible;
     let mut parent_transform = *parent_shelf.0;
     parent_transform.translation = actor_transform.translation;
@@ -447,7 +434,6 @@ fn drop_item_button_observer(
     commands.entity(owner.item_owner)
         .insert(*item_shelf.0);
     commands.entity(actor).trigger(|entity| RemoveFromInventoryEvent { entity, item: owner.item_owner});
-    //}
 }
 
 fn use_item_button_observer(

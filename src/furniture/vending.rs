@@ -60,9 +60,6 @@ fn vending_machine_interaction_observer(
         return;
     };
 
-    //if let Ok(parent) = parent_query.get(trigger.entity)
-    //&& let Ok(vending_machine) = vending_machine_query.get(trigger.entity)
-    //&& let Ok(vending_children) = children_query.get(parent.0) {
     for child in vending_children.iter() {
         if let Ok(vending_transform) = vend_target_query.get(child) {
             let mesh = meshes.add(Capsule3d::new(0.1, 0.1));
@@ -94,5 +91,4 @@ fn vending_machine_interaction_observer(
             }
         }
     }
-    //}
 }

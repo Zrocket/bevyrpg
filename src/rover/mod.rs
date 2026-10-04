@@ -9,7 +9,7 @@ mod movement;
 pub use attachment::*;
 pub use movement::*;
 
-use crate::{DisplayInventoryEvent, GameState, Interactable, InteractionEvent, MetaState, TnuaRoverController, add_to_inventory_observer, container_interaction_observer, display_inventory_event_observer, display_rover_ui, level::CollisionLayer};
+use crate::{GameState, Interactable, InteractionEvent, MetaState, TnuaRoverController, add_to_inventory_observer, container_interaction_observer, display_rover_ui, level::CollisionLayer, remove_from_inventory_observer};
 
 #[derive(EntityEvent)]
 pub struct RoverRecallEvent {
@@ -149,10 +149,10 @@ fn on_rover_add(
         .observe(on_rover_left_observer)
         .observe(on_rover_right_observer)
         .observe(add_to_inventory_observer::<Rover>)
+        .observe(remove_from_inventory_observer::<Rover>)
         .observe(on_rover_interact_observer)
         .observe(on_rover_recall_observer)
         .observe(container_interaction_observer)
-        //.observe(display_inventory_event_observer)
         .observe(display_rover_ui)
         .observe(on_rover_camera_up_observer)
         .observe(on_rover_camera_down_observer)

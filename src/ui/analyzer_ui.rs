@@ -131,18 +131,12 @@ fn start_sample_analysis(
         return;
     };
 
-    //if let Ok(invref) = invref_query.get(trigger.entity)
-    //&& let Ok(item) = owner_query.get(trigger.dropped)
-    //&& let Ok(childof) = childof_query.get(trigger.dropped)
-    //&& let Ok(analyzer) = analyzer_query.single()
-    //&& let Ok(sample) = sample_query.get(item.item_owner) {
     for active in active_sample_query.iter() {
         commands.entity(active).remove::<ActiveSample>();
     }
     println!("ANALYZER ENTITY: {:?}", analyzer);
     commands.entity(analyzer).trigger(|entity| AnalyzeSampleEvent{ entity, sample});
     //commands.entity(trigger.entity).trigger(|entity| RefreshAnalyzerUi { entity });
-    //}
 }
 
 #[derive(Component, Reflect)]

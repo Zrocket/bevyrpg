@@ -16,12 +16,6 @@ pub struct RemoveFromInventoryEvent {
     pub item: Entity,
 }
 
-/*#[derive(Message)]
-pub struct RemoveMessage {
-    pub actor: Entity,
-    pub target: Entity,
-}*/
-
 #[derive(Component, Reflect, Debug)]
 #[reflect(Component)]
 #[relationship_target(relationship = InInventory, linked_spawn)]
