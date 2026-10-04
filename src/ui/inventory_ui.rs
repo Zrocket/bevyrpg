@@ -362,7 +362,8 @@ fn inventory_item_drowpdown_observer(
                             Text::new("Drop"),
                             BackgroundColor::from(DARK_KHAKI),
                     ))
-                    .observe(drop_item_button_observer);
+                    //.observe(drop_item_button_observer);
+                    .observe(drop_item_button_observer2);
                     parent.spawn((
                             Node {
                                 ..default()
@@ -376,7 +377,7 @@ fn inventory_item_drowpdown_observer(
     }
 }
 
-#[allow(clippy::complexity)]
+/*#[allow(clippy::complexity)]
 fn drop_item_button_observer(
     trigger: On<Pointer<Click>>,
     mut commands: Commands,
@@ -387,10 +388,13 @@ fn drop_item_button_observer(
     transform_query: Query<&Transform>,
     shelf_query: Query<&Shelf<Transform>>,
     mut visibility_query: Query<&mut Visibility>,
+    mesh_query: Query<(&Mesh3d, &MeshMaterial3d<StandardMaterial>)>,
+    mut meshes: ResMut<Assets<Mesh>>,
+    mut materials: ResMut<Assets<StandardMaterial>>,
 ) {
     trace!("OBSERVER: drop_item_button_observer");
     let Ok(parent) = parent_query.get(trigger.entity) else {
-        error!("drop_item_button_observer: Failed to query ChildOf for {}", trigger.entity);
+        error!("drop_item_button_observer: Failed to query ChildOf for button {}", trigger.entity);
         return;
     };
     let Ok(owner) = owner_query.get(parent.0) else {
@@ -433,6 +437,80 @@ fn drop_item_button_observer(
         .insert(parent_transform);
     commands.entity(owner.item_owner)
         .insert(*item_shelf.0);
+    commands.entity(owner.item_owner)
+        .insert(BlenderProp);
+    commands.entity(actor).trigger(|entity| RemoveFromInventoryEvent { entity, item: owner.item_owner});
+}*/
+
+#[allow(clippy::complexity)]
+fn drop_item_button_observer2(
+    trigger: On<Pointer<Click>>,
+    mut commands: Commands,
+    parent_query: Query<&ChildOf>,
+    childmenu_query:  Query<&ChildMenu>,
+    owner_query: Query<&Owner>,
+    inv_query: Query<Entity, With<Inventory>>,
+    transform_query: Query<&GlobalTransform>,
+    mut meshes: ResMut<Assets<Mesh>>,
+    mut materials: ResMut<Assets<StandardMaterial>>,
+    mesh_query: Query<(&Mesh3d, &MeshMaterial3d<StandardMaterial>)>,
+    item_details_query: Query<&ItemDetails>,
+) {
+    trace!("OBSERVER: drop_item_button_observer");
+    let Ok(button_parent) = parent_query.get(trigger.entity) else {
+        error!("drop_item_button_observer: Failed to query ChildOf for button {}", trigger.entity);
+        return;
+    };
+    let Ok(owner) = owner_query.get(button_parent.0) else {
+        error!("drop_item_button_observer: Failed to query Owner for {}", button_parent.0);
+        return;
+    };
+    let Ok(actor) = inv_query.get(owner.inv_owner) else {
+        error!("drop_item_button_observer: Failed to query Entity With<Inventory> for {}", owner.inv_owner);
+        return;
+    };
+    let Ok(actor_transform) = transform_query.get(owner.inv_owner) else {
+        error!("drop_item_button_observer: Failed to query Transform for {}", owner.inv_owner);
+        return;
+    };
+    let Ok(_childmenu) = childmenu_query.get(button_parent.0) else {
+        error!("drop_item_button_observer: Failed to query ChildMenu for {}", button_parent.0);
+        return;
+    };
+    let Ok(item_details) = item_details_query.get(owner.item_owner) else {
+        error!("drop_item_button_observer: Failed to query ItemDetails for {}", owner.item_owner);
+        return;
+    };
+
+    let mut mesh: Handle<Mesh>;
+    let mut material: Handle<StandardMaterial>;
+
+    if let Ok((mesh_handle, material_handle)) = mesh_query.get(owner.item_owner) {
+        mesh = mesh_handle.0.clone();
+        material = material_handle.0.clone();
+    } else {
+        mesh = meshes.add(Capsule3d::new(0.1, 0.1));
+        material = materials.add(Color::WHITE);
+    }
+    
+    let parent_object = commands.spawn((
+            Transform::from_translation(actor_transform.translation()),
+            Name::new(item_details.name.clone()),
+            Visibility::Visible,
+    )).id();
+
+    let child_object = commands.spawn((
+            Name::new(item_details.name.clone()),
+            ColliderConstructor::ConvexHullFromMesh,
+            RigidBody::Dynamic,
+            Mesh3d(mesh),
+            MeshMaterial3d(material),
+            item_details.clone(),
+            MiscItem,
+    )).id();
+
+    commands.entity(parent_object).add_child(child_object);
+
     commands.entity(actor).trigger(|entity| RemoveFromInventoryEvent { entity, item: owner.item_owner});
 }
 

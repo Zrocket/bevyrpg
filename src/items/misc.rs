@@ -1,5 +1,5 @@
 use avian_pickup::{input::{AvianPickupAction, AvianPickupInput}, prop::HeldProp};
-use avian3d::prelude::RigidBodyDisabled;
+use avian3d::{collision::collider::Collider, dynamics::rigid_body::RigidBody, prelude::RigidBodyDisabled};
 use bevy::{camera::visibility, color::palettes::css::CRIMSON, ecs::{lifecycle::HookContext, world::DeferredWorld}, prelude::*};
 
 use crate::{AddToInventoryEvent, InspectEvent, Interactable, InteractionEvent, ItemDetails, PickupEvent, Shelf, UiInspect, widgets};
@@ -21,7 +21,8 @@ fn on_misc_add(
     trace!("HOOK: on_misc_add");
     world.commands()
         .entity(context.entity)
-        .observe(misc_interaction_observer)
+        //.observe(misc_interaction_observer)
+        .observe(misc_interaction_observer2)
         .observe(misc_pickup_observer)
         .observe(misc_inspection_observer);
 }
@@ -34,7 +35,7 @@ impl Plugin for MiscItemPlugin {
     }
 }
 
-fn misc_interaction_observer(
+/*fn misc_interaction_observer(
     trigger: On<InteractionEvent>,
     mut commands: Commands,
     parent_query: Query<&ChildOf>,
@@ -61,10 +62,6 @@ fn misc_interaction_observer(
         return;
     };
 
-    //if let Ok(parent) = parent_query.get(trigger.event().entity)
-    //&& let Ok(parent_transform) = transform_query.get(parent.0)
-    //&& let Ok(mut parent_visibility) = visibility_query.get_mut(parent.0)
-    //&& let Ok(item_transform) = transform_query.get(trigger.event().entity) {
     *parent_visibility = Visibility::Hidden;
     commands.entity(parent.0).insert(Shelf(Box::new(parent_transform.clone())));
     commands.entity(trigger.event().entity).insert(Shelf(Box::new(item_transform.clone())));
@@ -72,8 +69,44 @@ fn misc_interaction_observer(
     commands.entity(parent.0).remove::<Transform>();
     commands.entity(trigger.event().entity).remove::<GlobalTransform>();
     commands.entity(trigger.event().entity).remove::<Transform>();
+    commands.entity(trigger.event().entity).remove::<Collider>();
     commands.entity(actor).trigger(|entity| AddToInventoryEvent { entity, item: trigger.event().entity });
-    //}
+}*/
+
+fn misc_interaction_observer2(
+    trigger: On<InteractionEvent>,
+    mut commands: Commands,
+    parent_query: Query<&ChildOf>,
+    transform_query: Query<&Transform>,
+    mut visibility_query: Query<&mut Visibility>,
+    item_details_query: Query<&ItemDetails>,
+    _held_prop_query: Query<&HeldProp>,
+    mesh_query: Query<(&Mesh3d, &MeshMaterial3d<StandardMaterial>)>,
+) {
+    trace!("OBSERVER: misc_interaction_observer");
+
+    let actor = trigger.event().actor;
+    let Ok(parent_object) = parent_query.get(trigger.event().entity) else {
+        error!("misc_interaction_observer: Failed to query ChildOf for {}", trigger.entity);
+        return;
+    };
+    let Ok(item_details) = item_details_query.get(trigger.event().entity) else {
+        error!("misc_interaction_observer: Failed to query ItemDetails for {}", trigger.entity);
+        return;
+    };
+    let Ok((mesh_handle, material_handle)) = mesh_query.get(trigger.entity) else {
+        return;
+    };
+
+    let new_item = commands.spawn((
+            item_details.clone(),
+            mesh_handle.clone(),
+            material_handle.clone(),
+            Visibility::Hidden,
+    )).id();
+
+    commands.entity(actor).trigger(|entity| AddToInventoryEvent { entity, item: new_item});
+    commands.entity(parent_object.0).despawn();
 }
 
 pub(crate) fn misc_pickup_observer(
