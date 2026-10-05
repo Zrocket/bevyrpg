@@ -145,9 +145,13 @@ fn on_rover_add(
         ]))
         .add_child(rover_camera)
         .observe(on_rover_forward_observer)
+        .observe(on_rover_forward_stop_observer)
         .observe(on_rover_backward_observer)
+        .observe(on_rover_backward_stop_observer)
         .observe(on_rover_left_observer)
+        .observe(on_rover_left_stop_observer)
         .observe(on_rover_right_observer)
+        .observe(on_rover_right_stop_observer)
         .observe(add_to_inventory_observer::<Rover>)
         .observe(remove_from_inventory_observer::<Rover>)
         .observe(on_rover_interact_observer)
@@ -155,7 +159,9 @@ fn on_rover_add(
         .observe(container_interaction_observer)
         .observe(display_rover_ui)
         .observe(on_rover_camera_up_observer)
+        .observe(on_rover_camera_up_stop_observer)
         .observe(on_rover_camera_down_observer)
+        .observe(on_rover_camera_down_stop_observer)
         .observe(switch_rover_attachment_observer);
 
     world.write_message_default::<RoverSpawnedMessage>();
