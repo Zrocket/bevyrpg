@@ -57,9 +57,6 @@ fn health_item_interaction_observer(
         return;
     };
 
-    //if let Ok(parent) = parent_query.get(trigger.event().entity)
-    //&& let Ok(parent_transform) = transform_query.get(parent.0)
-    //&& let Ok(item_transform) = transform_query.get(trigger.event().entity) {
     commands.entity(parent.0).insert(Shelf(Box::new(parent_transform.clone())));
     commands.entity(trigger.event().entity).insert(Shelf(Box::new(item_transform.clone())));
     commands.entity(parent.0).remove::<GlobalTransform>();
@@ -67,7 +64,6 @@ fn health_item_interaction_observer(
     commands.entity(trigger.event().entity).remove::<GlobalTransform>();
     commands.entity(trigger.event().entity).remove::<Transform>();
     commands.entity(actor).trigger(|entity| AddToInventoryEvent { entity, item: trigger.event().entity });
-    //}
 }
 
 fn health_item_pickup_observer(
