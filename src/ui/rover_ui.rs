@@ -1,6 +1,6 @@
-use bevy::{app::Propagate, color::palettes::css::{BLUE, DARK_KHAKI, DARK_RED, DARK_SLATE_GRAY, DARK_TURQUOISE, DARK_VIOLET, LIGHT_PINK, PURPLE, SADDLE_BROWN}, ecs::{lifecycle::HookContext, world::DeferredWorld}, prelude::*};
+use bevy::{app::Propagate, color::palettes::css::{DARK_GREEN, DARK_RED}, ecs::{lifecycle::HookContext, world::DeferredWorld}, prelude::*};
 
-use crate::{AttachedToRover, palette::{BRONZE, RUST_BROWN, VANILLA_CUSTARD}, widgets::floating_windows::floating_window_root};
+use crate::{AddToInventoryEvent, ApplicatorAttachment, ApplicatorSubstance, AttachedToRover, InvRef, Owner, RemoveFromInventoryEvent, Rover, palette::{BRONZE, RUST_BROWN, VANILLA_CUSTARD}, widgets::floating_windows::floating_window_root};
 
 #[derive(Component, Reflect)]
 #[require(
@@ -56,6 +56,14 @@ fn on_ui_rover_add(
 #[component(on_add = on_ui_attachment_add)]
 pub struct UiAttachment;
 
+fn on_ui_attachment_add(
+    mut world: DeferredWorld,
+    context: HookContext,
+) {
+    world.commands()
+        .entity(context.entity);
+}
+
 #[derive(Component, Reflect)]
 #[require(
     Node {
@@ -77,18 +85,69 @@ fn on_ui_attachment_icon_add(
         .entity(context.entity);
 }
 
-fn on_ui_attachment_add(
+#[derive(Component)]
+#[require(
+    Node {
+        align_self: AlignSelf::Center,
+        padding: UiRect::all(px(24)),
+        ..default()
+    },
+    //Text("SUBSTANCE".into()),
+    BackgroundColor::from(DARK_GREEN),
+)]
+#[component(on_add = on_ui_substance_attachment)]
+pub struct UiSubstanceAttachment;
+
+fn on_ui_substance_attachment(
     mut world: DeferredWorld,
     context: HookContext,
 ) {
     world.commands()
-        .entity(context.entity);
+        .entity(context.entity)
+        .observe(switch_substance_attachment);
+}
+
+fn switch_substance_attachment(
+    trigger: On<Pointer<DragDrop>>,
+    mut commands: Commands,
+    substance_query: Query<(Entity, &ApplicatorSubstance)>,
+    mut applicator_attachment_query: Query<&mut ApplicatorAttachment>,
+    rover_query: Query<Entity, With<Rover>>,
+    owner_query: Query<&Owner>,
+    invref_query: Query<&InvRef>,
+) {
+    if trigger.button == PointerButton::Secondary {
+        return;
+    }
+    let Ok(mut applicator_attachment) = applicator_attachment_query.single_mut() else {
+        error!("switch_substance_attachment: Failed to query ApplicatorAttachment");
+        return;
+    };
+    let Ok(mut rover) = rover_query.single() else {
+        error!("switch_substance_attachment: Failed to query Rover");
+        return;
+    };
+    let Ok(owner) = owner_query.get(trigger.dropped) else {
+        error!("switch_substance_attachment: Failed to query Owner for {}", trigger.dropped);
+        return;
+    };
+    let Ok((substance_entity, substance)) = substance_query.get(owner.item_owner) else {
+        error!("switch_substance_attachment: Not an ApplicatorSubstance: {}", trigger.dropped);
+        return;
+    };
+
+    if applicator_attachment.0.is_some() {
+        commands.entity(rover).trigger(|entity| AddToInventoryEvent { entity, item: applicator_attachment.0.unwrap()});
+    }
+    commands.entity(owner.inv_owner).trigger(|entity| RemoveFromInventoryEvent { entity, item: owner.item_owner});
+    applicator_attachment.0 = Some(substance_entity);
 }
 
 pub struct RoverUiPlugin;
 impl Plugin for RoverUiPlugin {
     fn build(&self, app: &mut App) {
-       app;
+       app
+           .add_systems(Update, sync_rover_ui);
     }
 }
 
@@ -99,16 +158,25 @@ pub fn display_rover_ui(
     name_query: Query<&Name>,
     item_query: Query<&crate::ItemDetails>,
     inventory: Query<&crate::Inventory>,
-    menu_state: Res<State<crate::UiState>>,
-    mut menu_state_setter: ResMut<NextState<crate::UiState>>,
-    attached_query: Query<&Name, With<AttachedToRover>>,
+    attached_query: Query<(&Name, Option<&ApplicatorAttachment>), With<AttachedToRover>>,
 ) {
-    let Ok(name) = name_query.get(trigger.entity) else {
+    let mut substance: Option<Entity> = None;
+    let mut substance_name: String = "None".to_string();
+    let Ok(_name) = name_query.get(trigger.entity) else {
         return;
     };
-    let Ok(attachment_name) = attached_query.single() else {
+    let Ok((attachment_name, applicator_attachment)) = attached_query.single() else {
         return;
     };
+    if applicator_attachment.is_some() {
+        let applicator_attachment = applicator_attachment.unwrap();
+        substance = applicator_attachment.0.clone();
+        if substance.is_some() {
+            if let Ok(tmp) = name_query.get(substance.unwrap()) {
+                substance_name = tmp.clone().to_string();
+            }
+        }
+    }
     let mut item_vec = vec![];
 
     if let Ok(inventory_handle) = inventory.get(trigger.entity) {
@@ -120,46 +188,116 @@ pub fn display_rover_ui(
         }
     }
 
-    let mut active_sample = String::from("ACTIVESAMPLE");
-
     let inv_ref = trigger.entity.clone();
     let inv_ref2 = trigger.entity.clone();
 
-    let tmp = attachment_name.to_string().clone();
+    let attachment_name = attachment_name.to_string().clone();
 
-    commands.spawn((
-            floating_window_root("Rover".into(), (
-                    UiRoverRoot,
-                    Children::spawn(SpawnWith(move |parent: &mut ChildSpawner| {
-                        parent.spawn((
-                                crate::UiInventory,
-                                Children::spawn(SpawnWith(|parent: &mut ChildSpawner| {
-                                    for (item, entity, inv) in item_vec {
+    if applicator_attachment.is_some() {
+        println!("AEIOUAEIOUAEOIU");
+        commands.spawn((
+                floating_window_root("Rover".into(), (
+                        UiRoverRoot,
+                        Children::spawn(SpawnWith(move |parent: &mut ChildSpawner| {
+                            parent.spawn((
+                                    crate::UiInventory,
+                                    Children::spawn(SpawnWith(|parent: &mut ChildSpawner| {
+                                        for (item, entity, inv) in item_vec {
+                                            parent.spawn((
+                                                    crate::UiInventoryItem,
+                                                    Text(item.name),
+                                                    crate::Owner { item_owner: entity, inv_owner: inv },
+                                                    Propagate( crate::Owner { item_owner: entity, inv_owner: inv }),
+                                            ));
+                                        }
+                                    })),
+                                    crate::InvRef(inv_ref.clone()),
+                            ));
+                            parent.spawn((
+                                    UiRover,
+                                    Children::spawn(SpawnWith(move |parent: &mut ChildSpawner| {
                                         parent.spawn((
-                                                crate::UiInventoryItem,
-                                                Text(item.name),
-                                                crate::Owner { item_owner: entity, inv_owner: inv },
-                                                Propagate( crate::Owner { item_owner: entity, inv_owner: inv }),
+                                                UiAttachment,
+                                                Children::spawn(SpawnWith(|parent: &mut ChildSpawner| {
+                                                    parent.spawn((
+                                                            UiAttacmentIcon,
+                                                            Text::new(attachment_name),
+                                                            Children::spawn(SpawnWith(move |parent: &mut ChildSpawner| {
+                                                                parent.spawn((
+                                                                        UiSubstanceAttachment,
+                                                                        Text::new(substance_name),
+                                                                ));
+                                                            })),
+                                                    ));
+                                                })),
                                         ));
-                                    }
-                                })),
-                                crate::InvRef(inv_ref.clone()),
-                        ));
-                        parent.spawn((
-                                UiRover,
-                                Children::spawn(SpawnWith(move |parent: &mut ChildSpawner| {
-                                    parent.spawn((
-                                            UiAttachment,
-                                            Children::spawn(SpawnWith(|parent: &mut ChildSpawner| {
-                                                parent.spawn((
-                                                        UiAttacmentIcon,
-                                                        Text::new(tmp),
-                                                ));
-                                            })),
-                                    ));
-                                })),
-                        ));
-                    })),
-            )),
-    ));
+                                    })),
+                            ));
+                        })),
+                )),
+        ));
+    } else {
+        println!("QWERTYQWERYQWERTY");
+        commands.spawn((
+                floating_window_root("Rover".into(), (
+                        UiRoverRoot,
+                        Children::spawn(SpawnWith(move |parent: &mut ChildSpawner| {
+                            parent.spawn((
+                                    crate::UiInventory,
+                                    Children::spawn(SpawnWith(|parent: &mut ChildSpawner| {
+                                        for (item, entity, inv) in item_vec {
+                                            parent.spawn((
+                                                    crate::UiInventoryItem,
+                                                    Text(item.name),
+                                                    crate::Owner { item_owner: entity, inv_owner: inv },
+                                                    Propagate( crate::Owner { item_owner: entity, inv_owner: inv }),
+                                            ));
+                                        }
+                                    })),
+                                    crate::InvRef(inv_ref.clone()),
+                            ));
+                            parent.spawn((
+                                    UiRover,
+                                    Children::spawn(SpawnWith(move |parent: &mut ChildSpawner| {
+                                        parent.spawn((
+                                                UiAttachment,
+                                                Children::spawn(SpawnWith(|parent: &mut ChildSpawner| {
+                                                    parent.spawn((
+                                                            UiAttacmentIcon,
+                                                            Text::new(attachment_name),
+                                                    ));
+                                                })),
+                                        ));
+                                    })),
+                            ));
+                        })),
+                )),
+        ));
+    }
+}
+
+fn sync_rover_ui(
+    changed_substance_query: Query<&ApplicatorAttachment, Changed<ApplicatorAttachment>>,
+    mut ui_substance_text_query: Query<&mut Text, With<UiSubstanceAttachment>>,
+    name_query: Query<&Name>,
+) {
+    let Ok(applicator_attachment) = changed_substance_query.single() else {
+        trace!("sync_rover_ui: Failed to query changed ApplicatorAttachment");
+        return;
+    };
+    let Ok(mut ui_substance_text) = ui_substance_text_query.single_mut() else {
+        trace!("sync_rover_ui: Failed to query changed Text for UiSubstanceAttachment");
+        return;
+    };
+
+    if applicator_attachment.0.is_some() {
+        let tmp = applicator_attachment.0.unwrap();
+        let Ok(name) = name_query.get(tmp) else {
+            error!("sync_rover_ui: Failed to query Substance Name");
+            return;
+        };
+        *ui_substance_text = Text::new(name.to_string());
+    } else {
+        *ui_substance_text = Text::new("None");
+    }
 }
