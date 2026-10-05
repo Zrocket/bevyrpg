@@ -1,7 +1,7 @@
 use bevy::prelude::*;
 use avian_pickup::prop::HeldProp;
 use avian3d::prelude::CollisionLayers;
-use bevy_asset_loader::{asset_collection::AssetCollection, loading_state::{LoadingStateAppExt, config::{ConfigureLoadingState, LoadingStateConfig}}, standard_dynamic_asset::StandardDynamicAssetArrayCollection};
+use bevy_asset_loader::{asset_collection::AssetCollection, loading_state::{LoadingStateAppExt, config::{ConfigureLoadingState, LoadingStateConfig}}};
 use bevy_common_assets::ron::RonAssetPlugin;
 use serde::Deserialize;
 use std::{collections::HashMap, iter};

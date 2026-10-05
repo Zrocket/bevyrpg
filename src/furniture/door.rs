@@ -66,6 +66,12 @@ pub struct DoorGraph(pub AnimationGraphHandle);
 }*/
 
 #[derive(Component)]
+pub struct LabKey;
+
+#[derive(Component)]
+pub struct LabDoor;
+
+#[derive(Component)]
 #[relationship(relationship_target = Keys)]
 pub struct KeyOf(pub Entity);
 
@@ -124,10 +130,7 @@ fn close_door_observer(
         error!("close_door_observer: Failed to query AnimationPlayer for {}", parent_object);
         return;
     };
-    //if let Ok(mut door_state) = door_state_query.get_mut(trigger.entity)
-    //&& let Ok(child_of) = child_of_query.get(trigger.entity)
-    //&& let parent_object = child_of.0
-    //&& let Ok(mut door_animation_player) = door.get_mut(parent_object) {
+
     door_animation_player.stop_all();
     let file = format!("audio/door/qubodup-DoorOpen0{}.ogg", random_range(0..8));
     println!("{:?}", door_state);
@@ -136,19 +139,18 @@ fn close_door_observer(
         SamplePlayer::new(asset_server.load(file))
     );
     *door_state = DoorState::Closed;
-    //}
 }
 
 fn open_door_observer(
     trigger: On<OpenDoorEvent>,
     mut commands: Commands,
-    mut door_state_query: Query<&mut DoorState>,
+    mut door_state_query: Query<(&mut DoorState, Option<&LabDoor>)>,
     asset_server: Res<AssetServer>,
     child_of_query: Query<&ChildOf>,
     mut door: Query<&mut AnimationPlayer>,
 ) {
     trace!("OBSERVER: open_door_observer");
-    let Ok(mut door_state) = door_state_query.get_mut(trigger.entity) else {
+    let Ok((mut door_state, lab_door)) = door_state_query.get_mut(trigger.entity) else {
         error!("open_door_observer: Failed to query DoorState for {}", trigger.entity);
         return;
     };
@@ -161,10 +163,7 @@ fn open_door_observer(
         error!("open_door_observer: Failed to query AnimationPlayer for {}", parent_object);
         return;
     };
-    //if let Ok(mut door_state) = door_state_query.get_mut(trigger.entity)
-    //&& let Ok(child_of) = child_of_query.get(trigger.entity)
-    //&& let parent_object = child_of.0
-    //&& let Ok(mut door_animation_player) = door.get_mut(parent_object) {
+
     door_animation_player.stop_all();
     let file = format!("audio/door/qubodup-DoorOpen0{}.ogg", random_range(0..8));
     println!("{:?}", door_state);
@@ -173,7 +172,6 @@ fn open_door_observer(
         SamplePlayer::new(asset_server.load(file))
     );
     *door_state = DoorState::Open;
-    //}
 }
 
 fn on_door_add(

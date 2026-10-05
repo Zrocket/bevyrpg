@@ -1,7 +1,7 @@
 use bevy::{input::common_conditions::input_just_pressed, prelude::*};
 use bevy_asset_loader::dynamic_asset::DynamicAssetCollections;
 
-use crate::{AddToInventoryEvent, CraftTag, DamageEvent, Description, DisplayEquipEvent, Equiptable, GameState, Health, ItemDetails, ItemId, Mana, ManaEvent, Player, SampleItem};
+use crate::{AddToInventoryEvent, ApplicatorSubstance, CraftTag, DamageEvent, Description, DisplayEquipEvent, Equiptable, GameState, Health, ItemDetails, ItemId, ItemKind::ApplicableSubstance, Mana, ManaEvent, Player, SampleItem};
 use super::Weight;
 
 pub struct TestsPlugin;
@@ -82,7 +82,8 @@ fn inventory_add_test(
                     botched: false,
                 },
                 //ItemId("test".into())
-                ItemId("tin_cup".into())
+                ItemId("tin_cup".into()),
+                ApplicatorSubstance,
         )).id();
         println!("{:?}", item);
         commands.entity(player).trigger(|entity| AddToInventoryEvent { entity, item });
