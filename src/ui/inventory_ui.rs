@@ -5,6 +5,21 @@ use crate::{analyzer_ui::UiActiveSampleIcon, widgets::{anchored::{Anchor, Anchor
 use super::*;
 
 #[derive(Component)]
+pub struct DropDownHoverState {
+    pub item_icom: bool,
+    pub dropdown: bool,
+}
+
+impl Default for DropDownHoverState {
+    fn default() -> Self {
+        Self {
+            item_icom: true,
+            dropdown: false,
+        }
+    }
+}
+
+#[derive(Component)]
 #[relationship_target(relationship = ChildMenu, linked_spawn)]
 pub struct ParentMenu(Vec<Entity>);
 
@@ -86,7 +101,9 @@ fn on_inventory_item_ui_add(
         .entity(context.entity)
         .observe(inventory_tooltip_observer)
         .observe(inventory_tooltip_unhover_observer)
-        .observe(inventory_item_drowpdown_observer);
+        .observe(inventory_item_drowpdown_observer)
+        .observe(on_item_icon_leave)
+        .observe(on_item_icon_enter);
 }
 
 pub struct InventoryUIPlugin;
@@ -99,6 +116,7 @@ impl Plugin for InventoryUIPlugin {
                (
                    sync_inventory_ui,
                    //react_on_inventory_removal,
+                   despawn_item_dropdown_observer,
                ));
     }
 }
@@ -171,26 +189,6 @@ fn collect_inventory_items(
         .filter_map(|item| item_query.get(item).ok().map(|details| (details.clone(), item)))
         .collect()
 }
-
-/*fn react_on_inventory_removal(
-    mut removed: RemovedComponents<Inventory>,
-    ui_windows: Query<(Entity, &InvRef, Option<&Children>), Without<UiActiveSampleIcon>>,
-    mut commands: Commands,
-) {
-    removed.read().for_each(|removed_entity| {
-        println!("AASKL:HGDFSKHJDGSKLJH:GD");
-        for (ui_entity, invref, children) in ui_windows.iter() {
-            if invref.0 != removed_entity {
-                continue;
-            }
-            if let Some(children) = children {
-                for child in children.iter() {
-                    commands.entity(child).despawn();
-                }
-            }
-        }
-    });
-}*/
 
 fn sync_inventory_ui(
     mut removed: RemovedComponents<Inventory>,
@@ -324,6 +322,7 @@ fn inventory_item_drowpdown_observer(
     dropdown_query: Query<Entity, With<DropdownMenu>>,
 ) {
     trace!("OBSERVER: inventory_item_drowpdown_observer");
+    commands.entity(trigger.entity).insert(DropDownHoverState::default());
     for entity in dropdown_query.iter() {
         commands.entity(entity).despawn();
     }
@@ -373,8 +372,69 @@ fn inventory_item_drowpdown_observer(
                     ))
                     .observe(use_item_button_observer);
                 }))
-            ));
+            ))
+            .observe(on_dropdown_menu_enter)
+            .observe(on_dropdown_menu_leave);
     }
+}
+
+fn despawn_item_dropdown_observer(
+    mut commands: Commands,
+    dropdown_state_query: Query<&DropDownHoverState>,
+    dropdown_query: Query<Entity, With<DropdownMenu>>,
+) {
+    let Ok(dropdown_state) = dropdown_state_query.single() else {
+        trace!("despawn_item_dropdown_observer: Failed to query DropDownHoverState");
+        return;
+    };
+    if let Ok(dropdown) = dropdown_query.single()
+    && !dropdown_state.item_icom && !dropdown_state.dropdown {
+        commands.entity(dropdown).despawn();
+    }
+}
+
+fn on_item_icon_leave(
+    trigger: On<Pointer<Leave>>,
+    mut dropdown_state_query: Query<&mut DropDownHoverState>,
+) {
+    let Ok(mut dropdown_state) = dropdown_state_query.single_mut() else {
+        error!("on_item_icon_leave: Failed to query DropDownHoverState");
+        return;
+    };
+    dropdown_state.item_icom = false;
+}
+
+fn on_item_icon_enter(
+    trigger: On<Pointer<Enter>>,
+    mut dropdown_state_query: Query<&mut DropDownHoverState>,
+) {
+    let Ok(mut dropdown_state) = dropdown_state_query.single_mut() else {
+        error!("on_item_icon_enter: Failed to query DropDownHoverState");
+        return;
+    };
+    dropdown_state.item_icom = true;
+}
+
+fn on_dropdown_menu_leave(
+    trigger: On<Pointer<Leave>>,
+    mut dropdown_state_query: Query<&mut DropDownHoverState>,
+) {
+    let Ok(mut dropdown_state) = dropdown_state_query.single_mut() else {
+        error!("on_dropdown_menu_leave: Failed to query DropDownHoverState");
+        return;
+    };
+    dropdown_state.dropdown = false;
+}
+
+fn on_dropdown_menu_enter(
+    trigger: On<Pointer<Enter>>,
+    mut dropdown_state_query: Query<&mut DropDownHoverState>,
+) {
+    let Ok(mut dropdown_state) = dropdown_state_query.single_mut() else {
+        error!("on_dropdown_menu_enter: Failed to query DropDownHoverState");
+        return;
+    };
+    dropdown_state.dropdown = true;
 }
 
 /*#[allow(clippy::complexity)]
