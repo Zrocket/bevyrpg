@@ -1,7 +1,7 @@
 use bevy::{input::common_conditions::input_just_pressed, prelude::*};
 use bevy_asset_loader::dynamic_asset::DynamicAssetCollections;
 
-use crate::{AddToInventoryEvent, ApplicatorSubstance, CraftTag, DamageEvent, Description, DisplayEquipEvent, Equiptable, GameState, Health, ItemDetails, ItemId, ItemKind::ApplicableSubstance, Mana, ManaEvent, Player, SampleItem};
+use crate::{AddToInventoryEvent, ApplicatorSubstance, CraftTag, DamageEvent, Description, Equiptable, GameState, Health, ItemDetails, ItemId, Mana, ManaEvent, Player, SampleItem};
 use super::Weight;
 
 pub struct TestsPlugin;
@@ -13,7 +13,7 @@ impl Plugin for TestsPlugin {
                     //health_test,
                     //mana_test,
                     //inventory_add_test,
-                    inventory_add_test,
+                    inventory_add_test.run_if(in_state(GameState::Gameplay)),
                     //inventory_remove_test,
                     //equipt_ui_test.run_if(input_just_pressed(KeyCode::KeyP)),
                     check_states.run_if(input_just_pressed(KeyCode::F2))
@@ -61,16 +61,20 @@ fn inventory_add_test(
     mut commands: Commands,
     key: Res<ButtonInput<KeyCode>>,
     mut player_query: Query<Entity, With<Player>>,
+    item_database: Res<crate::ItemDatabase>,
+    asset_server: Res<AssetServer>,
 ) {
     trace!("SYSTEM: inventory_add_test");
     if let Ok(player) = player_query.single_mut() && key.just_pressed(KeyCode::KeyJ) {
-        let item = commands.spawn((
-                ItemDetails {
-                    name: "Test".to_string(),
-                    description: Description("Test".to_string()),
-                    weight: Weight(0),
-                },
-                //Name::new(format!("Test {}", rand::random::<u8>() as char)),
+
+       let Some(item_def) = item_database.0.get("tin_cup") else {
+           return;
+       };
+
+       let item = crate::spawn_item_from_definition(&mut commands, &asset_server, item_def);
+
+       commands.entity(item)
+           .insert((
                 Name::new("tin_cup"),
                 Equiptable {
                     slot: crate::EquipSlot::Arm,
@@ -81,10 +85,29 @@ fn inventory_add_test(
                     analyzed: false,
                     botched: false,
                 },
-                //ItemId("test".into())
+                ApplicatorSubstance,
+           ));
+
+        /*let item = commands.spawn((
+                ItemDetails {
+                    name: "Test".to_string(),
+                    description: Description("Test".to_string()),
+                    weight: Weight(0),
+                },
+                Name::new("tin_cup"),
+                Equiptable {
+                    slot: crate::EquipSlot::Arm,
+                    defense: 1,
+                },
+                CraftTag("test".into()),
+                SampleItem {
+                    analyzed: false,
+                    botched: false,
+                },
                 ItemId("tin_cup".into()),
                 ApplicatorSubstance,
-        )).id();
+        )).id();*/
+
         println!("{:?}", item);
         commands.entity(player).trigger(|entity| AddToInventoryEvent { entity, item });
     } else {

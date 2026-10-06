@@ -44,11 +44,12 @@ fn on_craft_result_icon_add(
 fn on_craft_result_icon_click(
     _trigger: On<Pointer<Click>>,
     mut commands: Commands,
+    asset_server: Res<AssetServer>,
     timer_query: Query<Entity, With<CraftTimer>>,
     player_query: Query<Entity, With<Player>>,
     active_recipe_query: Query<&UiActiveRecipe>,
     recipe_book: Res<RecipeBook>,
-    item_database: Res<ItemDatabase>
+    item_database: Res<ItemDatabase>,
 ) {
     let Ok(timer_entity) = timer_query.single() else {
         error!("on_craft_result_icon_click: Failed to query Entity for CraftTimer");
@@ -72,7 +73,7 @@ fn on_craft_result_icon_click(
     };
 
     if let Some(output_item_def) = item_database.0.get(&recipe.output_tag) {
-        let item = crate::spawn_item_from_definition(&mut commands, output_item_def);
+        let item = crate::spawn_item_from_definition(&mut commands, &asset_server, output_item_def);
         commands.entity(player).trigger(|entity| AddToInventoryEvent { entity, item });
     }
     commands.entity(timer_entity).remove::<CraftTimer>();

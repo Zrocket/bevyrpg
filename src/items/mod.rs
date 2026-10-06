@@ -42,6 +42,8 @@ pub use weapons::*;
 
 use crate::{AnalysisResults, BootStrap};
 
+pub const DEFAULT_ITEM_MODEL: &str = "default_item.glb";
+
 #[derive(Deserialize, Clone, Debug)]
 pub enum ItemKind {
     Misc,
@@ -63,6 +65,8 @@ pub struct ItemDefinition {
     pub description: String,
     pub weight: i32,
     pub kind: ItemKind,
+    #[serde(default)]
+    pub model: Option<String>,
 }
 
 #[derive(Asset, TypePath, Deserialize, Clone, Debug)]
@@ -124,7 +128,11 @@ pub struct ItemDetails {
     pub weight: Weight,
 }
 
-fn spawn_item_from_definition(commands: &mut Commands, def: &ItemDefinition) -> Entity {
+pub fn spawn_item_from_definition(
+    commands: &mut Commands,
+    asset_server: &AssetServer,
+    def: &ItemDefinition,
+) -> Entity {
     let mut entity = commands.spawn((
             ItemId(def.id.clone()),
             ItemDetails {
@@ -132,19 +140,46 @@ fn spawn_item_from_definition(commands: &mut Commands, def: &ItemDefinition) -> 
                 description: Description(def.description.clone()),
                 weight: Weight(def.weight),
             },
+            Visibility::Hidden,
     ));
 
+    if let Some(path) = &def.model {
+        //entity.insert(WorldAssetRoot(
+        //        asset_server.load(GltfAssetLabel::Scene(0).from_asset(path.clone())),
+        //));
+        entity.insert((
+            Mesh3d(asset_server.load(
+                GltfAssetLabel::Primitive { mesh: 0, primitive: 0 }.from_asset(path.clone()),
+            )),
+            MeshMaterial3d::<StandardMaterial>(asset_server.load(
+                    format!("{}#{}/std", path.clone(), GltfAssetLabel::Material { index: 0, is_scale_inverted: false }),
+            )),
+        ));
+    } else {
+        //entity.insert(WorldAssetRoot(
+        //        asset_server.load(GltfAssetLabel::Scene(0).from_asset(DEFAULT_ITEM_MODEL)),
+        //));
+        entity.insert((
+            Mesh3d(asset_server.load(
+                GltfAssetLabel::Primitive { mesh: 0, primitive: 0 }.from_asset(DEFAULT_ITEM_MODEL),
+            )),
+            MeshMaterial3d::<StandardMaterial>(asset_server.load(
+                    format!("{}#{}/std", DEFAULT_ITEM_MODEL, GltfAssetLabel::Material { index: 0, is_scale_inverted: false }),
+            )),
+        ));
+    }
+
     match &def.kind {
-        ItemKind::Misc                                          => { entity.insert(MiscItem); }
-        ItemKind::Container                                     => { entity.insert(Container); }
-        ItemKind::Sample { .. }                                 => { entity.insert(SampleItem { analyzed: false, botched: false }); }
-        ItemKind::Book { contents }                     => { entity.insert(Book { title: def.name.clone(), contents: contents.clone() }); }
-        ItemKind::Ammo                                          => { entity.insert(Ammo); }
-        ItemKind::Armor { armor_type, defense } => { entity.insert(Armor { armor_type: armor_type.clone(), defense: defense.clone() }); }
-        ItemKind::Weapon { weapon_type }            => { entity.insert(Weapon { weapon_type: weapon_type.clone() }); }
-        ItemKind::HealthPack                                    => { entity.insert(HealthItem); }
-        ItemKind::ManaPack                                      => { entity.insert(ManaItem); }
-        ItemKind::ApplicableSubstance                           => { entity.insert(ApplicatorSubstance); }
+        ItemKind::Misc                                              => { entity.insert(MiscItem); }
+        ItemKind::Container                                         => { entity.insert(Container); }
+        ItemKind::Sample { .. }                                     => { entity.insert(SampleItem { analyzed: false, botched: false }); }
+        ItemKind::Book { contents }                        => { entity.insert(Book { title: def.name.clone(), contents: contents.clone() }); }
+        ItemKind::Ammo                                              => { entity.insert(Ammo); }
+        ItemKind::Armor { armor_type, defense }   => { entity.insert(Armor { armor_type: armor_type.clone(), defense: defense.clone() }); }
+        ItemKind::Weapon { weapon_type }               => { entity.insert(Weapon { weapon_type: weapon_type.clone() }); }
+        ItemKind::HealthPack                                        => { entity.insert(HealthItem); }
+        ItemKind::ManaPack                                          => { entity.insert(ManaItem); }
+        ItemKind::ApplicableSubstance                               => { entity.insert(ApplicatorSubstance); }
     }
 
     entity.id()
