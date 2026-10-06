@@ -72,13 +72,7 @@ fn on_craft_result_icon_click(
     };
 
     if let Some(output_item_def) = item_database.0.get(&recipe.output_tag) {
-        let item = commands.spawn(
-                ItemDetails {
-                    name: output_item_def.name.clone(),
-                    description: crate::Description(output_item_def.description.clone()),
-                    weight: crate::Weight(output_item_def.weight),
-                }
-        ).id();
+        let item = crate::spawn_item_from_definition(&mut commands, output_item_def);
         commands.entity(player).trigger(|entity| AddToInventoryEvent { entity, item });
     }
     commands.entity(timer_entity).remove::<CraftTimer>();
@@ -95,6 +89,19 @@ fn on_craft_result_icon_click(
 pub struct UiCraftButton{
     pub id: String,
     pub craftable: bool,
+}
+
+fn on_ui_craft_button_add(
+    mut world: DeferredWorld,
+    context: HookContext,
+) {
+    let enabled = world.get::<UiCraftButton>(context.entity).unwrap().craftable;
+
+    if enabled {
+        world.commands()
+            .entity(context.entity)
+            .observe(on_craft_click);
+    }
 }
 
 #[derive(Component, Reflect)]
@@ -134,19 +141,6 @@ pub struct UiActiveRecipeIcon;
     BackgroundColor::from(DARK_KHAKI),
 )]
 pub struct UiActiveRecipeInput;
-
-fn on_ui_craft_button_add(
-    mut world: DeferredWorld,
-    context: HookContext,
-) {
-    let enabled = world.get::<UiCraftButton>(context.entity).unwrap().craftable;
-
-    if enabled {
-        world.commands()
-            .entity(context.entity)
-            .observe(on_craft_click);
-    }
-}
 
 #[derive(Component, Reflect)]
 #[require(
@@ -538,6 +532,7 @@ fn on_craft_click(
     crafting_button_query: Query<&UiCraftButton>,
     mut active_recipe: Query<&mut UiActiveRecipe>,
     mut meta_active_recipe: Query<&mut crate::ActiveRecipe>,
+    craft_timer_query: Query<&CraftTimer>,
 ) {
     let Ok(crafting_station) = crafting_station_query.single() else {
         error!("on_craft_click: Failed to query Entity for CraftingStation");
@@ -553,6 +548,9 @@ fn on_craft_click(
     };
     let Ok(mut meta_active) = meta_active_recipe.single_mut() else {
         error!("on_craft_click: Failed to query UiActiveRecipe");
+        return;
+    };
+    if let Ok(_craft_timer) = craft_timer_query.single() {
         return;
     };
 
