@@ -147,7 +147,7 @@ pub struct UiActiveRecipeInput;
 #[require(
     Node {
         padding: UiRect::axes(px(0.), px(10.)),
-        align_self: AlignSelf::Center,
+        align_self: AlignSelf::Start,
         width: percent(90.),
         ..default()
     },

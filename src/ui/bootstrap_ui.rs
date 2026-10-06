@@ -14,6 +14,10 @@ pub struct UiBootstrap;
 
 #[derive(Component)]
 #[require(
+    Node {
+        align_self: AlignSelf::Start,
+        ..default()
+    },
     Pickable {
         should_block_lower: true,
         ..default()
