@@ -18,22 +18,40 @@ impl Plugin for SettingsMenuUiPlugin {
 
 fn spawn_settings_menu(
     mut commands: Commands,
+    mut meta_state: Res<State<MetaState>>,
 ) {
-    commands.spawn((
-            widgets::ui_root("Settings Menu"),
-            DespawnOnExit(MenuState::Settings),
-            GlobalZIndex(2),
-            UiSettings,
-            children![
-                widgets::button("Gameplay Settings", enter_gameplay_settings_menu),
-                widgets::button("Controller Settings", enter_controller_settings_menu),
-                widgets::button("Video Settings", enter_video_settings_menu),
-                widgets::button("Sound Settings", enter_sound_settings_menu),
-                widgets::button("Load Game", enter_load_game_menu),
-                widgets::button("Save Game", enter_save_game_menu),
-                widgets::button("Back", exit_settings_menu),
-            ]
-    ));
+    if meta_state.get() == &MetaState::Gameplay {
+        commands.spawn((
+                widgets::ui_root("Settings Menu"),
+                DespawnOnExit(MenuState::Settings),
+                GlobalZIndex(2),
+                UiSettings,
+                children![
+                    widgets::button("Gameplay Settings", enter_gameplay_settings_menu),
+                    widgets::button("Controller Settings", enter_controller_settings_menu),
+                    widgets::button("Video Settings", enter_video_settings_menu),
+                    widgets::button("Sound Settings", enter_sound_settings_menu),
+                    widgets::button("Load Game", enter_load_game_menu),
+                    widgets::button("Save Game", enter_save_game_menu),
+                    widgets::button("Back", exit_settings_menu),
+                ]
+        ));
+    } else {
+        commands.spawn((
+                widgets::ui_root("Settings Menu"),
+                DespawnOnExit(MenuState::Settings),
+                GlobalZIndex(2),
+                UiSettings,
+                children![
+                    widgets::button("Gameplay Settings", enter_gameplay_settings_menu),
+                    widgets::button("Controller Settings", enter_controller_settings_menu),
+                    widgets::button("Video Settings", enter_video_settings_menu),
+                    widgets::button("Sound Settings", enter_sound_settings_menu),
+                    widgets::button("Load Game", enter_load_game_menu),
+                    widgets::button("Back", exit_settings_menu),
+                ]
+        ));
+    }
 }
 
 fn exit_settings_menu(
