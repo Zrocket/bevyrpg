@@ -38,7 +38,6 @@ fn on_ui_load_slots_add(
             .entity(context.entity)
             .add_child(bundle);
     }
-
 }
 
 pub struct LoadGameMenuUiPlugin;

@@ -47,7 +47,6 @@ fn spawn_settings_menu(
                     widgets::button("Controller Settings", enter_controller_settings_menu),
                     widgets::button("Video Settings", enter_video_settings_menu),
                     widgets::button("Sound Settings", enter_sound_settings_menu),
-                    widgets::button("Load Game", enter_load_game_menu),
                     widgets::button("Back", exit_settings_menu),
                 ]
         ));
