@@ -1,5 +1,5 @@
 use bevy::{ecs::query::QueryFilter, prelude::*};
-use bevy_seedling::{pool::SamplerPool, prelude::{MainBus, MusicPool, SoundEffectsBus, Volume, VolumeNode}};
+use bevy_seedling::{pool::SamplerPool, prelude::{MainBus, MusicPool, SoundEffectsBus, Volume, VolumeNode}, sample::SamplePlayer};
 
 use crate::{MenuState, PerceptualVolumeConverter, widgets::{self, ui_root}};
 
@@ -131,18 +131,34 @@ fn back_to_settings_menu(
     pause_menu_state.set(MenuState::Settings);
 }
 
-fn lower_volume<F: QueryFilter>(_on: On<Pointer<Click>>, mut volume: Single<&mut VolumeNode, F>) {
+fn lower_volume<F: QueryFilter>(
+    _on: On<Pointer<Click>>,
+    mut commands: Commands,
+    asset_server: Res<AssetServer>,
+    mut volume: Single<&mut VolumeNode, F>,
+) {
     let mut ticks = VolumeTicks::from(volume.volume);
     ticks.decrement();
     volume.volume = ticks.into();
+    commands.spawn((
+            SamplePlayer::new(asset_server.load("audio/clicks/click.1.ogg")),
+    ));
     println!("LOWER {:?}", volume.volume);
 }
 
-fn raise_volume<F: QueryFilter>(_on: On<Pointer<Click>>, mut volume: Single<&mut VolumeNode, F>) {
+fn raise_volume<F: QueryFilter>(
+    _on: On<Pointer<Click>>,
+    mut commands: Commands,
+    asset_server: Res<AssetServer>,
+    mut volume: Single<&mut VolumeNode, F>,
+) {
     let mut ticks = VolumeTicks::from(volume.volume);
     ticks.increment();
     volume.volume = ticks.into();
     println!("RAISE {:?}", volume.volume);
+    commands.spawn((
+            SamplePlayer::new(asset_server.load("audio/clicks/click.1.ogg")),
+    ));
 }
 
 fn update_volume_label<F1, F2>(mut label: Single<&mut Text, F1>, master: Single<&VolumeNode, F2>)
