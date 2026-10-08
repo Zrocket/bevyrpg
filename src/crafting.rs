@@ -1,25 +1,50 @@
+//! # Crafting
+//!
+//! ## Overview
+//! Provides systems and components for crafting
+//!
+//! ## Usage
+//! ```no_run
+//! # use bevy::prelude::*;
+//! # use bevyrpg::crafting::CraftingPlugin;
+//! App::new().add_plugins((DefaultPlugins, CraftingPlugin));
+//! ```
+//!
+//! ## Related modules
+//! - [`crate::items`]: provides data on all game items
+//! - [`crate::ui::crafting_ui`]: displays [`UiCrafting`]
+
 use std::collections::HashMap;
 
-use bevy::{ecs::{component::ComponentId, lifecycle::HookContext, world::DeferredWorld}, prelude::*};
+use bevy::{ecs::{lifecycle::HookContext, world::DeferredWorld}, prelude::*};
 use bevy_asset_loader::{asset_collection::AssetCollection, loading_state::{LoadingStateAppExt, config::{ConfigureLoadingState, LoadingStateConfig}}};
-use bevy_common_assets::ron::{RonAssetError, RonAssetPlugin};
+use bevy_common_assets::ron::RonAssetPlugin;
 use serde::Deserialize;
 
 use crate::{BootStrap, Inventory, Player, RemoveFromInventoryEvent, container_interaction_observer, crafting_ui::display_crafting_ui, spawn_sample};
 
+/// Sent when an item should be crafted by a CraftingStation
+///
+/// **Sent by:** on_craft_click
+/// **Handled by:** [`craft_event_observer`].
 #[derive(EntityEvent)]
 pub struct CraftEvent {
     pub entity: Entity,
     pub id: String,
 }
 
+/// Starts crafting from a recipe if the player has the ingredients.
+/// Blocks if an existing [`CraftTimer`] is present.
+///
+/// # Trigger
+/// [`CraftEvent`],targeted at [`CraftingStation`].
 fn craft_event_observer(
     trigger: On<CraftEvent>,
     mut commands: Commands,
     recipe_book: Res<RecipeBook>,
     inventory_query: Query<(Entity ,&Inventory), With<Player>>,
     tag_query: Query<&CraftTag>,
-    crafting_station_query: Query<Entity, With<CraftingStation>>,
+    crafting_station_query: Query<(Entity, Option<&CraftTimer>), With<CraftingStation>>,
 ) {
     println!("{}", trigger.id);
     let Ok((entity, inventory)) = inventory_query.single() else {
@@ -30,34 +55,34 @@ fn craft_event_observer(
         error!("craft_event_observer: Failed to query RecipeBook");
         return;
     };
-    let Ok(crafting_station) = crafting_station_query.single() else {
+    let Ok((crafting_station, craft_timer)) = crafting_station_query.single() else {
         error!("craft_event_observer: Failed to query CraftingStation");
         return;
     };
-    //if let Ok((entity, inventory)) = inventory_query.single()
-    //&& let Some(recipe) = recipe_book.0.get(&trigger.id)
-    //&& let Ok(crafting_station) = crafting_station_query.single() {
-    let tags = tally_tags(inventory, &tag_query);
-    if recipe_is_craftable(recipe, &tags) {
-        for (id, num) in &recipe.inputs {
-            let mut current = 0;
-            for item in inventory.iter() {
-                if let Ok(tag) = tag_query.get(item)
-                && tag.0 == *id {
-                    current += 1;
-                    commands.entity(entity).trigger(|entity| RemoveFromInventoryEvent { entity, item});
-                }
-                if current == *num {
-                    break;
+
+    if craft_timer.is_none() {
+        let tags = tally_tags(inventory, &tag_query);
+        if recipe_is_craftable(recipe, &tags) {
+            for (id, num) in &recipe.inputs {
+                let mut current = 0;
+                for item in inventory.iter() {
+                    if let Ok(tag) = tag_query.get(item)
+                    && tag.0 == *id {
+                        current += 1;
+                        commands.entity(entity).trigger(|entity| RemoveFromInventoryEvent { entity, item});
+                    }
+                    if current == *num {
+                        break;
+                    }
                 }
             }
+                commands.entity(crafting_station).insert(CraftTimer(Timer::from_seconds(recipe.craft_time, TimerMode::Once)));
+                println!("NEW TIMER");
         }
-            commands.entity(crafting_station).insert(CraftTimer(Timer::from_seconds(recipe.craft_time, TimerMode::Once)));
-            println!("NEW TIMER");
     }
-    //}
 }
 
+/// Marks the entity as a Crafting Station.
 #[derive(Component, Reflect, Clone, PartialEq, Eq, Hash, Debug)]
 #[reflect(Component)]
 #[require(
@@ -68,6 +93,9 @@ fn craft_event_observer(
 #[component(on_add = on_crafting_station_add)]
 pub struct CraftingStation;
 
+/// [`CraftingStation`] on_add Hook
+///
+/// Adds necissary observers for [`CraftingStation`] functionality
 fn on_crafting_station_add(
     mut world: DeferredWorld,
     context: HookContext,
@@ -79,6 +107,10 @@ fn on_crafting_station_add(
         .observe(craft_event_observer);
 }
 
+/// The current active recipe selected by the [`CraftingStation`].
+///
+/// `None` indicates no recipie is active. Otherwise, the inner string holds the recipe's ID,
+/// as keyed in [`RecipeBook`].
 #[derive(Component)]
 pub struct ActiveRecipe(pub Option<String>);
 
@@ -86,10 +118,12 @@ pub struct ActiveRecipe(pub Option<String>);
 #[reflect(Component)]
 pub struct CraftTag(pub String);
 
+/// The timer of a [`Recipe`] currently being crafted by a [`CraftingStation`]
 #[derive(Component, Reflect, Clone, PartialEq, Eq, Debug)]
 #[reflect(Component)]
 pub struct CraftTimer(pub Timer);
 
+/// Updates an active [`CraftTimer`]
 fn update_craft_timer(
     mut timer_query: Query<&mut CraftTimer>,
     time: Res<Time>,
@@ -99,6 +133,7 @@ fn update_craft_timer(
     }
 }
 
+/// A crafting recipe, loaded from `recipes.r.ron`.
 #[derive(Asset, TypePath, Deserialize, Clone, Debug)]
 pub struct Recipe {
     pub id: String,
@@ -109,18 +144,23 @@ pub struct Recipe {
     pub craft_time: f32,
 }
 
+/// The array of all [`Recipe`]s loaded from `recipes.r.ron`
 #[derive(Asset, TypePath, Deserialize, Clone, Debug)]
 pub struct CraftingRecipes(Vec<Recipe>);
 
-
+/// The top level handle for [`CraftingRecipes`]
 #[derive(AssetCollection, Resource, TypePath, Clone, Debug)]
 pub struct CraftingRecipesHandle{
     #[asset(path = "recipes.r.ron")]
     pub handle: Handle<CraftingRecipes>,
 }
 
+/// Global map of tags to [`Recipe`]s
 #[derive(Resource)]
-pub struct RecipeBook(pub HashMap<String, Recipe>);
+pub struct RecipeBook(
+    /// Maps recipe tag [`String`] to [`Recipe`]
+    pub HashMap<String, Recipe>
+);
 impl FromWorld for RecipeBook {
     fn from_world(world: &mut World) -> Self {
         let handle = world.resource::<CraftingRecipesHandle>();
@@ -154,6 +194,15 @@ impl FromWorld for RecipeBook {
     }
 }
 
+/// Adds crafting systems, types, and resources
+///
+/// # Registers
+/// - **Systems:** [`update_craft_timer`]
+/// - **Types:** [`CraftingStation`]
+/// - **Resources:** [`RecipeBook`] (in [`BootStrap::Loading`])
+///
+/// # Requires
+/// - [`crate::StatesPlugin`] must be added first
 pub struct CraftingPlugin;
 impl Plugin for CraftingPlugin {
     fn build(&self, app: &mut App) {
@@ -164,12 +213,16 @@ impl Plugin for CraftingPlugin {
                .load_collection::<CraftingRecipesHandle>()
                .finally_init_resource::<RecipeBook>()
            )
-           //.init_resource::<RecipeBook>()
            .register_type::<CraftingStation>()
            .add_systems(Update, update_craft_timer);
     }
 }
 
+/// Tallys up the [`CraftTag`]s of a given inventory
+///
+/// # Returns
+/// [`std::collection::Hashmap<String, u32>`]
+///
 pub fn tally_tags(
     inventory: &Inventory,
     tag_query: &Query<&CraftTag>,
@@ -183,6 +236,10 @@ pub fn tally_tags(
     counts
 }
 
+/// Determins if a given [`Recipe`] is craftable
+///
+/// # Returns
+/// [`bool`] indicating if the given recipie is craftable
 pub fn recipe_is_craftable(
     recipe: &Recipe,
     counts: &std::collections::HashMap<String, u32>,
