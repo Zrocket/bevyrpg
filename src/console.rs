@@ -5,7 +5,7 @@ use bevy_flycam::FlyCam;
 use bevy_landmass::debug::EnableLandmassDebug;
 use chill_bevy_console::{ChillConsole, CommandArgs, ConsoleAppExt, ConsoleCommand};
 
-use crate::{AddToInventoryEvent, DamageEvent, DeathEvent, Equiptable, GodMode, Health, ItemDetails, Player, PlayerCamera, PlayerState, level::ChangeLevelMessage};
+use crate::{AddToInventoryEvent, DamageEvent, DeathEvent, Equiptable, GodMode, Health, ItemDatabase, ItemDetails, Player, PlayerCamera, PlayerState, level::ChangeLevelMessage};
 
 pub struct MyConsolePlugin;
 impl Plugin for MyConsolePlugin {
@@ -20,8 +20,28 @@ impl Plugin for MyConsolePlugin {
             .add_console_command(ConsoleCommand::new("navmesh", "navmesh", navmesh_command))
             .add_console_command(ConsoleCommand::new("damage", "damage", damage_command))
             .add_console_command(ConsoleCommand::new("inventory", "inventory", inventory_command))
-            .add_console_command(ConsoleCommand::new("mana", "mana", mana_command));
+            .add_console_command(ConsoleCommand::new("mana", "mana", mana_command))
+            .add_console_command(ConsoleCommand::new("spawn", "spawn <item_id>", spawn_command));
     }
+}
+
+fn spawn_command(
+    In(args): CommandArgs,
+    item_database: Res<ItemDatabase>,
+    mut commands: Commands,
+    asset_server: Res<AssetServer>,
+    player_query: Query<Entity, With<Player>>,
+) -> String {
+    let Some(item_def) = item_database.0.get(&args[0]) else {
+        return "failed to get item".to_string();
+    };
+    let Ok(player) = player_query.single() else {
+        return "Failed to query Entity for Player".to_string();
+    };
+    let item = crate::spawn_item_from_definition(&mut commands, &asset_server, item_def);
+    commands.entity(player).trigger(|entity| AddToInventoryEvent { entity, item });
+
+    "ok".to_string()
 }
 
 fn gravity_command(
@@ -112,12 +132,6 @@ fn navmesh_command(
 }
 
 fn kill_command(
-    In(args): CommandArgs,
-) -> String {
-    "ok".to_string()
-}
-
-fn spawn_command(
     In(args): CommandArgs,
 ) -> String {
     "ok".to_string()
