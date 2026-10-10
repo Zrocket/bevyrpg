@@ -162,7 +162,8 @@ fn on_rover_add(
         .observe(on_rover_camera_up_stop_observer)
         .observe(on_rover_camera_down_observer)
         .observe(on_rover_camera_down_stop_observer)
-        .observe(switch_rover_attachment_observer);
+        //.observe(switch_rover_attachment_observer)
+        .observe(switch_rover_attachment_observer2);
 
     world.write_message_default::<RoverSpawnedMessage>();
 }
@@ -191,6 +192,20 @@ fn switch_rover_attachment_observer(
     }
 }
 
+fn switch_rover_attachment_observer2(
+    trigger: On<crate::SwitchRoveerAttachmentEvent2>,
+    mut commands: Commands,
+    mut rover_query: Query<Entity, With<crate::Rover>>,
+) {
+    if let Ok(rover_entity) = rover_query.single_mut() {
+        commands.entity(rover_entity)
+            .remove::<RoverAttachments>();
+        commands.entity(trigger.attachment).insert(AttachedToRover(rover_entity));
+    } else {
+        error!("switch_rover_attachment_observer: Failed to query rover");
+    }
+}
+
 fn spawn_rover(
     mut spawn_rover_message_writer: MessageWriter<SpawnRoverMessage>,
 ) {
@@ -204,10 +219,14 @@ fn spawn_rover_observer(
     mut rover_query: Query<Entity, With<Rover>>,
     mut meshes: ResMut<Assets<Mesh>>,
     mut materials: ResMut<Assets<StandardMaterial>>,
+    save_loading: Option<Res<crate::SaveLoadInProgress>>,
 ) {
     trace!("OBSERVER: spawn_rover_observer");
 
     for _message in spawn_rover_message_reader.read() {
+        if save_loading.is_some() {
+            continue;
+        }
         if let Ok(rover) = rover_query.single_mut() {
             commands.entity(rover).despawn();
         }

@@ -9,7 +9,7 @@ pub use drill::*;
 pub use foam_gun::*;
 
 #[derive(Component, Default)]
-#[relationship_target(relationship = AttachedToRover)]
+#[relationship_target(relationship = AttachedToRover, linked_spawn)]
 pub struct RoverAttachments(Vec<Entity>);
 
 #[derive(Component)]
@@ -26,6 +26,15 @@ pub struct SwitchRoveerAttachmentEvent {
     pub entity: Entity,
     pub attachment: Attachment,
 }
+
+#[derive(EntityEvent)]
+pub struct SwitchRoveerAttachmentEvent2 {
+    pub entity: Entity,
+    pub attachment: Entity,
+}
+
+#[derive(Component, Default)]
+pub struct RoverAttachment;
 
 pub enum Attachment {
     Applicator,

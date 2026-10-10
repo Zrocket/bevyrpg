@@ -6,6 +6,7 @@ use crate::{DrillEvent, Rover, RoverCamera, UseRoverAttachmentEvent};
 #[derive(Component)]
 #[require(
     Name::new("Sample Drill"),
+    crate::RoverAttachment,
 )]
 #[component(on_add = on_sample_drill_add)]
 pub struct SampleDrillAttachment;

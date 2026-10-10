@@ -6,6 +6,7 @@ use crate::{ApplicatorSubstance, UseRoverAttachmentEvent, rover::attachment::app
 #[derive(Component)]
 #[require(
     Name::new("Applicator"),
+    crate::RoverAttachment,
 )]
 #[component(on_add = on_applicator_add)]
 pub struct ApplicatorAttachment(pub Option<Entity>);

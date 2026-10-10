@@ -35,6 +35,7 @@ fn on_foam_dart_add(
 #[derive(Component)]
 #[require(
     Name::new("Foam Gun"),
+    crate::RoverAttachment,
 )]
 #[component(on_add = on_foam_gun_add)]
 pub struct FoamGunAttachment;

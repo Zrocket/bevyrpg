@@ -1,6 +1,6 @@
 use bevy::{app::Propagate, color::palettes::css::{DARK_GREEN, DARK_RED}, ecs::{lifecycle::HookContext, world::DeferredWorld}, prelude::*};
 
-use crate::{AddToInventoryEvent, ApplicatorAttachment, ApplicatorSubstance, AttachedToRover, InvRef, Owner, RemoveFromInventoryEvent, Rover, palette::{BRONZE, RUST_BROWN, VANILLA_CUSTARD}, widgets::floating_windows::floating_window_root};
+use crate::{AddToInventoryEvent, ApplicatorAttachment, ApplicatorSubstance, AttachedToRover, Attachment, InvRef, Owner, RemoveFromInventoryEvent, Rover, RoverAttachment, SwitchRoveerAttachmentEvent, SwitchRoveerAttachmentEvent2, palette::{BRONZE, RUST_BROWN, VANILLA_CUSTARD}, widgets::floating_windows::floating_window_root};
 
 #[derive(Component, Reflect)]
 #[require(
@@ -41,7 +41,31 @@ fn on_ui_rover_add(
     context: HookContext,
 ) {
     world.commands()
-        .entity(context.entity);
+        .entity(context.entity)
+        .observe(rover_on_attachment_drop);
+}
+
+fn rover_on_attachment_drop(
+    trigger: On<Pointer<DragDrop>>,
+    mut commands: Commands,
+    attachment_query: Query<Entity, With<RoverAttachment>>,
+    rover_query: Query<Entity, With<Rover>>,
+    owner_query: Query<&Owner>,
+) {
+    let Ok(owner) = owner_query.get(trigger.dropped) else {
+        error!("rover_on_attachment_drop: Failed to query Owner for {}", trigger.dropped);
+        return;
+    };
+    let Ok(attachment) = attachment_query.get(owner.item_owner) else {
+        error!("rover_on_attachment_drop: Dropped entity {} not a RoverAttachment", trigger.dropped);
+        return;
+    };
+    let Ok(rover) = rover_query.single() else {
+        error!("rover_on_attachment_drop: Failed to query Rover");
+        return;
+    };
+    commands.entity(owner.inv_owner).trigger(|entity| RemoveFromInventoryEvent { entity, item: owner.item_owner });
+    commands.entity(rover).trigger(|entity| SwitchRoveerAttachmentEvent2 { entity, attachment});
 }
 
 #[derive(Component, Reflect)]
