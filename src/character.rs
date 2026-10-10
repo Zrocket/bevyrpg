@@ -217,7 +217,7 @@ pub fn damage_observer(
             health.0 -= trigger.event().ammount;
         }
     } else {
-        error!("damage_observer: Could not query character {} health", trigger.entity);
+        trace!("damage_observer: Could not query character {} health", trigger.entity);
     }
 }
 

@@ -1,7 +1,7 @@
 use bevy::{input::common_conditions::input_just_pressed, prelude::*};
 use bevy_asset_loader::dynamic_asset::DynamicAssetCollections;
 
-use crate::{AddToInventoryEvent, ApplicatorSubstance, CraftTag, DamageEvent, Description, Equiptable, GameState, Health, ItemDetails, ItemId, Mana, ManaEvent, Player, SampleItem};
+use crate::{AddToInventoryEvent, ApplicatorSubstance, CraftTag, DamageEvent, Description, Equiptable, FoamGunAttachment, GameState, Health, ItemDetails, ItemId, LabKey, Mana, ManaEvent, Player, SampleItem};
 use super::Weight;
 
 pub struct TestsPlugin;
@@ -75,6 +75,7 @@ fn inventory_add_test(
 
        commands.entity(item)
            .insert((
+                LabKey,
                 Name::new("tin_cup"),
                 Equiptable {
                     slot: crate::EquipSlot::Arm,
@@ -86,27 +87,8 @@ fn inventory_add_test(
                     botched: false,
                 },
                 ApplicatorSubstance,
+                FoamGunAttachment,
            ));
-
-        /*let item = commands.spawn((
-                ItemDetails {
-                    name: "Test".to_string(),
-                    description: Description("Test".to_string()),
-                    weight: Weight(0),
-                },
-                Name::new("tin_cup"),
-                Equiptable {
-                    slot: crate::EquipSlot::Arm,
-                    defense: 1,
-                },
-                CraftTag("test".into()),
-                SampleItem {
-                    analyzed: false,
-                    botched: false,
-                },
-                ItemId("tin_cup".into()),
-                ApplicatorSubstance,
-        )).id();*/
 
         println!("{:?}", item);
         commands.entity(player).trigger(|entity| AddToInventoryEvent { entity, item });

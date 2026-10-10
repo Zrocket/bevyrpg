@@ -3,7 +3,7 @@ use bevy::{ecs::{event::Trigger, lifecycle::HookContext, world::DeferredWorld}, 
 use bevy_seedling::sample::SamplePlayer;
 use rand::random_range;
 
-use crate::{Interactable, InteractionEvent, level::{LevelGltf}};
+use crate::{InInventory, Interactable, InteractionEvent, Player, level::LevelGltf};
 
 #[derive(Clone, Hash, Debug, Eq, PartialEq, Default, Component, Reflect)]
 #[reflect(Component)]
@@ -24,51 +24,18 @@ pub enum LockedState {
 #[derive(Resource)]
 pub struct OpenDoorAnimation(pub Handle<AnimationClip>);
 
-/*impl FromWorld for OpenDoorAnimation {
-    fn from_world(world: &mut World) -> Self {
-    }
-}*/
-
 #[derive(Resource)]
 pub struct CloseDoorAnimation(pub Handle<AnimationClip>);
-
-/*impl FromWorld for CloseDoorAnimation {
-    fn from_world(world: &mut World) -> Self {
-        let level_gltf = world.resource::<LevelGltf>();
-        if let Some(gltf) = world.resource::<Assets<Gltf>>().get(&level_gltf.0) {
-            let close_animation_clip_handle = gltf.named_animations["closedoor"].clone();
-            Self(close_animation_clip_handle)
-        } else {
-            Self(Handle<AnimationClip::default()>)
-        }
-    }
-}*/
 
 #[derive(Resource)]
 pub struct DoorGraph(pub AnimationGraphHandle);
 
-/*impl FromWorld for DoorGraph {
-    fn from_world(world: &mut World) -> Self {
-        let level_gltf = world.resource::<LevelGltf>();
-        if let Some(gltf) = world.resource::<Assets<Gltf>>().get(&level_gltf.0) {
-            let open_animation_clip_handle = gltf.named_animations["opendoor"].clone();
-            let close_animation_clip_handle = gltf.named_animations["closedoor"].clone();
-            let (animation_graph, _index) = AnimationGraph::from_clips([open_animation_clip_handle, close_animation_clip_handle]);
-
-            let mut animation_graphs = world.resource_mut::<Assets<AnimationGraph>>();
-            let graph = AnimationGraphHandle(animation_graphs.add(animation_graph));
-
-            Self(graph)
-        } else {
-            Self(AnimationGraphHandle::default())
-        }
-    }
-}*/
-
-#[derive(Component)]
+#[derive(Component, Reflect)]
+#[reflect(Component)]
 pub struct LabKey;
 
-#[derive(Component)]
+#[derive(Component, Reflect)]
+#[reflect(Component)]
 pub struct LabDoor;
 
 #[derive(Component)]
@@ -104,7 +71,9 @@ impl Plugin for DoorPlugin {
     fn build(&self, app: &mut App) {
         app.register_type::<DoorComponent>()
             .register_type::<DoorState>()
-            .register_type::<LockedState>();
+            .register_type::<LockedState>()
+            .register_type::<LabDoor>()
+            .register_type::<LabKey>();
     }
 }
 
@@ -211,20 +180,30 @@ fn on_door_add(
 fn door_interaction_observer(
     trigger: On<InteractionEvent>,
     mut commands: Commands,
-    mut door_state_query: Query<(&mut DoorState, Option<&LockedState>)>,
+    mut door_state_query: Query<(&mut DoorState, Option<&LockedState>, Option<&LabDoor>)>,
+    lab_key_query: Query<(&LabKey, &InInventory)>,
+    player_query: Query<&Player>,
 ) {
     trace!("OBSERVER: door_event_observer");
-    if let Ok((mut door_state, lock_state)) = door_state_query.get_mut(trigger.entity) {
+    if let Ok((mut door_state, lock_state, lab_door)) = door_state_query.get_mut(trigger.entity) {
+        if lab_door.is_some() {
+            let Ok(lab_key) = lab_key_query.single() else {
+                return;
+            };
+            let Ok(player) = player_query.get(lab_key.1.0) else {
+                return;
+            };
+        }
         if *door_state == DoorState::Closed {
             if let Some(lock_state) = lock_state
             && *lock_state == LockedState::Locked {
                 return;
             }
-            println!("{:?}", door_state);
+            trace!("{:?}", door_state);
             commands.entity(trigger.entity).trigger(|entity| OpenDoorEvent { entity });
             *door_state = DoorState::Open;
         } else {
-            println!("{:?}", door_state);
+            trace!("{:?}", door_state);
             commands.entity(trigger.entity).trigger(|entity| CloseDoorEvent { entity });
             *door_state = DoorState::Closed;
         }
