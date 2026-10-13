@@ -6,8 +6,10 @@ use bevy_seedling::{prelude::SpatialBasicNode, sample::SamplePlayer, sample_effe
 use crate::{DamageEvent, Health};
 
 mod fire_particles;
+mod rain_particles;
 
 use fire_particles::*;
+use rain_particles::*;
 
 #[derive(Component, Reflect)]
 #[reflect(Component)]
@@ -65,12 +67,11 @@ pub struct ParticlePlugin;
 impl Plugin for ParticlePlugin {
     fn build(&self, app: &mut App) {
        app
+           .add_plugins(FireParticlePlugin)
            .register_type::<ParticleTester>()
            .register_type::<Flamable>()
            .init_resource::<FireEffectResource>()
            .init_resource::<SmokeEffectResource>();
-           //.add_systems(Startup, smoke_effect)
-           //.add_systems(Startup, fire_effect);
     }
 }
 

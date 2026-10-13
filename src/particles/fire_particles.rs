@@ -195,3 +195,10 @@ impl FromWorld for SmokeEffectResource {
         Self(effect_asset)
     }
 }
+
+pub struct FireParticlePlugin;
+impl Plugin for FireParticlePlugin {
+    fn build(&self, app: &mut App) {
+       app; 
+    }
+}
