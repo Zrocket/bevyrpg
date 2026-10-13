@@ -1,7 +1,8 @@
 use bevy::{input::common_conditions::input_just_pressed, prelude::*};
 use bevy_asset_loader::dynamic_asset::DynamicAssetCollections;
+use bevy_enhanced_input::{action::Action, binding::relationship::Bindings, preset::{axial::Axial, cardinal::Cardinal}};
 
-use crate::{AddToInventoryEvent, ApplicatorSubstance, CraftTag, DamageEvent, Description, Equiptable, FoamGunAttachment, GameState, Health, ItemDetails, ItemId, LabKey, Mana, ManaEvent, Player, SampleItem};
+use crate::{AddToInventoryEvent, ApplicatorSubstance, CraftTag, DamageEvent, Description, Equiptable, FoamGunAttachment, GameState, Health, ItemDetails, ItemId, LabKey, Mana, ManaEvent, MovementAction, Player, SampleItem};
 use super::Weight;
 
 pub struct TestsPlugin;
@@ -103,4 +104,18 @@ fn check_states(
 ) {
     println!("{:?}", meta_state.get());
     println!("{:?}", menu_state.get());
+}
+
+fn keybind_test(
+    mut commands: Commands,
+    key: Res<ButtonInput<KeyCode>>,
+    mut binding_query: Query<&mut Bindings, With<Action<MovementAction>>>,
+) {
+    if let Ok(mut binding) = binding_query.single_mut()
+    && key.just_pressed(KeyCode::Comma) {
+        let tmp = Bindings::spawn((
+                Cardinal::arrows(),
+                Axial::left_stick(),
+        ));
+    }
 }

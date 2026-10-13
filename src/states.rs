@@ -97,6 +97,7 @@ pub enum MenuState {
     Off,
     Settings,
     ControllerSettings,
+    KeyBindings,
     Credits,
     GameplaySettings,
     SoundSettings,

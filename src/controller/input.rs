@@ -421,6 +421,8 @@ fn on_tnua_rover_controller_add(
         basis: TnuaBuiltinWalkConfig {
             speed: 10.0,
             float_height: 0.5,
+            //tilt_offset_angvel: 1.0,
+            //tilt_offset_angacl: 1.0,
             ..default()
         },
         jump: TnuaBuiltinJumpConfig {
