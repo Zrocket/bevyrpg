@@ -1,3 +1,19 @@
+//! # Player
+//!
+//! ## Overview
+//! Handles all player centric systems,
+//!
+//! ## Usage
+//! ```no_run
+//! # use bevy::prelude::*;
+//! # use bevyrpg::player::GamePlayerPlugin;
+//! App::new().add_plugins((DefaultPlugins, GamePlayerPlugin));
+//! ```
+//!
+//! ## Related modules
+//! - [`crate::items`]: provides data on all game items
+//! - [`crate::ui::crafting_ui`]: displays [`UiCrafting`]
+
 use avian_pickup::actor::{AvianPickupActor, AvianPickupActorHoldConfig};
 use avian3d::prelude::{CoefficientCombine, Collider, CollisionLayers, Friction, GravityScale, LayerMask, LockedAxes, RigidBody, SpatialQuery, SpatialQueryFilter, SweptCcd, CollisionMargin};
 use bevy::{camera::{Exposure, Hdr}, core_pipeline::tonemapping::Tonemapping, ecs::{lifecycle::HookContext, world::DeferredWorld}, light::{Atmosphere, atmosphere::ScatteringMedium}, pbr::AtmosphereSettings, post_process::bloom::Bloom, prelude::*};
@@ -147,6 +163,7 @@ pub struct PlayerFlashlight;
 #[type_path("api")]
 pub struct PlayerSpawner;
 
+/// Marks a space that detects the player's presence
 #[derive(Component, Reflect, Default)]
 #[reflect(Component)]
 #[type_path("api")]
@@ -189,6 +206,9 @@ impl Plugin for GamePlayerPlugin {
     }
 }
 
+/// [`Player`] on_addd Hook
+///
+/// Adds necissary observers and additional Components for [`Player`]
 fn on_player_add(
     mut world: DeferredWorld,
     context: HookContext,
