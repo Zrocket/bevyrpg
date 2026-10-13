@@ -1,6 +1,6 @@
 use bevy::{color::palettes::css::BLUE, ecs::{lifecycle::HookContext, world::DeferredWorld}, prelude::*};
 
-use crate::{Cartridge, ComputerCctvIcon, ComputerUiNode, PlugSocketEvent, furniture::computer::computer_input::{icon_drag_observer, icon_out, icon_over}, widgets::floating_windows::floating_computer_rover_window_root};
+use crate::{Cartridge, ComputerUiNode, PlugSocketEvent, furniture::computer::computer_input::{icon_drag_observer, icon_out, icon_over}, widgets::floating_windows::floating_computer_rover_window_root};
 
 #[derive(Component)]
 #[require(
@@ -78,8 +78,6 @@ pub(crate) fn cart_icon_double_click_observer(
         return;
     };
 
-    //if let Ok(mut timer) = timer_query.get_mut(trigger.entity)
-    //&& let Ok(computer_ui) = computer_ui_query.single() {
     if timer.0.is_finished() {
         timer.0.reset();
     } else {
@@ -102,7 +100,6 @@ pub(crate) fn cart_icon_double_click_observer(
 
         commands.entity(computer_ui).add_child(window);
     }
-    //}
 }
 
 #[derive(Component, Reflect)]

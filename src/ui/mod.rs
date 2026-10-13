@@ -1,4 +1,4 @@
-use crate::{analyzer_ui::AnalyzerUiPlugin, database_ui::DatabaseUiPlugin, widgets::{anchored::AnchoredUiPlugin, floating_window_ordering::FloatingWindowOrderingPlugin, floating_windows::FloatingWindowPlugin, progress_bar::ProgressBarWidgetPlugin}};
+use crate::{analyzer_ui::AnalyzerUiPlugin, /*database_ui::DatabaseUiPlugin,*/ widgets::{anchored::AnchoredUiPlugin, floating_window_ordering::FloatingWindowOrderingPlugin, floating_windows::FloatingWindowPlugin, progress_bar::ProgressBarWidgetPlugin}};
 
 use super::*;
 
@@ -86,7 +86,7 @@ impl Plugin for UiPlugin {
                     FloatingWindowOrderingPlugin,
                     EquipUiPlugin,
                     ProgressBarWidgetPlugin,
-                    DatabaseUiPlugin,
+                    //DatabaseUiPlugin,
             ))
             .add_plugins((
                     RoverUiPlugin,

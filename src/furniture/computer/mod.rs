@@ -3,6 +3,7 @@ use std::time::Duration;
 use avian3d::prelude::{RigidBody};
 use bevy::asset::uuid::Uuid;
 use bevy::ecs::lifecycle::HookContext;
+use bevy::ecs::system::command::init_resource;
 use bevy::ecs::world::DeferredWorld;
 use bevy::picking::PickingSystems;
 use bevy::picking::pointer::PointerId;
@@ -11,17 +12,23 @@ use bevy::color::palettes::css::{BLUE, GRAY};
 use bevy_ingame_clock::InGameClock;
 use bevy_old_tv_shader::OldTvPlugin;
 
-use crate::{CameraInterpolation2, CameraTarget, Interactable, InteractionEvent, Player, PlayerCamera, PlayerState};
+use crate::{CameraInterpolation2, CameraTarget, Interactable, Player, PlayerCamera, PlayerState};
 
 mod cart_slot;
+mod cctv_app;
 mod computer_input;
 mod computer_display;
 //mod crt_shader;
+mod database_app;
+mod rover_app;
 
 use cart_slot::*;
+use cctv_app::*;
 use computer_input::*;
 use computer_display::*;
 //use crt_shader::*;
+use database_app::*;
+use rover_app::*;
 
 #[derive(Component, Reflect)]
 #[reflect(Component)]
@@ -62,114 +69,6 @@ fn on_crt_tv_add(
     world.commands()
         .entity(context.entity)
         .observe(computer_interaction_observer);
-}
-//
-#[derive(Component)]
-#[require(
-    Node {
-        position_type: PositionType::Absolute,
-        width: Val::Percent(11.),
-        height: Val::Percent(15.),
-        align_items: AlignItems::Center,
-        border_radius: BorderRadius::all(Val::Px(10.)),
-        left: Val::Px(20.),
-        top: Val::Px(400.),
-        flex_direction: FlexDirection::Column,
-        overflow: Overflow { x: OverflowAxis::Hidden, y: OverflowAxis::Hidden },
-        ..default()
-    },
-    BackgroundColor(BLUE.into()),
-    IconClickTimer(Timer::from_seconds(1.0, TimerMode::Once)),
-)]
-#[component(on_add = on_computer_rover_icon_add)]
-pub struct ComputerRoverIcon;
-
-fn on_computer_rover_icon_add(
-    mut world: DeferredWorld,
-    context: HookContext,
-) {
-    let icon: Handle<Image> = world.resource::<AssetServer>().load("icons/geometrica/save-block.png");
-
-    let icon_node = world.commands().spawn((
-        Node {
-            width: Val::Auto,
-            height: Val::Percent(75.),
-            ..default()
-        },
-        ImageNode::new(icon),
-    )).id();
-
-    let text_node = world.commands().spawn((
-        Node {
-            width: Val::Auto,
-            height: Val::Percent(25.),
-            ..default()
-        },
-        Text::new("ROVER"),
-    )).id();
-
-    world.commands()
-        .entity(context.entity)
-        .observe(icon_drag_observer)
-        .observe(icon_over)
-        .observe(icon_out)
-        .observe(rover_icon_double_click_observer)
-        .add_child(icon_node)
-        .add_child(text_node);
-}
-
-#[derive(Component)]
-#[require(
-    Node {
-        position_type: PositionType::Absolute,
-        width: Val::Percent(10.),
-        height: Val::Percent(15.),
-        align_items: AlignItems::Center,
-        border_radius: BorderRadius::all(Val::Px(10.)),
-        left: Val::Px(20.),
-        top: Val::Px(300.),
-        flex_direction: FlexDirection::Column,
-        overflow: Overflow { x: OverflowAxis::Hidden, y: OverflowAxis::Hidden },
-        ..default()
-    },
-    BackgroundColor(BLUE.into()),
-    IconClickTimer(Timer::from_seconds(1.0, TimerMode::Once)),
-)]
-#[component(on_add = on_computer_cctv_icon_add)]
-pub struct ComputerCctvIcon;
-
-fn on_computer_cctv_icon_add(
-    mut world: DeferredWorld,
-    context: HookContext,
-) {
-    let icon: Handle<Image> = world.resource::<AssetServer>().load("icons/geometrica/save-block.png");
-
-    let icon_node = world.commands().spawn((
-        Node {
-            width: Val::Auto,
-            height: Val::Percent(75.),
-            ..default()
-        },
-        ImageNode::new(icon),
-    )).id();
-
-    let text_node = world.commands().spawn((
-        Node {
-            width: Val::Auto,
-            height: Val::Percent(25.),
-            ..default()
-        },
-        Text::new("CCTV"),
-    )).id();
-
-    world.commands()
-        .entity(context.entity)
-        .observe(icon_drag_observer)
-        .observe(icon_over)
-        .observe(icon_out)
-        .observe(cctv_icon_double_click_observer)
-        .add_child(icon_node)
-        .add_child(text_node);
 }
 
 #[derive(Component)]
@@ -241,6 +140,8 @@ impl Plugin for ComputerPlugin {
         app
             .add_plugins(OldTvPlugin)
             .add_plugins(CartSlotPlugin)
+            .add_plugins(DatabaseAppPlugin)
+            .init_resource::<DatabaseActiveEntry>()
             .register_type::<ComputerScreenCube>()
             .register_type::<ComputerTextureCam>()
             .register_type::<CrtTv>()
@@ -286,6 +187,9 @@ fn on_computer_ui_node_add(
                 ));
             parent.spawn((
                     ComputerCctvIcon,
+            ));
+            parent.spawn((
+                    ComputerDatabaseIcon,
             ));
             parent
                 .spawn((
@@ -354,10 +258,6 @@ fn computer_interaction_observer(
         return;
     };
 
-    //if let Ok(mut player_state) = player_query.single_mut()
-    //&& let Ok(parent) = parent_query.get(trigger.entity)
-    //&& let Ok(computer_children) = children_query.get(parent.0)
-    //&& let Ok((camera_entity, camera_transform)) = camera_query.single() {
     for child in computer_children.iter() {
         if let Ok(target_entity) = camera_target_query.get(child)
         && let Ok(target_transform) = transform_query.get(target_entity) {
@@ -376,5 +276,4 @@ fn computer_interaction_observer(
             });
         }
     }
-    //}
 }

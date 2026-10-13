@@ -2,6 +2,7 @@ use bevy::{color::palettes::css::{BLACK, BLUE, DARK_CYAN}, ecs::{lifecycle::Hook
 
 use crate::{DiscoveredItems, GameState, ItemDatabase, container_interaction_observer, widgets::floating_windows::floating_window_root};
 
+/*
 #[derive(Resource)]
 struct DatabaseActiveEntry(pub String);
 impl FromWorld for DatabaseActiveEntry {
@@ -28,7 +29,8 @@ fn on_ui_database_station_add(
         .observe(container_interaction_observer)
         .observe(display_database_ui);
 }
-
+*/
+/*
 #[derive(Component)]
 #[require(
     Node {
@@ -78,8 +80,9 @@ fn on_ui_database_entry_click(
     } else {
         error!("on_ui_database_entry_click: Failed to query UiDatabaseEntry");
     }
-}
+}*/
 
+/*
 #[derive(Component)]
 #[require(
     Node {
@@ -97,8 +100,8 @@ fn on_ui_database_entry_click(
 )]
 #[component(on_add = on_ui_database_active_entry_add)]
 pub struct UiDatabaseActiveEntry;
-
-fn on_ui_database_active_entry_add(
+*/
+/*fn on_ui_database_active_entry_add(
     mut world: DeferredWorld,
     context: HookContext,
 ) {
@@ -108,8 +111,9 @@ fn on_ui_database_active_entry_add(
     world.commands()
         .entity(context.entity);
 }
+*/
 
-fn update_ui_database_active_entry(
+/*fn update_ui_database_active_entry(
     mut commands: Commands,
     active_entry: Option<Res<DatabaseActiveEntry>>,
     mut previous_active: Local<String>,
@@ -149,8 +153,9 @@ fn update_ui_database_active_entry(
     commands.entity(active_entry_node).add_child(title);
     commands.entity(active_entry_node).add_child(desc);
     //}
-}
+}*/
 
+/*
 #[derive(Component)]
 #[require(
     Node {
@@ -222,3 +227,4 @@ fn display_database_ui(
             )),
     ));
 }
+*/
