@@ -49,9 +49,6 @@ pub fn player_raycast(
         return;
     };
 
-    //if let Ok((player, mut ray_hit)) = player_query.single_mut()
-    //&& let Ok(flashlight) = flashlight_query.single_mut()
-    //&& let Ok(window) = window_query.single() {
     for (camera, global_transform) in camera_query.iter() {
         let center_window = camera.viewport_to_world(global_transform, Vec2 { y: (window.resolution.height() / 2.), x: (window.resolution.width() / 2.)}).unwrap();
         let camera_position = global_transform.translation();
@@ -69,7 +66,6 @@ pub fn player_raycast(
             ray_hit.0 = None;
         }
     }
-    //}
 }
 
 fn manage_interact(

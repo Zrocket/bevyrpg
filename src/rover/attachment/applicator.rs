@@ -53,8 +53,6 @@ fn use_appliicator_observer(
         return;
     };
 
-    //if let Ok(rover_entity) = rover_query.single()
-    //&& let Ok(camera_transform) = transform_query.single() {
     let camera_position = camera_transform.translation();
     let direction = camera_transform.forward().normalize();
     if let Some(ray_data) = ray_caster.cast_ray(
@@ -66,7 +64,6 @@ fn use_appliicator_observer(
     ) {
         commands.entity(ray_data.entity).trigger(|entity| ApplicatorEvent { entity });
     }
-    //}
 }
 
 fn switch_applicator_substance_observer(
