@@ -51,6 +51,7 @@ fn rover_on_attachment_drop(
     attachment_query: Query<Entity, With<RoverAttachment>>,
     rover_query: Query<Entity, With<Rover>>,
     owner_query: Query<&Owner>,
+    attached_query: Query<Entity, With<AttachedToRover>>
 ) {
     let Ok(owner) = owner_query.get(trigger.dropped) else {
         error!("rover_on_attachment_drop: Failed to query Owner for {}", trigger.dropped);
@@ -63,6 +64,9 @@ fn rover_on_attachment_drop(
     let Ok(rover) = rover_query.single() else {
         error!("rover_on_attachment_drop: Failed to query Rover");
         return;
+    };
+    if let Ok(attached) = attached_query.single() {
+        commands.entity(rover).trigger(|entity| AddToInventoryEvent { entity, item: attached });
     };
     commands.entity(owner.inv_owner).trigger(|entity| RemoveFromInventoryEvent { entity, item: owner.item_owner });
     commands.entity(rover).trigger(|entity| SwitchRoveerAttachmentEvent2 { entity, attachment});

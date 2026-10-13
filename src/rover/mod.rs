@@ -60,10 +60,13 @@ fn on_rover_pickup_zone_add(
 ) {
     let mut meshes = world.resource_mut::<Assets<Mesh>>();
     let mesh = meshes.add(Cuboid::new(3.0, 1.0, 2.0));
+    //let mut materials = world.resource_mut::<Assets<StandardMaterial>>();
+    //let material = materials.add(Color::BLACK);
 
     world.commands()
         .entity(context.entity)
         .insert(Mesh3d(mesh));
+        //.insert(MeshMaterial3d(material));
 }
 
 #[derive(Component, Reflect)]
@@ -321,19 +324,18 @@ fn on_rover_interact_observer(
         error!("on_rover_interact_observer: Faileid to query Entity for Rover");
         return;
     };
+    println!("MMMMMMMMMMMMMMMMMMMm");
 
-    //if let Ok(trigger_transform) = trigger_query.single()
-    //&& let Ok(rover_entity) = rover_query.single() {
     let temp = spatial_query.shape_intersections(
         &Collider::cuboid(1.0, 1.0, 2.0),
         trigger_transform.translation(),
         trigger_transform.rotation(),
         &SpatialQueryFilter::from_mask(CollisionLayer::Prop)
     );
+    println!("SPATIAL: {:?}", temp);
     if !temp.is_empty() {
         commands.entity(temp[0]).trigger(|entity| InteractionEvent { entity, actor: rover_entity });
     }
-    //}
 }
 
 fn on_rover_drop_observer(
