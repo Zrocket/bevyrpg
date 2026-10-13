@@ -1,5 +1,5 @@
 use avian_pickup::{input::{AvianPickupAction, AvianPickupInput}, prop::HeldProp};
-use avian3d::{collision::collider::Collider, dynamics::rigid_body::RigidBody, prelude::RigidBodyDisabled};
+use avian3d::{collision::collider::Collider, dynamics::rigid_body::RigidBody, prelude::{RigidBodyDisabled, CollisionLayers, LayerMask}};
 use bevy::{camera::visibility, color::palettes::css::CRIMSON, ecs::{lifecycle::HookContext, world::DeferredWorld}, prelude::*};
 
 use crate::{AddToInventoryEvent, InspectEvent, Interactable, InteractionEvent, ItemDetails, PickupEvent, Shelf, UiInspect, widgets};
@@ -9,6 +9,7 @@ use crate::{AddToInventoryEvent, InspectEvent, Interactable, InteractionEvent, I
 #[component(on_add = on_misc_add)]
 #[require(
     Interactable,
+    CollisionLayers::new(crate::CollisionLayer::Prop, LayerMask::ALL),
     Name::new("ElevatorCurve"),
 )]
 #[type_path("api")]
@@ -35,7 +36,7 @@ impl Plugin for MiscItemPlugin {
     }
 }
 
-/*fn misc_interaction_observer(
+fn misc_interaction_observer(
     trigger: On<InteractionEvent>,
     mut commands: Commands,
     parent_query: Query<&ChildOf>,
@@ -71,7 +72,7 @@ impl Plugin for MiscItemPlugin {
     commands.entity(trigger.event().entity).remove::<Transform>();
     commands.entity(trigger.event().entity).remove::<Collider>();
     commands.entity(actor).trigger(|entity| AddToInventoryEvent { entity, item: trigger.event().entity });
-}*/
+}
 
 fn misc_interaction_observer2(
     trigger: On<InteractionEvent>,
