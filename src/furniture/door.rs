@@ -1,5 +1,5 @@
 use avian3d::prelude::{ColliderConstructor, RigidBody};
-use bevy::{ecs::{event::Trigger, lifecycle::HookContext, world::DeferredWorld}, prelude::*};
+use bevy::{ecs::{event::Trigger, lifecycle::HookContext, system::{IntoResult, SystemParam}, world::DeferredWorld}, prelude::*};
 use bevy_seedling::sample::SamplePlayer;
 use rand::random_range;
 
@@ -66,6 +66,54 @@ pub struct CloseDoorEvent {
     pub entity: Entity,
 }
 
+#[derive(SystemParam)]
+pub struct DoorSystemParam<'w, 's> {
+    commands: Commands<'w, 's>,
+    asset_server: Res<'w, AssetServer>, 
+    animation_player_query: Query<'w, 's, &'static mut AnimationPlayer>,
+    door_state_query: Query<'w, 's, (&'static mut DoorState, &'static ChildOf, Option<&'static LabDoor>)>,
+}
+
+impl <'w, 's> DoorSystemParam<'w, 's> {
+    fn open_door(&mut self, entity: Entity) {
+        let Ok((mut door_state, child_of, lab_door)) = self.door_state_query.get_mut(entity) else {
+            error!("open_door: Failed to query DoorState for {}", entity);
+            return;
+        };
+        let parent_object = child_of.0;
+        let Ok(mut door_animation_player) = self.animation_player_query.get_mut(parent_object) else {
+            error!("open_door: Failed to query AnimationPlayer for {}", parent_object);
+            return;
+        };
+        door_animation_player.stop_all();
+        let file = format!("audio/door/qubodup-DoorOpen0{}.ogg", random_range(0..8));
+        door_animation_player.play(1.into());
+        self.commands.spawn(
+            SamplePlayer::new(self.asset_server.load(file))
+        );
+        *door_state = DoorState::Open;
+    }
+
+    fn close_door(&mut self, entity: Entity) {
+        let Ok((mut door_state, child_of, lab_door)) = self.door_state_query.get_mut(entity) else {
+            error!("close_door: Failed to query DoorState");
+            return;
+        };
+        let parent_object = child_of.0;
+        let Ok(mut door_animation_player) = self.animation_player_query.get_mut(parent_object) else {
+            error!("close_door: Failed to query AnimationPlayer for {}", parent_object);
+            return;
+        };
+        door_animation_player.stop_all();
+        let file = format!("audio/door/qubodup-DoorOpen0{}.ogg", random_range(0..8));
+        door_animation_player.play(2.into());
+        self.commands.spawn(
+            SamplePlayer::new(self.asset_server.load(file))
+        );
+        *door_state = DoorState::Closed;
+    }
+}
+
 pub struct DoorPlugin;
 impl Plugin for DoorPlugin {
     fn build(&self, app: &mut App) {
@@ -80,11 +128,15 @@ impl Plugin for DoorPlugin {
 fn close_door_observer(
     trigger: On<CloseDoorEvent>,
     mut commands: Commands,
-    mut door_state_query: Query<&mut DoorState>,
-    asset_server: Res<AssetServer>,
-    child_of_query: Query<&ChildOf>,
-    mut door: Query<&mut AnimationPlayer>,
+    mut door_commands: DoorSystemParam,
+    //mut door_state_query: Query<&mut DoorState>,
+    //asset_server: Res<AssetServer>,
+    //child_of_query: Query<&ChildOf>,
+    //mut door: Query<&mut AnimationPlayer>,
 ) {
+    door_commands.close_door(trigger.entity);
+
+    /*
     trace!("OBSERVER: open_door_observer");
     let Ok(mut door_state) = door_state_query.get_mut(trigger.entity) else {
         error!("close_door_observer: Failed to query DoorState");
@@ -107,18 +159,22 @@ fn close_door_observer(
     commands.spawn(
         SamplePlayer::new(asset_server.load(file))
     );
-    *door_state = DoorState::Closed;
+    *door_state = DoorState::Closed;*/
 }
 
 fn open_door_observer(
     trigger: On<OpenDoorEvent>,
     mut commands: Commands,
-    mut door_state_query: Query<(&mut DoorState, Option<&LabDoor>)>,
-    asset_server: Res<AssetServer>,
-    child_of_query: Query<&ChildOf>,
-    mut door: Query<&mut AnimationPlayer>,
+    mut door_commands: DoorSystemParam,
+    //mut door_state_query: Query<(&mut DoorState, Option<&LabDoor>)>,
+    //asset_server: Res<AssetServer>,
+    //child_of_query: Query<&ChildOf>,
+    //mut door: Query<&mut AnimationPlayer>,
 ) {
     trace!("OBSERVER: open_door_observer");
+    door_commands.open_door(trigger.entity);
+
+    /*
     let Ok((mut door_state, lab_door)) = door_state_query.get_mut(trigger.entity) else {
         error!("open_door_observer: Failed to query DoorState for {}", trigger.entity);
         return;
@@ -140,7 +196,7 @@ fn open_door_observer(
     commands.spawn(
         SamplePlayer::new(asset_server.load(file))
     );
-    *door_state = DoorState::Open;
+    *door_state = DoorState::Open;*/
 }
 
 fn on_door_add(
