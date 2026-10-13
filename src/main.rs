@@ -54,6 +54,7 @@ mod tests;
 mod ui;
 mod utils;
 mod stepping;
+mod weather;
 
 pub use audio::*;
 pub use character::*;
@@ -81,6 +82,7 @@ pub use utils::*;
 use level::*;
 use tests::TestsPlugin;
 use stepping::*;
+use weather::*;
 
 use crate::{enemy::EnemyPlugin, fungus::FungusPlugin, particles::ParticlePlugin};
 
