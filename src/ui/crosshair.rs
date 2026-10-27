@@ -1,4 +1,4 @@
-use bevy::{ecs::{lifecycle::HookContext, world::DeferredWorld}, prelude::*, window::WindowResized};
+use bevy::{ecs::{lifecycle::HookContext, world::DeferredWorld}, gizmos::cross, prelude::*, window::WindowResized};
 use super::*;
 
 #[derive(Component, Reflect)]
@@ -46,12 +46,18 @@ impl Plugin for CrosshairPlugin {
     }
 }
 
-pub fn draw_crosshair(mut commands: Commands) {
+pub fn draw_crosshair(
+    mut commands: Commands,
+    crosshair_query: Query<Entity, With<UiCrosshair>>,
+) {
     trace!("draw_crosshair");
+    if let Ok(crosshair_entity) = crosshair_query.single() {
+        commands.entity(crosshair_entity).despawn();
+    }
     commands
         .spawn((
             UiCrosshair,
-        ));
+    ));
 }
 
 pub fn cooldown_observer(
