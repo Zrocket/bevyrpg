@@ -4,10 +4,11 @@ use avian3d::{math::{AdjustPrecision, Vector3}, prelude::RigidBodyDisabled};
 use bevy::{input::mouse, prelude::*};
 use bevy_enhanced_input::{action::Action, prelude::{ActionEvents, Start}};
 use bevy_tnua::{
-    TnuaControllerPlugin, TnuaObstacleRadar, TnuaScheme, TnuaUserControlsSystems, builtins::{TnuaBuiltinClimb, TnuaBuiltinCrouch, TnuaBuiltinDash, TnuaBuiltinJump, TnuaBuiltinKnockback, TnuaBuiltinWalk, TnuaBuiltinWallSlide}, control_helpers::{TnuaAirActionDefinition, TnuaAirActionsTracker, TnuaBlipReuseAvoidance, TnuaHasTargetEntity, TnuaSimpleAirActionsCounter}, controller::TnuaController, math::{AsF32, Float}, radar_lens::{TnuaBlipSpatialRelation, TnuaRadarLens}
+    TnuaControllerPlugin, TnuaObstacleRadar, TnuaScheme, TnuaUserControlsSystems, builtins::{TnuaBuiltinClimb, TnuaBuiltinClimbConfig, TnuaBuiltinCrouch, TnuaBuiltinCrouchConfig, TnuaBuiltinDash, TnuaBuiltinDashConfig, TnuaBuiltinJump, TnuaBuiltinJumpConfig, TnuaBuiltinKnockback, TnuaBuiltinWalk, TnuaBuiltinWalkConfig, TnuaBuiltinWallSlide, TnuaBuiltinWallSlideConfig}, control_helpers::{TnuaAirActionDefinition, TnuaAirActionsTracker, TnuaBlipReuseAvoidance, TnuaHasTargetEntity, TnuaSimpleAirActionsCounter}, controller::TnuaController, math::{AsF32, Float}, radar_lens::{TnuaBlipSpatialRelation, TnuaRadarLens}
 };
 use bevy_tnua_avian3d::{TnuaAvian3dPlugin, TnuaSpatialExtAvian3d};
 use chill_bevy_console::console_closed;
+use bevy_tnua_physics_integration_layer::math::float_consts;
 
 use crate::{CameraState, CrouchAction, DownAction, FlashlightAction, JumpAction, LookAction, MovementAction, ObstacleQueryHelper, Player, PlayerFlashlight, PlayerState, RunAction, UpAction};
 
@@ -52,6 +53,47 @@ pub enum PlayerControlScheme {
         Entity,
         Vector3,
     ),
+}
+
+impl Default for PlayerControlSchemeConfig {
+    fn default() -> Self {
+         PlayerControlSchemeConfig {
+            basis: TnuaBuiltinWalkConfig {
+                speed: 10.0,
+                float_height: 1.5,
+                max_slope: float_consts::FRAC_PI_8,
+                ..default()
+            },
+            jump: TnuaBuiltinJumpConfig {
+                height: 2.0,
+                ..default()
+            },
+            crouch: TnuaBuiltinCrouchConfig {
+                float_offset: -0.7,
+                ..default()
+            },
+            dash: TnuaBuiltinDashConfig {
+                horizontal_distance: 5.0,
+                ..default()
+            },
+            knockback: Default::default(),
+            wall_slide: TnuaBuiltinWallSlideConfig {
+                maintain_distance: Some(0.7),
+                ..default()
+            },
+            wall_jump: TnuaBuiltinJumpConfig {
+                height: 4.0,
+                takeoff_extra_gravity: 90.0, // 3 times the default
+                takeoff_above_velocity: 0.0,
+                horizontal_distance: 2.0,
+                ..default()
+            },
+            climb: TnuaBuiltinClimbConfig {
+                climb_speed: 10.0,
+                ..default()
+            },
+        }
+    }
 }
 
 impl TnuaAirActionDefinition for PlayerControlScheme {

@@ -1,0 +1,171 @@
+#![enable(unwrap_newtypes)]
+[
+    (
+        binding: "weapon1",
+        key: Keyboard (
+            key: Digit1,
+            mod_keys: "",
+        ),
+        gamepad: GamepadButton(DPadLeft),
+    ),
+    (
+        binding: "weapon2",
+        key: Keyboard (
+            key: Digit2,
+            mod_keys: "",
+        ),
+        gamepad: GamepadButton(DPadUp),
+    ),
+    (
+        binding: "weapon3",
+        key: Keyboard (
+            key: Digit3,
+            mod_keys: "",
+        ),
+        gamepad: GamepadButton(DPadRight),
+    ),
+    (
+        binding: "weapon4",
+        key: Keyboard (
+            key: Digit4,
+            mod_keys: "",
+        ),
+        gamepad: GamepadButton(DPadDown),
+    ),
+    (
+        binding: "jump",
+        key: Keyboard (
+            key: Space,
+            mod_keys: "",
+        ),
+        gamepad: GamepadButton(South),
+    ),
+    (
+        binding: "run",
+        key: Keyboard (
+            key: ShiftLeft,
+            mod_keys: "",
+        ),
+        gamepad: GamepadButton(LeftThumb),
+    ),
+    (
+        binding: "crouch",
+        key: Keyboard (
+            key: ControlLeft,
+            mod_keys: "",
+        ),
+        gamepad: GamepadButton(LeftThumb),
+    ),
+    (
+        binding: "up",
+        key: Keyboard (
+            key: KeyZ,
+            mod_keys: "",
+        ),
+        gamepad: None,
+    ),
+    (
+        binding: "down",
+        key: Keyboard (
+            key: KeyX,
+            mod_keys: "",
+        ),
+        gamepad: None,
+    ),
+    (
+        binding: "interact",
+        key: Keyboard (
+            key: KeyE,
+            mod_keys: "",
+        ),
+        gamepad: GamepadButton(West),
+    ),
+    (
+        binding: "interact2",
+        key: Keyboard (
+            key: KeyE,
+            mod_keys: "",
+        ),
+        gamepad: GamepadButton(West),
+    ),
+    (
+        binding: "inventory",
+        key: Keyboard (
+            key: KeyI,
+            mod_keys: "",
+        ),
+        gamepad: GamepadButton(Select),
+    ),
+    (
+        binding: "equip",
+        key: Keyboard (
+            key: KeyK,
+            mod_keys: "",
+        ),
+        gamepad: GamepadButton(Start),
+    ),
+    (
+        binding: "stats",
+        key: Keyboard (
+            key: KeyL,
+            mod_keys: "",
+        ),
+        gamepad: None,
+    ),
+    (
+        binding: "quest",
+        key: Keyboard (
+            key: KeyH,
+            mod_keys: "",
+        ),
+        gamepad: None,
+    ),
+    (
+        binding: "console",
+        key: Keyboard (
+            key: Backslash,
+            mod_keys: "",
+        ),
+        gamepad: None,
+    ),
+    (
+        binding: "flashlight",
+        key: Keyboard (
+            key: KeyF,
+            mod_keys: "",
+        ),
+        gamepad: GamepadButton(East),
+    ),
+    (
+        binding: "forward",
+        key: Keyboard (
+            key: KeyW,
+            mod_keys: "",
+        ),
+        gamepad: None,
+    ),
+    (
+        binding: "backward",
+        key: Keyboard (
+            key: KeyS,
+            mod_keys: "",
+        ),
+        gamepad: None,
+    ),
+    (
+        binding: "left",
+        key: Keyboard (
+            key: KeyA,
+            mod_keys: "",
+        ),
+        gamepad: None,
+    ),
+    (
+        binding: "right",
+        key: Keyboard (
+            key: KeyD,
+            mod_keys: "",
+        ),
+        gamepad: None,
+    ),
+]

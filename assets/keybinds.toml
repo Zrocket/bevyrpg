@@ -1,0 +1,62 @@
+weapon1_key = { Keyboard = { key = "Digit1", mod_keys = "" } }
+weapon1_gamepad = { GamepadButton = "DPadLeft" }
+
+weapon2_key = { Keyboard = { key = "Digit2", mod_keys = "" } }
+weapon2_gamepad = { GamepadButton = "DPadUp" }
+
+weapon3_key = { Keyboard = { key = "Digit3", mod_keys = "" } }
+weapon3_gamepad = { GamepadButton = "DPadRight" }
+
+weapon4_key = { Keyboard = { key = "Digit4", mod_keys = "" } }
+weapon4_gamepad = { GamepadButton = "DPad" }
+
+jump_key = { Keyboard = { key = "Space", mod_keys = "" } }
+jump_gamepad = { GamepadButton = "South" }
+
+run_key = { Keyboard = { key = "ShiftLeft", mod_keys = "" } }
+run_gamepad = { GamepadButton = "LeftThumb" }
+
+crouch_key = { Keyboard = { key = "ControlLeft", mod_keys = "" } }
+crouch_gamepad = { GamepadButton = "LeftThumb" }
+
+up_key = { Keyboard = { key = "KeyZ", mod_keys = "" } }
+up_gamepad = "None"
+
+down_key = { Keyboard = { key = "KeyX", mod_keys = "" } }
+down_gamepad = "None"
+
+interact_key = { Keyboard = { key = "KeyE", mod_keys = "" } }
+interact_gamepad = { GamepadButton = "West" }
+
+interact2_key = { Keyboard = { key = "KeyE", mod_keys = "" } }
+interact2_gamepad = { GamepadButton = "West" }
+
+inventory_key = { Keyboard = { key = "KeyI", mod_keys = "" } }
+inventory_gamepad = { GamepadButton = "Select" }
+
+equip_key = { Keyboard = { key = "KeyK", mod_keys = "" } }
+equip_gamepad = { GamepadButton = "Start" }
+
+stats_key = { Keyboard = { key = "KeyL", mod_keys = "" } }
+stats_gamepad = "None"
+
+quest_key = { Keyboard = { key = "KeyH", mod_keys = "" } }
+quest_gamepad = "None"
+
+console_key = { Keyboard = { key = "Backslash", mod_keys = "" } }
+console_gamepad = "None"
+
+flashlight_key = { Keyboard = { key = "KeyF", mod_keys = "" } }
+flashlight_gamepad = { GamepadButton = "East" }
+
+forward_key = { Keyboard = { key = "KeyW", mod_keys = "" } }
+forward_gamepad = "None"
+
+backward_key = { Keyboard = { key = "KeyS", mod_keys = "" } }
+backward_gamepad = "None"
+
+left_key = { Keyboard = { key = "KeyA", mod_keys = "" } }
+left_gamepad = "None"
+
+right_key = { Keyboard = { key = "KeyD", mod_keys = "" } }
+right_gamepad = "None"

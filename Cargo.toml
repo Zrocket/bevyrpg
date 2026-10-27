@@ -66,7 +66,8 @@ bevy = { version = "0.19.0", default-features = false, features = [
   "zstd_rust",
   "jpeg",
   "serialize",
-  "bevy_debug_stepping"
+  "bevy_debug_stepping",
+  "bevy_settings",
 ] }
 clap = { version = "*", features = ["derive"] }
 lazy_static = "*"
@@ -104,7 +105,7 @@ bevy-yoleck = "0.33.0"
 bevy_egui = "0.40.0"
 bevy_simple_text_input = "0.15.0"
 bevy-inspector-egui = "0.37.0"
-bevy_enhanced_input = "0.26.0"
+bevy_enhanced_input = { version = "0.26.0", features = ["serialize"] }
 bevy_hanabi = "0.19.0"
 bevy_sprite3d = "9.0.0"
 bevy_flycam = "0.19.0"
@@ -126,6 +127,7 @@ bevy_rerecast = "0.5.0"
 bevy_seedling = "0.8.0"
 bevy_ingame_clock = { git = "https://github.com/GuillaumeDelorme/bevy_ingame_clock.git", branch = "bevy-0.19-update" }
 iyes_progress = "0.17.0"
+ron = "0.12.2"
 
 [profile.dev]
 opt-level=3
